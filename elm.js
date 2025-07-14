@@ -5161,29 +5161,478 @@ var $elm$core$Task$perform = F2(
 var $elm$browser$Browser$element = _Browser_element;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $elm$core$List$repeatHelp = F3(
+	function (result, n, value) {
+		repeatHelp:
+		while (true) {
+			if (n <= 0) {
+				return result;
+			} else {
+				var $temp$result = A2($elm$core$List$cons, value, result),
+					$temp$n = n - 1,
+					$temp$value = value;
+				result = $temp$result;
+				n = $temp$n;
+				value = $temp$value;
+				continue repeatHelp;
+			}
+		}
+	});
+var $elm$core$List$repeat = F2(
+	function (n, value) {
+		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
+	});
+var $author$project$Main$songs = _List_fromArray(
+	[
+		{released: false, src: '/audio/mortrem-kingdom-come.mp3', title: '1. Kingdom Come'},
+		{released: true, src: '/audio/mortrem-nonfiction.mp3', title: '2. Nonfiction'},
+		{released: false, src: '/audio/mortrem-vanitybox.mp3', title: '3. Vanity Box'}
+	]);
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
-		{scrollY: 0},
+		{
+			barHeights: A2($elm$core$List$repeat, 60, 25.0),
+			currentSongIndex: 0,
+			currentTime: 0,
+			duration: 0,
+			error: $elm$core$Maybe$Nothing,
+			isPlaying: false,
+			scrollY: 0,
+			songs: $author$project$Main$songs
+		},
 		$elm$core$Platform$Cmd$none);
+};
+var $author$project$Main$AudioError = function (a) {
+	return {$: 'AudioError', a: a};
+};
+var $author$project$Main$FrequencyData = function (a) {
+	return {$: 'FrequencyData', a: a};
 };
 var $author$project$Main$OnScroll = function (a) {
 	return {$: 'OnScroll', a: a};
 };
+var $author$project$Main$SongEnded = {$: 'SongEnded'};
+var $author$project$Main$TimeUpdate = F2(
+	function (a, b) {
+		return {$: 'TimeUpdate', a: a, b: b};
+	});
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $author$project$Main$audioError = _Platform_incomingPort('audioError', $elm$json$Json$Decode$string);
+var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$json$Json$Decode$float = _Json_decodeFloat;
+var $elm$json$Json$Decode$list = _Json_decodeList;
+var $author$project$Main$frequencyData = _Platform_incomingPort(
+	'frequencyData',
+	$elm$json$Json$Decode$list($elm$json$Json$Decode$float));
+var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
 var $author$project$Main$onScroll = _Platform_incomingPort('onScroll', $elm$json$Json$Decode$float);
-var $author$project$Main$subscriptions = function (_v0) {
-	return $author$project$Main$onScroll($author$project$Main$OnScroll);
+var $elm$json$Json$Decode$null = _Json_decodeNull;
+var $author$project$Main$songEnded = _Platform_incomingPort(
+	'songEnded',
+	$elm$json$Json$Decode$null(_Utils_Tuple0));
+var $elm$json$Json$Decode$andThen = _Json_andThen;
+var $elm$json$Json$Decode$index = _Json_decodeIndex;
+var $author$project$Main$timeUpdate = _Platform_incomingPort(
+	'timeUpdate',
+	A2(
+		$elm$json$Json$Decode$andThen,
+		function (_v0) {
+			return A2(
+				$elm$json$Json$Decode$andThen,
+				function (_v1) {
+					return $elm$json$Json$Decode$succeed(
+						_Utils_Tuple2(_v0, _v1));
+				},
+				A2($elm$json$Json$Decode$index, 1, $elm$json$Json$Decode$float));
+		},
+		A2($elm$json$Json$Decode$index, 0, $elm$json$Json$Decode$float)));
+var $author$project$Main$subscriptions = function (model) {
+	return $elm$core$Platform$Sub$batch(
+		_List_fromArray(
+			[
+				$author$project$Main$onScroll($author$project$Main$OnScroll),
+				$author$project$Main$timeUpdate(
+				function (_v0) {
+					var current = _v0.a;
+					var duration = _v0.b;
+					return A2($author$project$Main$TimeUpdate, current, duration);
+				}),
+				$author$project$Main$songEnded(
+				function (_v1) {
+					return $author$project$Main$SongEnded;
+				}),
+				$author$project$Main$audioError($author$project$Main$AudioError),
+				model.isPlaying ? $author$project$Main$frequencyData($author$project$Main$FrequencyData) : $elm$core$Platform$Sub$none
+			]));
 };
+var $author$project$Main$NextSong = {$: 'NextSong'};
+var $elm$json$Json$Encode$float = _Json_wrap;
+var $elm$json$Json$Encode$list = F2(
+	function (func, entries) {
+		return _Json_wrap(
+			A3(
+				$elm$core$List$foldl,
+				_Json_addEntry(func),
+				_Json_emptyArray(_Utils_Tuple0),
+				entries));
+	});
+var $author$project$Main$drawWaveform = _Platform_outgoingPort(
+	'drawWaveform',
+	$elm$json$Json$Encode$list($elm$json$Json$Encode$float));
+var $elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
+var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$core$Basics$not = _Basics_not;
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $author$project$Main$pauseAudio = _Platform_outgoingPort('pauseAudio', $elm$json$Json$Encode$string);
+var $author$project$Main$playAudio = _Platform_outgoingPort(
+	'playAudio',
+	function ($) {
+		var a = $.a;
+		var b = $.b;
+		return A2(
+			$elm$json$Json$Encode$list,
+			$elm$core$Basics$identity,
+			_List_fromArray(
+				[
+					$elm$json$Json$Encode$string(a),
+					$elm$json$Json$Encode$string(b)
+				]));
+	});
+var $author$project$Main$seekAudio = _Platform_outgoingPort(
+	'seekAudio',
+	function ($) {
+		var a = $.a;
+		var b = $.b;
+		return A2(
+			$elm$json$Json$Encode$list,
+			$elm$core$Basics$identity,
+			_List_fromArray(
+				[
+					$elm$json$Json$Encode$string(a),
+					$elm$json$Json$Encode$float(b)
+				]));
+	});
+var $elm$core$List$sum = function (numbers) {
+	return A3($elm$core$List$foldl, $elm$core$Basics$add, 0, numbers);
+};
+var $elm$core$List$takeReverse = F3(
+	function (n, list, kept) {
+		takeReverse:
+		while (true) {
+			if (n <= 0) {
+				return kept;
+			} else {
+				if (!list.b) {
+					return kept;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs,
+						$temp$kept = A2($elm$core$List$cons, x, kept);
+					n = $temp$n;
+					list = $temp$list;
+					kept = $temp$kept;
+					continue takeReverse;
+				}
+			}
+		}
+	});
+var $elm$core$List$takeTailRec = F2(
+	function (n, list) {
+		return $elm$core$List$reverse(
+			A3($elm$core$List$takeReverse, n, list, _List_Nil));
+	});
+var $elm$core$List$takeFast = F3(
+	function (ctr, n, list) {
+		if (n <= 0) {
+			return _List_Nil;
+		} else {
+			var _v0 = _Utils_Tuple2(n, list);
+			_v0$1:
+			while (true) {
+				_v0$5:
+				while (true) {
+					if (!_v0.b.b) {
+						return list;
+					} else {
+						if (_v0.b.b.b) {
+							switch (_v0.a) {
+								case 1:
+									break _v0$1;
+								case 2:
+									var _v2 = _v0.b;
+									var x = _v2.a;
+									var _v3 = _v2.b;
+									var y = _v3.a;
+									return _List_fromArray(
+										[x, y]);
+								case 3:
+									if (_v0.b.b.b.b) {
+										var _v4 = _v0.b;
+										var x = _v4.a;
+										var _v5 = _v4.b;
+										var y = _v5.a;
+										var _v6 = _v5.b;
+										var z = _v6.a;
+										return _List_fromArray(
+											[x, y, z]);
+									} else {
+										break _v0$5;
+									}
+								default:
+									if (_v0.b.b.b.b && _v0.b.b.b.b.b) {
+										var _v7 = _v0.b;
+										var x = _v7.a;
+										var _v8 = _v7.b;
+										var y = _v8.a;
+										var _v9 = _v8.b;
+										var z = _v9.a;
+										var _v10 = _v9.b;
+										var w = _v10.a;
+										var tl = _v10.b;
+										return (ctr > 1000) ? A2(
+											$elm$core$List$cons,
+											x,
+											A2(
+												$elm$core$List$cons,
+												y,
+												A2(
+													$elm$core$List$cons,
+													z,
+													A2(
+														$elm$core$List$cons,
+														w,
+														A2($elm$core$List$takeTailRec, n - 4, tl))))) : A2(
+											$elm$core$List$cons,
+											x,
+											A2(
+												$elm$core$List$cons,
+												y,
+												A2(
+													$elm$core$List$cons,
+													z,
+													A2(
+														$elm$core$List$cons,
+														w,
+														A3($elm$core$List$takeFast, ctr + 1, n - 4, tl)))));
+									} else {
+										break _v0$5;
+									}
+							}
+						} else {
+							if (_v0.a === 1) {
+								break _v0$1;
+							} else {
+								break _v0$5;
+							}
+						}
+					}
+				}
+				return list;
+			}
+			var _v1 = _v0.b;
+			var x = _v1.a;
+			return _List_fromArray(
+				[x]);
+		}
+	});
+var $elm$core$List$take = F2(
+	function (n, list) {
+		return A3($elm$core$List$takeFast, 0, n, list);
+	});
+var $elm$json$Json$Encode$bool = _Json_wrap;
+var $author$project$Main$updateWaveform = _Platform_outgoingPort('updateWaveform', $elm$json$Json$Encode$bool);
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		var y = msg.a;
-		return _Utils_Tuple2(
-			_Utils_update(
-				model,
-				{scrollY: y}),
-			$elm$core$Platform$Cmd$none);
+		update:
+		while (true) {
+			var currentSong = A2(
+				$elm$core$Maybe$withDefault,
+				{released: false, src: '', title: ''},
+				$elm$core$List$head(
+					A2($elm$core$List$drop, model.currentSongIndex, model.songs)));
+			switch (msg.$) {
+				case 'OnScroll':
+					var y = msg.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{scrollY: y}),
+						$elm$core$Platform$Cmd$none);
+				case 'PlayPause':
+					var cmd = model.isPlaying ? $author$project$Main$pauseAudio('audioPlayer') : $author$project$Main$playAudio(
+						_Utils_Tuple2('audioPlayer', currentSong.src));
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{error: $elm$core$Maybe$Nothing, isPlaying: !model.isPlaying}),
+						cmd);
+				case 'NextSong':
+					var nextIndex = (_Utils_cmp(
+						model.currentSongIndex + 1,
+						$elm$core$List$length(model.songs)) < 0) ? (model.currentSongIndex + 1) : 0;
+					var nextSong = A2(
+						$elm$core$Maybe$withDefault,
+						{released: false, src: '', title: ''},
+						$elm$core$List$head(
+							A2($elm$core$List$drop, nextIndex, model.songs)));
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{currentSongIndex: nextIndex, currentTime: 0, error: $elm$core$Maybe$Nothing, isPlaying: true}),
+						$elm$core$Platform$Cmd$batch(
+							_List_fromArray(
+								[
+									$author$project$Main$playAudio(
+									_Utils_Tuple2('audioPlayer', nextSong.src)),
+									$author$project$Main$updateWaveform(true)
+								])));
+				case 'PreviousSong':
+					var prevIndex = ((model.currentSongIndex - 1) >= 0) ? (model.currentSongIndex - 1) : ($elm$core$List$length(model.songs) - 1);
+					var prevSong = A2(
+						$elm$core$Maybe$withDefault,
+						{released: false, src: '', title: ''},
+						$elm$core$List$head(
+							A2($elm$core$List$drop, prevIndex, model.songs)));
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{currentSongIndex: prevIndex, currentTime: 0, error: $elm$core$Maybe$Nothing, isPlaying: true}),
+						$elm$core$Platform$Cmd$batch(
+							_List_fromArray(
+								[
+									$author$project$Main$playAudio(
+									_Utils_Tuple2('audioPlayer', prevSong.src)),
+									$author$project$Main$updateWaveform(true)
+								])));
+				case 'TimeUpdate':
+					var current = msg.a;
+					var duration = msg.b;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{currentTime: current, duration: duration}),
+						$elm$core$Platform$Cmd$none);
+				case 'SongEnded':
+					var $temp$msg = $author$project$Main$NextSong,
+						$temp$model = model;
+					msg = $temp$msg;
+					model = $temp$model;
+					continue update;
+				case 'Seek':
+					var time = msg.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{currentTime: time, error: $elm$core$Maybe$Nothing}),
+						$author$project$Main$seekAudio(
+							_Utils_Tuple2('audioPlayer', time)));
+				case 'SeekProgress':
+					var progress = msg.a;
+					var seekTime = progress * model.duration;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{currentTime: seekTime, error: $elm$core$Maybe$Nothing}),
+						$author$project$Main$seekAudio(
+							_Utils_Tuple2('audioPlayer', seekTime)));
+				case 'AudioError':
+					var error = msg.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								error: $elm$core$Maybe$Just('Failed to play \'' + (currentSong.title + ('\': ' + error))),
+								isPlaying: false
+							}),
+						$elm$core$Platform$Cmd$batch(
+							_List_fromArray(
+								[
+									$author$project$Main$updateWaveform(false)
+								])));
+				default:
+					var freqData = msg.a;
+					var sampleRate = 44100;
+					var minFreq = 100;
+					var maxFreqNyquist = sampleRate / 2;
+					var maxFreq = 10000;
+					var bins = 1024;
+					var freqPerBin = maxFreqNyquist / bins;
+					var maxBin = maxFreq / freqPerBin;
+					var minBin = minFreq / freqPerBin;
+					var binsPerBar = (maxBin - minBin) / 60;
+					var barHeights = model.isPlaying ? A2(
+						$elm$core$List$map,
+						function (i) {
+							var startBin = $elm$core$Basics$floor(minBin + (i * binsPerBar));
+							var endBin = $elm$core$Basics$floor(minBin + ((i + 1) * binsPerBar));
+							var binValues = A2(
+								$elm$core$List$take,
+								endBin - startBin,
+								A2($elm$core$List$drop, startBin, freqData));
+							var count = $elm$core$List$length(binValues);
+							var sum = $elm$core$List$sum(binValues);
+							var avg = (count > 0) ? (sum / count) : 0;
+							return ((avg / 255) * 100) * 0.8;
+						},
+						A2($elm$core$List$range, 0, 59)) : A2($elm$core$List$repeat, 60, 25.0);
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{barHeights: barHeights}),
+						$author$project$Main$drawWaveform(barHeights));
+			}
+		}
 	});
-var $elm$json$Json$Encode$string = _Json_wrap;
+var $author$project$Main$PlayPause = {$: 'PlayPause'};
+var $author$project$Main$PreviousSong = {$: 'PreviousSong'};
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
+	});
+var $elm$html$Html$audio = _VirtualDom_node('audio');
+var $elm$html$Html$button = _VirtualDom_node('button');
+var $elm$html$Html$canvas = _VirtualDom_node('canvas');
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
 		return A2(
@@ -5193,42 +5642,57 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
-var $elm$html$Html$h1 = _VirtualDom_node('h1');
-var $elm$html$Html$p = _VirtualDom_node('p');
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$Main$contentPanel = A2(
-	$elm$html$Html$div,
-	_List_fromArray(
-		[
-			$elm$html$Html$Attributes$class('bg-black text-white p-10')
-		]),
-	_List_fromArray(
-		[
-			A2(
-			$elm$html$Html$h1,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$class('text-3xl font-semibold mb-4')
-				]),
-			_List_fromArray(
-				[
-					$elm$html$Html$text('Who We Are')
-				])),
-			A2(
-			$elm$html$Html$p,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$class('leading-relaxed')
-				]),
-			_List_fromArray(
-				[
-					$elm$html$Html$text('The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost...The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.')
-				]))
-		]));
-var $elm$html$Html$Attributes$alt = $elm$html$Html$Attributes$stringProperty('alt');
 var $elm$core$String$fromFloat = _String_fromNumber;
-var $elm$html$Html$img = _VirtualDom_node('img');
+var $elm$html$Html$h1 = _VirtualDom_node('h1');
+var $elm$html$Html$h2 = _VirtualDom_node('h2');
+var $elm$html$Html$Attributes$height = function (n) {
+	return A2(
+		_VirtualDom_attribute,
+		'height',
+		$elm$core$String$fromInt(n));
+};
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $author$project$Main$SeekProgress = function (a) {
+	return {$: 'SeekProgress', a: a};
+};
+var $author$project$Main$onClickSeek = function () {
+	var decodeTargetWidth = A2(
+		$elm$json$Json$Decode$at,
+		_List_fromArray(
+			['target', 'offsetWidth']),
+		$elm$json$Json$Decode$float);
+	var decodeOffsetX = A2($elm$json$Json$Decode$field, 'offsetX', $elm$json$Json$Decode$float);
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		A3(
+			$elm$json$Json$Decode$map2,
+			F2(
+				function (offsetX, targetWidth) {
+					return $author$project$Main$SeekProgress(offsetX / targetWidth);
+				}),
+			decodeOffsetX,
+			decodeTargetWidth));
+}();
+var $elm$html$Html$p = _VirtualDom_node('p');
+var $elm$html$Html$Attributes$preload = $elm$html$Html$Attributes$stringProperty('preload');
 var $elm$html$Html$Attributes$src = function (url) {
 	return A2(
 		$elm$html$Html$Attributes$stringProperty,
@@ -5237,14 +5701,26 @@ var $elm$html$Html$Attributes$src = function (url) {
 };
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
-var $author$project$Main$heroBanner = function (scrollY) {
-	var scale = A2($elm$core$Basics$max, 0.5, 1 - (scrollY / 300));
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $elm$html$Html$Attributes$width = function (n) {
+	return A2(
+		_VirtualDom_attribute,
+		'width',
+		$elm$core$String$fromInt(n));
+};
+var $author$project$Main$contentPanel = function (model) {
+	var progress = (model.duration > 0) ? ((model.currentTime / model.duration) * 100) : 0;
+	var currentSong = A2(
+		$elm$core$Maybe$withDefault,
+		{released: false, src: '', title: ''},
+		$elm$core$List$head(
+			A2($elm$core$List$drop, model.currentSongIndex, model.songs)));
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$class('h-screen bg-fixed bg-center bg-cover flex items-center justify-center text-white'),
-				A2($elm$html$Html$Attributes$style, 'background-image', 'url(\'/images/bannerimg.jpeg\')')
+				$elm$html$Html$Attributes$class('bg-black text-white pt-12 px-48 relative')
 			]),
 		_List_fromArray(
 			[
@@ -5252,16 +5728,202 @@ var $author$project$Main$heroBanner = function (scrollY) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('absolute inset-0 bg-black/40')
+						$elm$html$Html$Attributes$class('absolute top-0 left-0 right-0 h-[100px] bg-gradient-to-b from-transparent to-black')
 					]),
 				_List_Nil),
 				A2(
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('absolute bottom-0 z-40 h-[5%] w-full bg-gradient-to-t from-black to-black/0')
+						$elm$html$Html$Attributes$class('mt-8 mb-12 max-w-2xl mx-auto')
 					]),
-				_List_Nil),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$h2,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('text-2xl font-semibold mb-4 text-center')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(currentSong.title)
+							])),
+						function () {
+						var _v0 = model.error;
+						if (_v0.$ === 'Just') {
+							var error = _v0.a;
+							return A2(
+								$elm$html$Html$p,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('text-red-500 mb-4 text-center')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(error)
+									]));
+						} else {
+							return $elm$html$Html$text('');
+						}
+					}(),
+						A2(
+						$elm$html$Html$audio,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$id('audioPlayer'),
+								$elm$html$Html$Attributes$src(currentSong.src),
+								$elm$html$Html$Attributes$preload('auto'),
+								A2(
+								$elm$html$Html$Events$on,
+								'timeupdate',
+								A3(
+									$elm$json$Json$Decode$map2,
+									$author$project$Main$TimeUpdate,
+									A2(
+										$elm$json$Json$Decode$at,
+										_List_fromArray(
+											['target', 'currentTime']),
+										$elm$json$Json$Decode$float),
+									A2(
+										$elm$json$Json$Decode$at,
+										_List_fromArray(
+											['target', 'duration']),
+										$elm$json$Json$Decode$float))),
+								A2(
+								$elm$html$Html$Events$on,
+								'ended',
+								$elm$json$Json$Decode$succeed($author$project$Main$SongEnded)),
+								A2(
+								$elm$html$Html$Events$on,
+								'error',
+								A2(
+									$elm$json$Json$Decode$map,
+									$author$project$Main$AudioError,
+									A2(
+										$elm$json$Json$Decode$at,
+										_List_fromArray(
+											['target', 'error', 'message']),
+										$elm$json$Json$Decode$string))),
+								$elm$html$Html$Attributes$class('hidden')
+							]),
+						_List_Nil),
+						A2(
+						$elm$html$Html$canvas,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$id('waveform'),
+								$elm$html$Html$Attributes$width(600),
+								$elm$html$Html$Attributes$height(100),
+								$elm$html$Html$Attributes$class('w-full mb-4')
+							]),
+						_List_Nil),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('relative w-full h-2 bg-gray-700 rounded-full mb-4')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('absolute h-full bg-white rounded-full'),
+										A2(
+										$elm$html$Html$Attributes$style,
+										'width',
+										$elm$core$String$fromFloat(progress) + '%')
+									]),
+								_List_Nil),
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('absolute top-0 left-0 w-full h-full cursor-pointer'),
+										$author$project$Main$onClickSeek
+									]),
+								_List_Nil)
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('flex justify-center space-x-4')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
+										$elm$html$Html$Events$onClick($author$project$Main$PreviousSong)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Previous')
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
+										$elm$html$Html$Events$onClick($author$project$Main$PlayPause)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(
+										model.isPlaying ? 'Pause' : 'Play')
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
+										$elm$html$Html$Events$onClick($author$project$Main$NextSong)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Next')
+									]))
+							]))
+					])),
+				A2(
+				$elm$html$Html$h1,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('text-3xl font-semibold mb-4')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Who We Are')
+					])),
+				A2(
+				$elm$html$Html$p,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('leading-relaxed')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.')
+					]))
+			]));
+};
+var $elm$html$Html$Attributes$alt = $elm$html$Html$Attributes$stringProperty('alt');
+var $elm$html$Html$img = _VirtualDom_node('img');
+var $author$project$Main$heroBannerContent = function (scrollY) {
+	var scale = A2($elm$core$Basics$max, 0.5, 1 - (scrollY / 300));
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('h-screen flex items-center justify-center text-white relative')
+			]),
+		_List_fromArray(
+			[
 				A2(
 				$elm$html$Html$div,
 				_List_fromArray(
@@ -5276,14 +5938,21 @@ var $author$project$Main$heroBanner = function (scrollY) {
 							[
 								$elm$html$Html$Attributes$src('images/Mortrem-logo-white-transparent.png'),
 								$elm$html$Html$Attributes$alt('Mortrem Logo'),
-								$elm$html$Html$Attributes$class('w-[70%] transition-transform duration-300'),
+								$elm$html$Html$Attributes$class('w-[60%] transition-transform duration-300'),
 								A2(
 								$elm$html$Html$Attributes$style,
 								'transform',
 								'scale(' + ($elm$core$String$fromFloat(scale) + ')'))
 							]),
 						_List_Nil)
-					]))
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('absolute bottom-0 h-[5%] w-full bg-gradient-to-t from-black to-black/0')
+					]),
+				_List_Nil)
 			]));
 };
 var $author$project$Main$view = function (model) {
@@ -5292,8 +5961,8 @@ var $author$project$Main$view = function (model) {
 		_List_Nil,
 		_List_fromArray(
 			[
-				$author$project$Main$heroBanner(model.scrollY),
-				$author$project$Main$contentPanel
+				$author$project$Main$heroBannerContent(model.scrollY),
+				$author$project$Main$contentPanel(model)
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(
