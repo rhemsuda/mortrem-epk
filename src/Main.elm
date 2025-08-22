@@ -17,6 +17,8 @@ port audioError : (String -> msg) -> Sub msg
 port onScroll : (Float -> msg) -> Sub msg
 port frequencyData : (List Float -> msg) -> Sub msg
 port drawWaveform : List Float -> Cmd msg
+port changeVideo : String -> Cmd msg
+port videoSwitch : (Bool -> msg) -> Sub msg
 
 -- MODEL
 type alias Song =
@@ -34,6 +36,7 @@ type alias Model =
     , songs : List Song
     , error : Maybe String
     , barHeights : List Float
+    , currentVideo : String
     }
 
 songs : List Song
@@ -53,6 +56,7 @@ init _ =
       , songs = songs
       , error = Nothing
       , barHeights = List.repeat 60 25.0
+      , currentVideo = "/videos/epk-banner-fixed.mp4"
       }
     , Cmd.none
     )
@@ -69,6 +73,7 @@ type Msg
     | SeekProgress Float
     | AudioError String
     | FrequencyData (List Float)
+    | VideoSwitch Bool
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -79,8 +84,7 @@ update msg model =
                 |> Maybe.withDefault { title = "", src = "", released = False }
     in
     case msg of
-        OnScroll y ->
-            ( { model | scrollY = y }, Cmd.none )
+        OnScroll y -> ( { model | scrollY = y }, Cmd.none )
         PlayPause ->
             let
                 cmd =
@@ -174,6 +178,20 @@ update msg model =
                 ( { model | barHeights = barHeights }
                 , drawWaveform barHeights
                 )
+        VideoSwitch isSecondary ->
+            let
+                newVideo =
+                    if isSecondary then
+                        "/videos/epk-banner-fixed.mp4"
+                    else
+                        "/videos/epk-banner-fixed-clid.mp4"
+                videoCmd =
+                    if newVideo /= model.currentVideo then
+                        changeVideo newVideo
+                    else
+                        Cmd.none
+            in
+            ( { model | currentVideo = newVideo }, videoCmd )
 
 -- VIEW
 view : Model -> Html Msg
@@ -192,6 +210,7 @@ subscriptions model =
         , songEnded (\_ -> SongEnded)
         , audioError AudioError
         , if model.isPlaying then frequencyData FrequencyData else Sub.none
+        , videoSwitch VideoSwitch
         ]
 
 -- COMPONENTS
@@ -216,8 +235,8 @@ heroBannerContent scrollY =
         , div [ class "absolute bottom-0 h-[5%] w-full bg-gradient-to-t from-black to-black/0" ] []
         ]
 
-contentPanel : Model -> Html Msg
-contentPanel model =
+audioPlayerPanel : Model -> Html Msg
+audioPlayerPanel model =
     let
         currentSong =
             List.drop model.currentSongIndex model.songs
@@ -229,55 +248,51 @@ contentPanel model =
             else
                 0
     in
-    div [ class "bg-black text-white pt-12 px-48 relative" ]
-        [ -- Gradient overlay at the top
-          div [ class "absolute top-0 left-0 right-0 h-[100px] bg-gradient-to-b from-transparent to-black" ] []
-        , -- Media Player
-          div [ class "mt-8 mb-12 max-w-2xl mx-auto" ]
-              [ -- Song Title
-                h2 [ class "text-2xl font-semibold mb-4 text-center" ]
-                    [ text currentSong.title ]
-              , -- Error Message
-                case model.error of
-                    Just error ->
-                        p [ class "text-red-500 mb-4 text-center" ]
-                            [ text error ]
-                    Nothing ->
-                        text ""
-              , -- Audio Element (hidden)
-                audio
-                    [ id "audioPlayer"
-                    , src currentSong.src
-                    , preload "auto"
-                    , on "timeupdate" (Decode.map2 TimeUpdate
-                        (Decode.at ["target", "currentTime"] Decode.float)
-                        (Decode.at ["target", "duration"] Decode.float))
-                    , on "ended" (Decode.succeed SongEnded)
-                    , on "error" (Decode.at ["target", "error", "message"] Decode.string |> Decode.map AudioError)
-                    , class "hidden"
+    -- Media Player
+    div [ class "mt-8 mb-12 max-w-2xl mx-auto" ]
+        [ -- Song Title
+          h2 [ class "text-2xl font-semibold mb-4 text-center" ] [ text currentSong.title ]
+        , -- Error Message
+          case model.error of
+              Just error ->
+                  p [ class "text-red-500 mb-4 text-center" ] [ text error ]
+              Nothing ->
+                  text ""
+        , -- Audio Element (hidden)
+          audio
+            [ id "audioPlayer"
+            , src currentSong.src
+            , preload "auto"
+            , on "timeupdate" (Decode.map2 TimeUpdate
+                                   (Decode.at ["target", "currentTime"] Decode.float)
+                                   (Decode.at ["target", "duration"] Decode.float))
+            , on "ended" (Decode.succeed SongEnded)
+            , on "error" (Decode.at ["target", "error", "message"] Decode.string |> Decode.map AudioError)
+            , class "hidden"
+            ]
+            []
+        , -- Waveform Canvas
+          canvas
+            [ id "waveform"
+            , width 600
+            , height 100
+            , class "w-full mb-4"
+            ]
+            []
+        , -- Progress Bar
+          div
+            [ class "relative w-full h-2 bg-gray-700 rounded-full mb-4" ]
+                [ div
+                  [ class "absolute h-full bg-white rounded-full"
+                  , style "width" (String.fromFloat progress ++ "%")
+                  ]
+                  []
+                , -- Seek button
+                  div [ class "absolute top-0 left-0 w-full h-full cursor-pointer"
+                    , onClickSeek
                     ]
                     []
-              , -- Waveform Canvas
-                canvas
-                    [ id "waveform"
-                    , width 600
-                    , height 100
-                    , class "w-full mb-4"
-                    ]
-                    []
-              , -- Progress Bar
-                div [ class "relative w-full h-2 bg-gray-700 rounded-full mb-4" ]
-                    [ div
-                        [ class "absolute h-full bg-white rounded-full"
-                        , style "width" (String.fromFloat progress ++ "%")
-                        ]
-                        []
-                    , div
-                        [ class "absolute top-0 left-0 w-full h-full cursor-pointer"
-                        , onClickSeek
-                        ]
-                        []
-                    ]
+              ]
               , -- Controls
                 div [ class "flex justify-center space-x-4" ]
                     [ button
@@ -297,10 +312,34 @@ contentPanel model =
                         [ text "Next" ]
                     ]
               ]
+
+
+
+contentPanel : Model -> Html Msg
+contentPanel model =
+    let
+        currentSong =
+            List.drop model.currentSongIndex model.songs
+                |> List.head
+                |> Maybe.withDefault { title = "", src = "", released = False }
+        progress =
+            if model.duration > 0 then
+                (model.currentTime / model.duration) * 100
+            else
+                0
+    in
+    div [ class "bg-black text-white pt-12 px-48 relative" ]
+        [ -- Gradient overlay at the top
+          div [ class "absolute top-0 left-0 right-0 h-[100px] bg-gradient-to-b from-transparent to-black" ] []
+        , -- Audio player
+          audioPlayerPanel model
         , -- Original Content
           h1 [ class "text-3xl font-semibold mb-4" ] [ text "Who We Are" ]
         , p [ class "leading-relaxed" ]
             [ text "The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost." ]
+        , -- Video Switch Marker
+          span [ id "marker", class "inline-block" ] []
+        ,
         ]
 
 

@@ -33,15 +33,54 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       var app = Elm.Main.init({ node: document.getElementById('elm') });
-      // Scroll handler
+      let scrollTimeout;
+      const debounceScroll = (callback, wait) => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(callback, wait);
+      };
       window.addEventListener('scroll', () => {
-        app.ports.onScroll.send(window.scrollY);
+        debounceScroll(() => {
+          app.ports.onScroll.send(window.scrollY);
+        }, 100);
       });
-      // Video autoplay
+      // IntersectionObserver for video switch
+      const marker = document.getElementById('marker');
+      if (marker) {
+        const observer = new IntersectionObserver(
+          ([entry]) => {
+            const isSecondary = !entry.isIntersecting;
+            console.log('Marker visibility:', !isSecondary);
+            app.ports.videoSwitch.send(isSecondary);
+          },
+          {
+            root: null,
+            threshold: 0,
+            rootMargin: '0px'
+          }
+        );
+        observer.observe(marker);
+      } else {
+        console.error('Marker element not found');
+      }
+      // Video autoplay and switching
       const video = document.getElementById('myVideo');
       if (video) {
         video.play().catch(error => console.error('Auto-play failed:', error.message));
         video.playbackRate = 0.9;
+        app.ports.changeVideo.subscribe(newSrc => {
+          const normalizedSrc = new URL(newSrc, window.location.origin).href;
+          if (video.src !== normalizedSrc) {
+            console.log('Changing video to:', newSrc);
+            video.src = newSrc;
+            video.load();
+            video.play().catch(error => {
+              console.error('Video play failed:', error.message);
+              setTimeout(() => {
+                video.play().catch(e => console.error('Retry play failed:', e.message));
+              }, 500);
+            });
+          }
+        });
       }
       // Audio controls and Web Audio API
       const audio = document.getElementById('audioPlayer');

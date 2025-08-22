@@ -5194,6 +5194,7 @@ var $author$project$Main$init = function (_v0) {
 			barHeights: A2($elm$core$List$repeat, 60, 25.0),
 			currentSongIndex: 0,
 			currentTime: 0,
+			currentVideo: '/videos/epk-banner-fixed.mp4',
 			duration: 0,
 			error: $elm$core$Maybe$Nothing,
 			isPlaying: false,
@@ -5216,6 +5217,9 @@ var $author$project$Main$TimeUpdate = F2(
 	function (a, b) {
 		return {$: 'TimeUpdate', a: a, b: b};
 	});
+var $author$project$Main$VideoSwitch = function (a) {
+	return {$: 'VideoSwitch', a: a};
+};
 var $elm$json$Json$Decode$string = _Json_decodeString;
 var $author$project$Main$audioError = _Platform_incomingPort('audioError', $elm$json$Json$Decode$string);
 var $elm$core$Platform$Sub$batch = _Platform_batch;
@@ -5246,6 +5250,8 @@ var $author$project$Main$timeUpdate = _Platform_incomingPort(
 				A2($elm$json$Json$Decode$index, 1, $elm$json$Json$Decode$float));
 		},
 		A2($elm$json$Json$Decode$index, 0, $elm$json$Json$Decode$float)));
+var $elm$json$Json$Decode$bool = _Json_decodeBool;
+var $author$project$Main$videoSwitch = _Platform_incomingPort('videoSwitch', $elm$json$Json$Decode$bool);
 var $author$project$Main$subscriptions = function (model) {
 	return $elm$core$Platform$Sub$batch(
 		_List_fromArray(
@@ -5262,10 +5268,13 @@ var $author$project$Main$subscriptions = function (model) {
 					return $author$project$Main$SongEnded;
 				}),
 				$author$project$Main$audioError($author$project$Main$AudioError),
-				model.isPlaying ? $author$project$Main$frequencyData($author$project$Main$FrequencyData) : $elm$core$Platform$Sub$none
+				model.isPlaying ? $author$project$Main$frequencyData($author$project$Main$FrequencyData) : $elm$core$Platform$Sub$none,
+				$author$project$Main$videoSwitch($author$project$Main$VideoSwitch)
 			]));
 };
 var $author$project$Main$NextSong = {$: 'NextSong'};
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $author$project$Main$changeVideo = _Platform_outgoingPort('changeVideo', $elm$json$Json$Encode$string);
 var $elm$json$Json$Encode$float = _Json_wrap;
 var $elm$json$Json$Encode$list = F2(
 	function (func, entries) {
@@ -5310,8 +5319,8 @@ var $elm$core$List$head = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
+var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$Basics$not = _Basics_not;
-var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Main$pauseAudio = _Platform_outgoingPort('pauseAudio', $elm$json$Json$Encode$string);
 var $author$project$Main$playAudio = _Platform_outgoingPort(
 	'playAudio',
@@ -5589,7 +5598,7 @@ var $author$project$Main$update = F2(
 								[
 									$author$project$Main$updateWaveform(false)
 								])));
-				default:
+				case 'FrequencyData':
 					var freqData = msg.a;
 					var sampleRate = 44100;
 					var minFreq = 100;
@@ -5620,6 +5629,15 @@ var $author$project$Main$update = F2(
 							model,
 							{barHeights: barHeights}),
 						$author$project$Main$drawWaveform(barHeights));
+				default:
+					var isSecondary = msg.a;
+					var newVideo = isSecondary ? '/videos/epk-banner-fixed.mp4' : '/videos/epk-banner-fixed-clid.mp4';
+					var videoCmd = (!_Utils_eq(newVideo, model.currentVideo)) ? $author$project$Main$changeVideo(newVideo) : $elm$core$Platform$Cmd$none;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{currentVideo: newVideo}),
+						videoCmd);
 			}
 		}
 	});
@@ -5693,6 +5711,7 @@ var $author$project$Main$onClickSeek = function () {
 }();
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$html$Html$Attributes$preload = $elm$html$Html$Attributes$stringProperty('preload');
+var $elm$html$Html$span = _VirtualDom_node('span');
 var $elm$html$Html$Attributes$src = function (url) {
 	return A2(
 		$elm$html$Html$Attributes$stringProperty,
@@ -5909,7 +5928,15 @@ var $author$project$Main$contentPanel = function (model) {
 				_List_fromArray(
 					[
 						$elm$html$Html$text('The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.')
-					]))
+					])),
+				A2(
+				$elm$html$Html$span,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$id('marker'),
+						$elm$html$Html$Attributes$class('inline-block')
+					]),
+				_List_Nil)
 			]));
 };
 var $elm$html$Html$Attributes$alt = $elm$html$Html$Attributes$stringProperty('alt');
