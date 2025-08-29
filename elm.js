@@ -5159,8 +5159,14 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
-var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $author$project$Main$galleryImages = _List_fromArray(
+	[
+		{alt: 'Samuel George. Lead Singer. Walking on stage in red light.', src: '/images/gallery/samuel-george-lees.png'},
+		{alt: 'Kyle Jensen. Guitar & Vocals. Playing guitar and singing with a blue light.', src: '/images/gallery/kyle-jensen-lees.png'},
+		{alt: 'Charlie Romeo. Guitar. Playing guitar in green light.', src: '/images/gallery/charlie-romeo-lees.png'},
+		{alt: 'Sammy Romeo. Drums. Playing drums on stage.', src: '/images/gallery/sammy-romeo-lees.png'},
+		{alt: 'Zak Stulla. Bass Guitar. Holding a black bass guitar.', src: '/images/gallery/zak-stulla-lees.png'}
+	]);
 var $elm$core$List$repeatHelp = F3(
 	function (result, n, value) {
 		repeatHelp:
@@ -5182,6 +5188,44 @@ var $elm$core$List$repeat = F2(
 	function (n, value) {
 		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
 	});
+var $elm$json$Json$Encode$list = F2(
+	function (func, entries) {
+		return _Json_wrap(
+			A3(
+				$elm$core$List$foldl,
+				_Json_addEntry(func),
+				_Json_emptyArray(_Utils_Tuple0),
+				entries));
+	});
+var $elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v0, obj) {
+					var k = _v0.a;
+					var v = _v0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
+};
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $author$project$Main$sendImages = _Platform_outgoingPort(
+	'sendImages',
+	$elm$json$Json$Encode$list(
+		function ($) {
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'alt',
+						$elm$json$Json$Encode$string($.alt)),
+						_Utils_Tuple2(
+						'src',
+						$elm$json$Json$Encode$string($.src))
+					]));
+		}));
 var $author$project$Main$songs = _List_fromArray(
 	[
 		{released: false, src: '/audio/mortrem-kingdom-come.mp3', title: '1. Kingdom Come'},
@@ -5201,7 +5245,7 @@ var $author$project$Main$init = function (_v0) {
 			scrollY: 0,
 			songs: $author$project$Main$songs
 		},
-		$elm$core$Platform$Cmd$none);
+		$author$project$Main$sendImages($author$project$Main$galleryImages));
 };
 var $author$project$Main$AudioError = function (a) {
 	return {$: 'AudioError', a: a};
@@ -5273,18 +5317,9 @@ var $author$project$Main$subscriptions = function (model) {
 			]));
 };
 var $author$project$Main$NextSong = {$: 'NextSong'};
-var $elm$json$Json$Encode$string = _Json_wrap;
+var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $author$project$Main$changeVideo = _Platform_outgoingPort('changeVideo', $elm$json$Json$Encode$string);
 var $elm$json$Json$Encode$float = _Json_wrap;
-var $elm$json$Json$Encode$list = F2(
-	function (func, entries) {
-		return _Json_wrap(
-			A3(
-				$elm$core$List$foldl,
-				_Json_addEntry(func),
-				_Json_emptyArray(_Utils_Tuple0),
-				entries));
-	});
 var $author$project$Main$drawWaveform = _Platform_outgoingPort(
 	'drawWaveform',
 	$elm$json$Json$Encode$list($elm$json$Json$Encode$float));
@@ -5320,6 +5355,7 @@ var $elm$core$List$head = function (list) {
 	}
 };
 var $elm$core$Basics$neq = _Utils_notEqual;
+var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$Basics$not = _Basics_not;
 var $author$project$Main$pauseAudio = _Platform_outgoingPort('pauseAudio', $elm$json$Json$Encode$string);
 var $author$project$Main$playAudio = _Platform_outgoingPort(
@@ -5661,7 +5697,6 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$core$String$fromFloat = _String_fromNumber;
-var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $elm$html$Html$Attributes$height = function (n) {
 	return A2(
@@ -5711,7 +5746,6 @@ var $author$project$Main$onClickSeek = function () {
 }();
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$html$Html$Attributes$preload = $elm$html$Html$Attributes$stringProperty('preload');
-var $elm$html$Html$span = _VirtualDom_node('span');
 var $elm$html$Html$Attributes$src = function (url) {
 	return A2(
 		$elm$html$Html$Attributes$stringProperty,
@@ -5728,6 +5762,175 @@ var $elm$html$Html$Attributes$width = function (n) {
 		'width',
 		$elm$core$String$fromInt(n));
 };
+var $author$project$Main$audioPlayerPanel = function (model) {
+	var progress = (model.duration > 0) ? ((model.currentTime / model.duration) * 100) : 0;
+	var currentSong = A2(
+		$elm$core$Maybe$withDefault,
+		{released: false, src: '', title: ''},
+		$elm$core$List$head(
+			A2($elm$core$List$drop, model.currentSongIndex, model.songs)));
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('mt-8 mb-12 max-w-2xl mx-auto')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$h2,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('text-2xl font-semibold mb-4 text-center')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(currentSong.title)
+					])),
+				function () {
+				var _v0 = model.error;
+				if (_v0.$ === 'Just') {
+					var error = _v0.a;
+					return A2(
+						$elm$html$Html$p,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('text-red-500 mb-4 text-center')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(error)
+							]));
+				} else {
+					return $elm$html$Html$text('');
+				}
+			}(),
+				A2(
+				$elm$html$Html$audio,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$id('audioPlayer'),
+						$elm$html$Html$Attributes$src(currentSong.src),
+						$elm$html$Html$Attributes$preload('auto'),
+						A2(
+						$elm$html$Html$Events$on,
+						'timeupdate',
+						A3(
+							$elm$json$Json$Decode$map2,
+							$author$project$Main$TimeUpdate,
+							A2(
+								$elm$json$Json$Decode$at,
+								_List_fromArray(
+									['target', 'currentTime']),
+								$elm$json$Json$Decode$float),
+							A2(
+								$elm$json$Json$Decode$at,
+								_List_fromArray(
+									['target', 'duration']),
+								$elm$json$Json$Decode$float))),
+						A2(
+						$elm$html$Html$Events$on,
+						'ended',
+						$elm$json$Json$Decode$succeed($author$project$Main$SongEnded)),
+						A2(
+						$elm$html$Html$Events$on,
+						'error',
+						A2(
+							$elm$json$Json$Decode$map,
+							$author$project$Main$AudioError,
+							A2(
+								$elm$json$Json$Decode$at,
+								_List_fromArray(
+									['target', 'error', 'message']),
+								$elm$json$Json$Decode$string))),
+						$elm$html$Html$Attributes$class('hidden')
+					]),
+				_List_Nil),
+				A2(
+				$elm$html$Html$canvas,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$id('waveform'),
+						$elm$html$Html$Attributes$width(600),
+						$elm$html$Html$Attributes$height(100),
+						$elm$html$Html$Attributes$class('w-full mb-4')
+					]),
+				_List_Nil),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('relative w-full h-2 bg-gray-700 rounded-full mb-4')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('absolute h-full bg-white rounded-full'),
+								A2(
+								$elm$html$Html$Attributes$style,
+								'width',
+								$elm$core$String$fromFloat(progress) + '%')
+							]),
+						_List_Nil),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('absolute top-0 left-0 w-full h-full cursor-pointer'),
+								$author$project$Main$onClickSeek
+							]),
+						_List_Nil)
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('flex justify-center space-x-4')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
+								$elm$html$Html$Events$onClick($author$project$Main$PreviousSong)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Previous')
+							])),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
+								$elm$html$Html$Events$onClick($author$project$Main$PlayPause)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								model.isPlaying ? 'Pause' : 'Play')
+							])),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
+								$elm$html$Html$Events$onClick($author$project$Main$NextSong)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Next')
+							]))
+					]))
+			]));
+};
+var $elm$html$Html$h1 = _VirtualDom_node('h1');
+var $elm$html$Html$span = _VirtualDom_node('span');
 var $author$project$Main$contentPanel = function (model) {
 	var progress = (model.duration > 0) ? ((model.currentTime / model.duration) * 100) : 0;
 	var currentSong = A2(
@@ -5750,165 +5953,7 @@ var $author$project$Main$contentPanel = function (model) {
 						$elm$html$Html$Attributes$class('absolute top-0 left-0 right-0 h-[100px] bg-gradient-to-b from-transparent to-black')
 					]),
 				_List_Nil),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('mt-8 mb-12 max-w-2xl mx-auto')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$h2,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('text-2xl font-semibold mb-4 text-center')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text(currentSong.title)
-							])),
-						function () {
-						var _v0 = model.error;
-						if (_v0.$ === 'Just') {
-							var error = _v0.a;
-							return A2(
-								$elm$html$Html$p,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('text-red-500 mb-4 text-center')
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text(error)
-									]));
-						} else {
-							return $elm$html$Html$text('');
-						}
-					}(),
-						A2(
-						$elm$html$Html$audio,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$id('audioPlayer'),
-								$elm$html$Html$Attributes$src(currentSong.src),
-								$elm$html$Html$Attributes$preload('auto'),
-								A2(
-								$elm$html$Html$Events$on,
-								'timeupdate',
-								A3(
-									$elm$json$Json$Decode$map2,
-									$author$project$Main$TimeUpdate,
-									A2(
-										$elm$json$Json$Decode$at,
-										_List_fromArray(
-											['target', 'currentTime']),
-										$elm$json$Json$Decode$float),
-									A2(
-										$elm$json$Json$Decode$at,
-										_List_fromArray(
-											['target', 'duration']),
-										$elm$json$Json$Decode$float))),
-								A2(
-								$elm$html$Html$Events$on,
-								'ended',
-								$elm$json$Json$Decode$succeed($author$project$Main$SongEnded)),
-								A2(
-								$elm$html$Html$Events$on,
-								'error',
-								A2(
-									$elm$json$Json$Decode$map,
-									$author$project$Main$AudioError,
-									A2(
-										$elm$json$Json$Decode$at,
-										_List_fromArray(
-											['target', 'error', 'message']),
-										$elm$json$Json$Decode$string))),
-								$elm$html$Html$Attributes$class('hidden')
-							]),
-						_List_Nil),
-						A2(
-						$elm$html$Html$canvas,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$id('waveform'),
-								$elm$html$Html$Attributes$width(600),
-								$elm$html$Html$Attributes$height(100),
-								$elm$html$Html$Attributes$class('w-full mb-4')
-							]),
-						_List_Nil),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('relative w-full h-2 bg-gray-700 rounded-full mb-4')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$div,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('absolute h-full bg-white rounded-full'),
-										A2(
-										$elm$html$Html$Attributes$style,
-										'width',
-										$elm$core$String$fromFloat(progress) + '%')
-									]),
-								_List_Nil),
-								A2(
-								$elm$html$Html$div,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('absolute top-0 left-0 w-full h-full cursor-pointer'),
-										$author$project$Main$onClickSeek
-									]),
-								_List_Nil)
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('flex justify-center space-x-4')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$button,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
-										$elm$html$Html$Events$onClick($author$project$Main$PreviousSong)
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('Previous')
-									])),
-								A2(
-								$elm$html$Html$button,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
-										$elm$html$Html$Events$onClick($author$project$Main$PlayPause)
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text(
-										model.isPlaying ? 'Pause' : 'Play')
-									])),
-								A2(
-								$elm$html$Html$button,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
-										$elm$html$Html$Events$onClick($author$project$Main$NextSong)
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('Next')
-									]))
-							]))
-					])),
+				$author$project$Main$audioPlayerPanel(model),
 				A2(
 				$elm$html$Html$h1,
 				_List_fromArray(
@@ -5934,7 +5979,7 @@ var $author$project$Main$contentPanel = function (model) {
 				_List_fromArray(
 					[
 						$elm$html$Html$Attributes$id('marker'),
-						$elm$html$Html$Attributes$class('inline-block')
+						$elm$html$Html$Attributes$class('h-[1px] bg-transparent')
 					]),
 				_List_Nil)
 			]));
@@ -5982,6 +6027,71 @@ var $author$project$Main$heroBannerContent = function (scrollY) {
 				_List_Nil)
 			]));
 };
+var $author$project$Main$imageGallery2 = A2(
+	$elm$html$Html$div,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$class('grid grid-cols-12')
+		]),
+	_List_fromArray(
+		[
+			A2(
+			$elm$html$Html$img,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$src('images/gallery/samuel-george-lees.png'),
+					$elm$html$Html$Attributes$class('col-span-4 row-span-6')
+				]),
+			_List_Nil),
+			A2(
+			$elm$html$Html$img,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$src('images/gallery/charlie-romeo-lees.png'),
+					$elm$html$Html$Attributes$class('col-span-4 row-span-4')
+				]),
+			_List_Nil),
+			A2(
+			$elm$html$Html$img,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$src('images/gallery/charlie-romeo-lees.png'),
+					$elm$html$Html$Attributes$class('col-span-4 row-span-4')
+				]),
+			_List_Nil),
+			A2(
+			$elm$html$Html$img,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$src('images/gallery/kyle-jensen-lees.png'),
+					$elm$html$Html$Attributes$class('col-span-6 row-span-4')
+				]),
+			_List_Nil),
+			A2(
+			$elm$html$Html$img,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$src('images/gallery/sammy-romeo-lees.png'),
+					$elm$html$Html$Attributes$class('col-span-4 row-span-6')
+				]),
+			_List_Nil),
+			A2(
+			$elm$html$Html$img,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$src('images/gallery/zak-stulla-lees.png'),
+					$elm$html$Html$Attributes$class('col-span-4 row-span-6')
+				]),
+			_List_Nil)
+		]));
+var $author$project$Main$transparentGapPanel = A2(
+	$elm$html$Html$div,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$class('h-[100px] w-full'),
+			A2($elm$html$Html$Attributes$style, 'background', 'transparent')
+		]),
+	_List_Nil);
 var $author$project$Main$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
@@ -5989,7 +6099,9 @@ var $author$project$Main$view = function (model) {
 		_List_fromArray(
 			[
 				$author$project$Main$heroBannerContent(model.scrollY),
-				$author$project$Main$contentPanel(model)
+				$author$project$Main$contentPanel(model),
+				$author$project$Main$transparentGapPanel,
+				$author$project$Main$imageGallery2
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(

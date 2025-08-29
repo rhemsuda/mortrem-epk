@@ -19,12 +19,18 @@ port frequencyData : (List Float -> msg) -> Sub msg
 port drawWaveform : List Float -> Cmd msg
 port changeVideo : String -> Cmd msg
 port videoSwitch : (Bool -> msg) -> Sub msg
+port sendImages : List { src : String, alt : String } -> Cmd msg
 
 -- MODEL
 type alias Song =
     { title : String
     , src : String
     , released : Bool
+    }
+
+type alias Image =
+    { src : String
+    , alt : String
     }
 
 type alias Model =
@@ -46,6 +52,20 @@ songs =
     , { title = "3. Vanity Box", src = "/audio/mortrem-vanitybox.mp3", released = False }
     ]
 
+galleryImages : List Image
+galleryImages =
+    [ { src = "/images/gallery/samuel-george-lees.png", alt = "Samuel George. Lead Singer. Walking on stage in red light." }
+    , { src = "/images/gallery/kyle-jensen-lees.png", alt = "Kyle Jensen. Guitar & Vocals. Playing guitar and singing with a blue light." }
+    , { src = "/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." }
+    , { src = "/images/gallery/sammy-romeo-lees.png", alt = "Sammy Romeo. Drums. Playing drums on stage." }
+    , { src = "/images/gallery/zak-stulla-lees.png", alt = "Zak Stulla. Bass Guitar. Holding a black bass guitar." }
+    ]
+
+
+bioMessage : String
+bioMessage = "Mortrem is the result of raw energy, fearless experimentation, and an obsession with crafting unforgettable live shows. A Waterloo, Ontario-based band determined to reshape the future of alternative metal. With songs that balance intensity and creativity, Mortrem has built a reputation of making audiences feel every emotion of their music."
+
+
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { scrollY = 0
@@ -58,7 +78,7 @@ init _ =
       , barHeights = List.repeat 60 25.0
       , currentVideo = "/videos/epk-banner-fixed.mp4"
       }
-    , Cmd.none
+    , sendImages galleryImages
     )
 
 -- UPDATE
@@ -199,6 +219,9 @@ view model =
     div []
         [ heroBannerContent model.scrollY
         , contentPanel model
+        , transparentGapPanel
+        --, imageGallery galleryImages
+        , imageGallery2
         ]
 
 -- SUBSCRIPTIONS
@@ -314,6 +337,20 @@ audioPlayerPanel model =
               ]
 
 
+transparentGapPanel : Html Msg
+transparentGapPanel =
+    div
+        [ class "h-[100px] w-full"
+        , style "background" "transparent"
+        ]
+        []
+
+
+bioPanel : Model -> Html Msg
+bioPanel model =
+    div [ class "bg-black text-white pt-12 px-32 relative" ]
+        [ h1 [ class "text-lg" ] [ text bioMessage ]
+        ]
 
 contentPanel : Model -> Html Msg
 contentPanel model =
@@ -338,8 +375,50 @@ contentPanel model =
         , p [ class "leading-relaxed" ]
             [ text "The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost." ]
         , -- Video Switch Marker
-          span [ id "marker", class "inline-block" ] []
+          span [ id "marker", class "h-[1px] bg-transparent" ] []
+        ]
+
+
+imageGallery : List Image -> Html Msg
+imageGallery images =
+    div [ class "mt-8 max-w-5xl mx-auto", id "image-gallery" ]
+        [ h2 [ class "text-2xl font-semibold mb-4 text-center" ] [ text "Gallery" ]
+        , div [ id "masonry-grid" ]
+            []  -- Empty div, content will be added dynamically in JS
+        ]
+
+imageGallery2 : Html Msg
+imageGallery2 =
+    div [ class "grid grid-cols-12" ]
+        [ img
+          [ src "images/gallery/samuel-george-lees.png"
+          , class "col-span-4 row-span-6"
+          ] []
         ,
+          img
+          [ src "images/gallery/charlie-romeo-lees.png"
+          , class "col-span-4 row-span-4"
+          ] []
+            ,
+          img
+          [ src "images/gallery/charlie-romeo-lees.png"
+          , class "col-span-4 row-span-4"
+          ] []
+            ,
+          img
+          [ src "images/gallery/kyle-jensen-lees.png"
+          , class "col-span-6 row-span-4"
+          ] []
+            ,
+          img
+          [ src "images/gallery/sammy-romeo-lees.png"
+          , class "col-span-4 row-span-6"
+          ] []
+        ,
+          img
+          [ src "images/gallery/zak-stulla-lees.png"
+          , class "col-span-4 row-span-6"
+          ] []
         ]
 
 
