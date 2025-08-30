@@ -5675,7 +5675,7 @@ var $author$project$Main$bioPanel = function (model) {
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$class('flex flex-col pt-32 pb-16 lg:px-16 xl:px-32')
+				$elm$html$Html$Attributes$class('flex flex-col py-16 lg:px-16 xl:px-32')
 			]),
 		_List_fromArray(
 			[
@@ -6185,7 +6185,7 @@ var $author$project$Main$topDownBlackGradientSpan = A2(
 	$elm$html$Html$div,
 	_List_fromArray(
 		[
-			$elm$html$Html$Attributes$class('relatove top-0 h-[20%] w-full bg-gradient-to-b from-black to-black/0 z-10')
+			$elm$html$Html$Attributes$class('absolute top-0 h-[20%] w-full bg-gradient-to-b from-black to-black/0 z-10')
 		]),
 	_List_Nil);
 var $author$project$Main$navbar = function (model) {
@@ -6194,7 +6194,7 @@ var $author$project$Main$navbar = function (model) {
 		_List_fromArray(
 			[
 				$elm$html$Html$Attributes$id('navbar'),
-				$elm$html$Html$Attributes$class('fixed top-0 left-0 w-full h-18 z-[1000]')
+				$elm$html$Html$Attributes$class('fixed top-0 left-0 w-full h-18 z-[1000] transition-transform duration-300 ease-in-out transform translate-y-0')
 			]),
 		_List_fromArray(
 			[
@@ -6202,7 +6202,7 @@ var $author$project$Main$navbar = function (model) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('h-16 bg-black text-white flex items-center justify-center')
+						$elm$html$Html$Attributes$class('h-16 bg-black text-white flex items-center justify-center relative')
 					]),
 				_List_fromArray(
 					[
@@ -6214,9 +6214,9 @@ var $author$project$Main$navbar = function (model) {
 								$elm$html$Html$Attributes$alt('Mortrem Logo'),
 								$elm$html$Html$Attributes$class('h-12')
 							]),
-						_List_Nil)
-					])),
-				$author$project$Main$topDownBlackGradientSpan
+						_List_Nil),
+						$author$project$Main$topDownBlackGradientSpan
+					]))
 			]));
 };
 var $author$project$Main$transparentGapPanel = A2(

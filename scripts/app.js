@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('Marker element not found');
   }
 
-  // NEW: IntersectionObserver for navbar
+  // IntersectionObserver for navbar
   const navbarMarker = document.getElementById('navbar-marker');
   const navbar = document.getElementById('navbar');
   if (navbarMarker && navbar) {
