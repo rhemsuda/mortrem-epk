@@ -5159,14 +5159,8 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
-var $author$project$Main$galleryImages = _List_fromArray(
-	[
-		{alt: 'Samuel George. Lead Singer. Walking on stage in red light.', src: '/images/gallery/samuel-george-lees.png'},
-		{alt: 'Kyle Jensen. Guitar & Vocals. Playing guitar and singing with a blue light.', src: '/images/gallery/kyle-jensen-lees.png'},
-		{alt: 'Charlie Romeo. Guitar. Playing guitar in green light.', src: '/images/gallery/charlie-romeo-lees.png'},
-		{alt: 'Sammy Romeo. Drums. Playing drums on stage.', src: '/images/gallery/sammy-romeo-lees.png'},
-		{alt: 'Zak Stulla. Bass Guitar. Holding a black bass guitar.', src: '/images/gallery/zak-stulla-lees.png'}
-	]);
+var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$List$repeatHelp = F3(
 	function (result, n, value) {
 		repeatHelp:
@@ -5188,44 +5182,6 @@ var $elm$core$List$repeat = F2(
 	function (n, value) {
 		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
 	});
-var $elm$json$Json$Encode$list = F2(
-	function (func, entries) {
-		return _Json_wrap(
-			A3(
-				$elm$core$List$foldl,
-				_Json_addEntry(func),
-				_Json_emptyArray(_Utils_Tuple0),
-				entries));
-	});
-var $elm$json$Json$Encode$object = function (pairs) {
-	return _Json_wrap(
-		A3(
-			$elm$core$List$foldl,
-			F2(
-				function (_v0, obj) {
-					var k = _v0.a;
-					var v = _v0.b;
-					return A3(_Json_addField, k, v, obj);
-				}),
-			_Json_emptyObject(_Utils_Tuple0),
-			pairs));
-};
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $author$project$Main$sendImages = _Platform_outgoingPort(
-	'sendImages',
-	$elm$json$Json$Encode$list(
-		function ($) {
-			return $elm$json$Json$Encode$object(
-				_List_fromArray(
-					[
-						_Utils_Tuple2(
-						'alt',
-						$elm$json$Json$Encode$string($.alt)),
-						_Utils_Tuple2(
-						'src',
-						$elm$json$Json$Encode$string($.src))
-					]));
-		}));
 var $author$project$Main$songs = _List_fromArray(
 	[
 		{released: false, src: '/audio/mortrem-kingdom-come.mp3', title: '1. Kingdom Come'},
@@ -5245,23 +5201,23 @@ var $author$project$Main$init = function (_v0) {
 			scrollY: 0,
 			songs: $author$project$Main$songs
 		},
-		$author$project$Main$sendImages($author$project$Main$galleryImages));
+		$elm$core$Platform$Cmd$none);
 };
-var $author$project$Main$AudioError = function (a) {
+var $author$project$Types$AudioError = function (a) {
 	return {$: 'AudioError', a: a};
 };
-var $author$project$Main$FrequencyData = function (a) {
+var $author$project$Types$FrequencyData = function (a) {
 	return {$: 'FrequencyData', a: a};
 };
-var $author$project$Main$OnScroll = function (a) {
+var $author$project$Types$OnScroll = function (a) {
 	return {$: 'OnScroll', a: a};
 };
-var $author$project$Main$SongEnded = {$: 'SongEnded'};
-var $author$project$Main$TimeUpdate = F2(
+var $author$project$Types$SongEnded = {$: 'SongEnded'};
+var $author$project$Types$TimeUpdate = F2(
 	function (a, b) {
 		return {$: 'TimeUpdate', a: a, b: b};
 	});
-var $author$project$Main$VideoSwitch = function (a) {
+var $author$project$Types$VideoSwitch = function (a) {
 	return {$: 'VideoSwitch', a: a};
 };
 var $elm$json$Json$Decode$string = _Json_decodeString;
@@ -5300,26 +5256,35 @@ var $author$project$Main$subscriptions = function (model) {
 	return $elm$core$Platform$Sub$batch(
 		_List_fromArray(
 			[
-				$author$project$Main$onScroll($author$project$Main$OnScroll),
+				$author$project$Main$onScroll($author$project$Types$OnScroll),
 				$author$project$Main$timeUpdate(
 				function (_v0) {
 					var current = _v0.a;
 					var duration = _v0.b;
-					return A2($author$project$Main$TimeUpdate, current, duration);
+					return A2($author$project$Types$TimeUpdate, current, duration);
 				}),
 				$author$project$Main$songEnded(
 				function (_v1) {
-					return $author$project$Main$SongEnded;
+					return $author$project$Types$SongEnded;
 				}),
-				$author$project$Main$audioError($author$project$Main$AudioError),
-				model.isPlaying ? $author$project$Main$frequencyData($author$project$Main$FrequencyData) : $elm$core$Platform$Sub$none,
-				$author$project$Main$videoSwitch($author$project$Main$VideoSwitch)
+				$author$project$Main$audioError($author$project$Types$AudioError),
+				model.isPlaying ? $author$project$Main$frequencyData($author$project$Types$FrequencyData) : $elm$core$Platform$Sub$none,
+				$author$project$Main$videoSwitch($author$project$Types$VideoSwitch)
 			]));
 };
-var $author$project$Main$NextSong = {$: 'NextSong'};
-var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $author$project$Types$NextSong = {$: 'NextSong'};
+var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Main$changeVideo = _Platform_outgoingPort('changeVideo', $elm$json$Json$Encode$string);
 var $elm$json$Json$Encode$float = _Json_wrap;
+var $elm$json$Json$Encode$list = F2(
+	function (func, entries) {
+		return _Json_wrap(
+			A3(
+				$elm$core$List$foldl,
+				_Json_addEntry(func),
+				_Json_emptyArray(_Utils_Tuple0),
+				entries));
+	});
 var $author$project$Main$drawWaveform = _Platform_outgoingPort(
 	'drawWaveform',
 	$elm$json$Json$Encode$list($elm$json$Json$Encode$float));
@@ -5345,6 +5310,25 @@ var $elm$core$List$drop = F2(
 		}
 	});
 var $elm$core$Basics$ge = _Utils_ge;
+var $author$project$Update$OnScroll$handle = F2(
+	function (y, model) {
+		return _Utils_Tuple2(
+			_Utils_update(
+				model,
+				{scrollY: y}),
+			$elm$core$Platform$Cmd$none);
+	});
+var $elm$core$Basics$not = _Basics_not;
+var $author$project$Update$PlayPause$handle = F4(
+	function (currentSong, model, playAudio, pauseAudio) {
+		var cmd = model.isPlaying ? pauseAudio('audioPlayer') : playAudio(
+			_Utils_Tuple2('audioPlayer', currentSong.src));
+		return _Utils_Tuple2(
+			_Utils_update(
+				model,
+				{error: $elm$core$Maybe$Nothing, isPlaying: !model.isPlaying}),
+			cmd);
+	});
 var $elm$core$List$head = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -5355,8 +5339,6 @@ var $elm$core$List$head = function (list) {
 	}
 };
 var $elm$core$Basics$neq = _Utils_notEqual;
-var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $elm$core$Basics$not = _Basics_not;
 var $author$project$Main$pauseAudio = _Platform_outgoingPort('pauseAudio', $elm$json$Json$Encode$string);
 var $author$project$Main$playAudio = _Platform_outgoingPort(
 	'playAudio',
@@ -5538,19 +5520,9 @@ var $author$project$Main$update = F2(
 			switch (msg.$) {
 				case 'OnScroll':
 					var y = msg.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{scrollY: y}),
-						$elm$core$Platform$Cmd$none);
+					return A2($author$project$Update$OnScroll$handle, y, model);
 				case 'PlayPause':
-					var cmd = model.isPlaying ? $author$project$Main$pauseAudio('audioPlayer') : $author$project$Main$playAudio(
-						_Utils_Tuple2('audioPlayer', currentSong.src));
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{error: $elm$core$Maybe$Nothing, isPlaying: !model.isPlaying}),
-						cmd);
+					return A4($author$project$Update$PlayPause$handle, currentSong, model, $author$project$Main$playAudio, $author$project$Main$pauseAudio);
 				case 'NextSong':
 					var nextIndex = (_Utils_cmp(
 						model.currentSongIndex + 1,
@@ -5598,7 +5570,7 @@ var $author$project$Main$update = F2(
 							{currentTime: current, duration: duration}),
 						$elm$core$Platform$Cmd$none);
 				case 'SongEnded':
-					var $temp$msg = $author$project$Main$NextSong,
+					var $temp$msg = $author$project$Types$NextSong,
 						$temp$model = model;
 					msg = $temp$msg;
 					model = $temp$model;
@@ -5677,8 +5649,255 @@ var $author$project$Main$update = F2(
 			}
 		}
 	});
-var $author$project$Main$PlayPause = {$: 'PlayPause'};
-var $author$project$Main$PreviousSong = {$: 'PreviousSong'};
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $elm$html$Html$Attributes$alt = $elm$html$Html$Attributes$stringProperty('alt');
+var $author$project$Main$bioText1 = 'Mortrem is the result of raw energy, fearless experimentation, and an obsession with crafting unforgettable live shows. A Waterloo, Ontario-based band determined to reshape the future of alternative metal. With songs that balance intensity and creativity, Mortrem has built a reputation of making audiences feel every emotion of their music.\nMortrem is a band driven to create the ultimate live experience for their fans. In an ever-evolving online world, their ability to engage their fans in a raw and energetic sets them apart from competing acts. From programming their own light shows to writing music that keeps listeners hooked from the first riff to the last note, Mortrem thrives on building moments that linger long after the amps fade. Whether in a packed venue or an intimate club, Mortrem ensures every performance feels immersive, inclusive, and unforgettable.';
+var $author$project$Main$bioText2 = 'Born during the pandemic, Mortrem began as a recording project between founding members Kyle Jensen, Sammy Romeo, and Charlie Romeo. What started as an experiment in Sammy\'s Dad\'s basement quickly grew into something bigger as their catalogue started to take shape into a full album. Drawing on their childhood and modern inspirations in metal and hard rock, the trio carved out Mortrem\'s distinct sound — heavy, experimental, and engaging. With the addition of Samuel George on vocals and Zak Stulla on bass, the band became a fully realized project, united by a shared vision to push musical and live show boundaries.';
+var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
+var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$html$Html$img = _VirtualDom_node('img');
+var $elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $author$project$Main$bioPanel = function (model) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('flex flex-col pt-32 pb-16 lg:px-16 xl:px-32')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('lg:flex lg:flex-row lg:items-stretch lg:gap-4')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('lg:w-2/5')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$img,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$src('images/zak-charlie-fourleaf.png'),
+										$elm$html$Html$Attributes$alt('test'),
+										$elm$html$Html$Attributes$class('w-full h-full object-cover')
+									]),
+								_List_Nil)
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('lg:w-3/5 text-white text-md leading-relaxed')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text($author$project$Main$bioText1)
+							]))
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('flex flex-row items-stretch gap-4 mt-4')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('w-3/5 text-white text-md leading-relaxed')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text($author$project$Main$bioText2)
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('w-2/5')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$img,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$src('images/gallery/charlie-romeo-lees.png'),
+										$elm$html$Html$Attributes$alt('test'),
+										$elm$html$Html$Attributes$class('w-full h-full object-cover')
+									]),
+								_List_Nil)
+							]))
+					]))
+			]));
+};
+var $author$project$Main$contentPanel = F2(
+	function (model, children) {
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('bg-black w-full px-28')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('mx-auto max-w-[80rem]')
+						]),
+					children)
+				]));
+	});
+var $author$project$Main$galleryImages = _List_fromArray(
+	[
+		{
+		colSpan: 4,
+		image: {alt: 'Samuel George. Lead Singer. Walking on stage in red light.', src: '/images/gallery/samuel-george-lees.png'},
+		rowSpan: 6
+	},
+		{
+		colSpan: 4,
+		image: {alt: 'Charlie Romeo. Guitar. Playing guitar in green light.', src: '/images/gallery/charlie-romeo-lees.png'},
+		rowSpan: 4
+	},
+		{
+		colSpan: 4,
+		image: {alt: 'Charlie Romeo. Guitar. Playing guitar in green light.', src: '/images/gallery/charlie-romeo-lees.png'},
+		rowSpan: 4
+	},
+		{
+		colSpan: 6,
+		image: {alt: 'Kyle Jensen. Guitar & Vocals. Playing guitar and singing with a blue light.', src: '/images/gallery/kyle-jensen-lees.png'},
+		rowSpan: 4
+	},
+		{
+		colSpan: 4,
+		image: {alt: 'Sammy Romeo. Drums. Playing drums on stage.', src: '/images/gallery/sammy-romeo-lees.png'},
+		rowSpan: 6
+	},
+		{
+		colSpan: 4,
+		image: {alt: 'Zak Stulla. Bass Guitar. Holding a black bass guitar.', src: '/images/gallery/zak-stulla-lees.png'},
+		rowSpan: 6
+	},
+		{
+		colSpan: 4,
+		image: {alt: 'Charlie Romeo. Guitar. Playing guitar in green light.', src: '/images/gallery/charlie-romeo-lees.png'},
+		rowSpan: 4
+	}
+	]);
+var $author$project$Main$bottomUpBlackGradientSpan = A2(
+	$elm$html$Html$div,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$class('absolute bottom-0 h-[2%] w-full bg-gradient-to-t from-black to-black/0 z-10')
+		]),
+	_List_Nil);
+var $elm$core$String$fromFloat = _String_fromNumber;
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
+var $author$project$Main$heroBannerContent = function (scrollY) {
+	var scale = A2($elm$core$Basics$max, 0.5, 1 - (scrollY / 300));
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('h-screen flex items-center justify-center text-white relative'),
+				A2($elm$html$Html$Attributes$style, 'z-index', '10')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('relative z-20 flex items-center justify-center h-full')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$img,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$src('images/Mortrem-logo-white-transparent.png'),
+								$elm$html$Html$Attributes$alt('Mortrem Logo'),
+								$elm$html$Html$Attributes$class('w-[60%] transition-transform duration-300'),
+								A2(
+								$elm$html$Html$Attributes$style,
+								'transform',
+								'scale(' + ($elm$core$String$fromFloat(scale) + ')'))
+							]),
+						_List_Nil)
+					])),
+				$author$project$Main$bottomUpBlackGradientSpan
+			]));
+};
+var $author$project$Main$colrowspan = F2(
+	function (col, row) {
+		return 'col-span-' + ($elm$core$String$fromInt(col) + (' ' + ('row-span-' + $elm$core$String$fromInt(row))));
+	});
+var $author$project$Main$imageGalleryClasses = F2(
+	function (col, row) {
+		return A2($author$project$Main$colrowspan, col, row);
+	});
+var $author$project$Main$galleryImageComponent = function (galleryImage) {
+	return A2(
+		$elm$html$Html$img,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$src(galleryImage.image.src),
+				$elm$html$Html$Attributes$class(
+				A2($author$project$Main$imageGalleryClasses, galleryImage.colSpan, galleryImage.rowSpan))
+			]),
+		_List_Nil);
+};
+var $author$project$Main$imageGallery = function (images) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('grid grid-cols-12')
+			]),
+		A2($elm$core$List$map, $author$project$Main$galleryImageComponent, images));
+};
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
+var $elm$html$Html$span = _VirtualDom_node('span');
+var $author$project$Main$marker = A2(
+	$elm$html$Html$span,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$id('navbar-marker'),
+			$elm$html$Html$Attributes$class('h-[1px] bg-black block')
+		]),
+	_List_Nil);
+var $author$project$Types$PlayPause = {$: 'PlayPause'};
+var $author$project$Types$PreviousSong = {$: 'PreviousSong'};
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
@@ -5687,16 +5906,6 @@ var $elm$json$Json$Decode$at = F2(
 var $elm$html$Html$audio = _VirtualDom_node('audio');
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$canvas = _VirtualDom_node('canvas');
-var $elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$string(string));
-	});
-var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
-var $elm$html$Html$div = _VirtualDom_node('div');
-var $elm$core$String$fromFloat = _String_fromNumber;
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $elm$html$Html$Attributes$height = function (n) {
 	return A2(
@@ -5704,7 +5913,6 @@ var $elm$html$Html$Attributes$height = function (n) {
 		'height',
 		$elm$core$String$fromInt(n));
 };
-var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -5722,7 +5930,7 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		$elm$json$Json$Decode$succeed(msg));
 };
-var $author$project$Main$SeekProgress = function (a) {
+var $author$project$Types$SeekProgress = function (a) {
 	return {$: 'SeekProgress', a: a};
 };
 var $author$project$Main$onClickSeek = function () {
@@ -5739,23 +5947,13 @@ var $author$project$Main$onClickSeek = function () {
 			$elm$json$Json$Decode$map2,
 			F2(
 				function (offsetX, targetWidth) {
-					return $author$project$Main$SeekProgress(offsetX / targetWidth);
+					return $author$project$Types$SeekProgress(offsetX / targetWidth);
 				}),
 			decodeOffsetX,
 			decodeTargetWidth));
 }();
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$html$Html$Attributes$preload = $elm$html$Html$Attributes$stringProperty('preload');
-var $elm$html$Html$Attributes$src = function (url) {
-	return A2(
-		$elm$html$Html$Attributes$stringProperty,
-		'src',
-		_VirtualDom_noJavaScriptOrHtmlUri(url));
-};
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$width = function (n) {
 	return A2(
 		_VirtualDom_attribute,
@@ -5817,7 +6015,7 @@ var $author$project$Main$audioPlayerPanel = function (model) {
 						'timeupdate',
 						A3(
 							$elm$json$Json$Decode$map2,
-							$author$project$Main$TimeUpdate,
+							$author$project$Types$TimeUpdate,
 							A2(
 								$elm$json$Json$Decode$at,
 								_List_fromArray(
@@ -5831,13 +6029,13 @@ var $author$project$Main$audioPlayerPanel = function (model) {
 						A2(
 						$elm$html$Html$Events$on,
 						'ended',
-						$elm$json$Json$Decode$succeed($author$project$Main$SongEnded)),
+						$elm$json$Json$Decode$succeed($author$project$Types$SongEnded)),
 						A2(
 						$elm$html$Html$Events$on,
 						'error',
 						A2(
 							$elm$json$Json$Decode$map,
-							$author$project$Main$AudioError,
+							$author$project$Types$AudioError,
 							A2(
 								$elm$json$Json$Decode$at,
 								_List_fromArray(
@@ -5897,7 +6095,7 @@ var $author$project$Main$audioPlayerPanel = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
-								$elm$html$Html$Events$onClick($author$project$Main$PreviousSong)
+								$elm$html$Html$Events$onClick($author$project$Types$PreviousSong)
 							]),
 						_List_fromArray(
 							[
@@ -5908,7 +6106,7 @@ var $author$project$Main$audioPlayerPanel = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
-								$elm$html$Html$Events$onClick($author$project$Main$PlayPause)
+								$elm$html$Html$Events$onClick($author$project$Types$PlayPause)
 							]),
 						_List_fromArray(
 							[
@@ -5920,7 +6118,7 @@ var $author$project$Main$audioPlayerPanel = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
-								$elm$html$Html$Events$onClick($author$project$Main$NextSong)
+								$elm$html$Html$Events$onClick($author$project$Types$NextSong)
 							]),
 						_List_fromArray(
 							[
@@ -5930,8 +6128,7 @@ var $author$project$Main$audioPlayerPanel = function (model) {
 			]));
 };
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
-var $elm$html$Html$span = _VirtualDom_node('span');
-var $author$project$Main$contentPanel = function (model) {
+var $author$project$Main$myTestPanel = function (model) {
 	var progress = (model.duration > 0) ? ((model.currentTime / model.duration) * 100) : 0;
 	var currentSong = A2(
 		$elm$core$Maybe$withDefault,
@@ -5942,7 +6139,7 @@ var $author$project$Main$contentPanel = function (model) {
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$class('bg-black text-white pt-12 px-48 relative')
+				$elm$html$Html$Attributes$class('text-white pt-12 px-48 relative')
 			]),
 		_List_fromArray(
 			[
@@ -5984,15 +6181,20 @@ var $author$project$Main$contentPanel = function (model) {
 				_List_Nil)
 			]));
 };
-var $elm$html$Html$Attributes$alt = $elm$html$Html$Attributes$stringProperty('alt');
-var $elm$html$Html$img = _VirtualDom_node('img');
-var $author$project$Main$heroBannerContent = function (scrollY) {
-	var scale = A2($elm$core$Basics$max, 0.5, 1 - (scrollY / 300));
+var $author$project$Main$topDownBlackGradientSpan = A2(
+	$elm$html$Html$div,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$class('relatove top-0 h-[20%] w-full bg-gradient-to-b from-black to-black/0 z-10')
+		]),
+	_List_Nil);
+var $author$project$Main$navbar = function (model) {
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$class('h-screen flex items-center justify-center text-white relative')
+				$elm$html$Html$Attributes$id('navbar'),
+				$elm$html$Html$Attributes$class('fixed top-0 left-0 w-full h-18 z-[1000]')
 			]),
 		_List_fromArray(
 			[
@@ -6000,7 +6202,7 @@ var $author$project$Main$heroBannerContent = function (scrollY) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('relative z-10 flex items-center justify-center h-full')
+						$elm$html$Html$Attributes$class('h-16 bg-black text-white flex items-center justify-center')
 					]),
 				_List_fromArray(
 					[
@@ -6010,80 +6212,13 @@ var $author$project$Main$heroBannerContent = function (scrollY) {
 							[
 								$elm$html$Html$Attributes$src('images/Mortrem-logo-white-transparent.png'),
 								$elm$html$Html$Attributes$alt('Mortrem Logo'),
-								$elm$html$Html$Attributes$class('w-[60%] transition-transform duration-300'),
-								A2(
-								$elm$html$Html$Attributes$style,
-								'transform',
-								'scale(' + ($elm$core$String$fromFloat(scale) + ')'))
+								$elm$html$Html$Attributes$class('h-12')
 							]),
 						_List_Nil)
 					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('absolute bottom-0 h-[5%] w-full bg-gradient-to-t from-black to-black/0')
-					]),
-				_List_Nil)
+				$author$project$Main$topDownBlackGradientSpan
 			]));
 };
-var $author$project$Main$imageGallery2 = A2(
-	$elm$html$Html$div,
-	_List_fromArray(
-		[
-			$elm$html$Html$Attributes$class('grid grid-cols-12')
-		]),
-	_List_fromArray(
-		[
-			A2(
-			$elm$html$Html$img,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$src('images/gallery/samuel-george-lees.png'),
-					$elm$html$Html$Attributes$class('col-span-4 row-span-6')
-				]),
-			_List_Nil),
-			A2(
-			$elm$html$Html$img,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$src('images/gallery/charlie-romeo-lees.png'),
-					$elm$html$Html$Attributes$class('col-span-4 row-span-4')
-				]),
-			_List_Nil),
-			A2(
-			$elm$html$Html$img,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$src('images/gallery/charlie-romeo-lees.png'),
-					$elm$html$Html$Attributes$class('col-span-4 row-span-4')
-				]),
-			_List_Nil),
-			A2(
-			$elm$html$Html$img,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$src('images/gallery/kyle-jensen-lees.png'),
-					$elm$html$Html$Attributes$class('col-span-6 row-span-4')
-				]),
-			_List_Nil),
-			A2(
-			$elm$html$Html$img,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$src('images/gallery/sammy-romeo-lees.png'),
-					$elm$html$Html$Attributes$class('col-span-4 row-span-6')
-				]),
-			_List_Nil),
-			A2(
-			$elm$html$Html$img,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$src('images/gallery/zak-stulla-lees.png'),
-					$elm$html$Html$Attributes$class('col-span-4 row-span-6')
-				]),
-			_List_Nil)
-		]));
 var $author$project$Main$transparentGapPanel = A2(
 	$elm$html$Html$div,
 	_List_fromArray(
@@ -6098,10 +6233,26 @@ var $author$project$Main$view = function (model) {
 		_List_Nil,
 		_List_fromArray(
 			[
+				$author$project$Main$navbar(model),
 				$author$project$Main$heroBannerContent(model.scrollY),
-				$author$project$Main$contentPanel(model),
+				$author$project$Main$marker,
+				A2(
+				$author$project$Main$contentPanel,
+				model,
+				_List_fromArray(
+					[
+						$author$project$Main$bioPanel(model),
+						$author$project$Main$imageGallery($author$project$Main$galleryImages)
+					])),
 				$author$project$Main$transparentGapPanel,
-				$author$project$Main$imageGallery2
+				A2(
+				$author$project$Main$contentPanel,
+				model,
+				_List_fromArray(
+					[
+						$author$project$Main$myTestPanel(model),
+						$author$project$Main$imageGallery($author$project$Main$galleryImages)
+					]))
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(
