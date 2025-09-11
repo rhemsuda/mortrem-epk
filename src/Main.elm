@@ -1,7 +1,7 @@
 port module Main exposing (main)
 
 import Browser
-import Html exposing (Html, div, h1, h2, p, text, img, audio, canvas, button, span)
+import Html exposing (Html, div, h1, h2, p, text, img, audio, canvas, button, span, table, thead, tbody, tr, th, td)
 import Html.Attributes exposing (class, style, src, alt, id, width, height, preload)
 import Html.Events exposing (on, onClick)
 import Json.Decode as Decode
@@ -24,12 +24,22 @@ port frequencyData : (List Float -> msg) -> Sub msg
 port drawWaveform : List Float -> Cmd msg
 port changeVideo : String -> Cmd msg
 port videoSwitch : (Bool -> msg) -> Sub msg
+port scrollToId : String -> Cmd msg
+
+
+barsCount : Int
+barsCount = 10
+
+
+titleText : String -> Html Msg
+titleText msg =
+    div [ class "text-white font-serif text-5xl text-center pb-8" ] [ text msg ]
 
 -- MODEL
 songs : List Song
 songs =
-    [ { title = "1. Kingdom Come", src = "/audio/mortrem-kingdom-come.mp3", released = False }
-    , { title = "2. Nonfiction", src = "/audio/mortrem-nonfiction.mp3", released = True }
+    [ { title = "1. Kingdom Come", src = "/audio/mortrem-kingdom-come.mp3", released = False, artwork = None }
+    , { title = "2. Nonfiction", src = "/audio/mortrem-nonfiction.mp3", released = True, artwork = "/images/coverart/mortrem-nonfiction.png" }
     , { title = "3. Vanity Box", src = "/audio/mortrem-vanitybox.mp3", released = False }
     ]
 
@@ -48,7 +58,13 @@ bioText1 : String
 bioText1 = "Mortrem is the result of raw energy, fearless experimentation, and an obsession with crafting unforgettable live shows. A Waterloo, Ontario-based band determined to reshape the future of alternative metal. With songs that balance intensity and creativity, Mortrem has built a reputation of making audiences feel every emotion of their music.\nMortrem is a band driven to create the ultimate live experience for their fans. In an ever-evolving online world, their ability to engage their fans in a raw and energetic sets them apart from competing acts. From programming their own light shows to writing music that keeps listeners hooked from the first riff to the last note, Mortrem thrives on building moments that linger long after the amps fade. Whether in a packed venue or an intimate club, Mortrem ensures every performance feels immersive, inclusive, and unforgettable."
 
 bioText2 : String
-bioText2 = "Born during the pandemic, Mortrem began as a recording project between founding members Kyle Jensen, Sammy Romeo, and Charlie Romeo. What started as an experiment in Sammy's Dad's basement quickly grew into something bigger as their catalogue started to take shape into a full album. Drawing on their childhood and modern inspirations in metal and hard rock, the trio carved out Mortrem's distinct sound — heavy, experimental, and engaging. With the addition of Samuel George on vocals and Zak Stulla on bass, the band became a fully realized project, united by a shared vision to push musical and live show boundaries."
+bioText2 = "Born during the pandemic, Mortrem began as a recording project between founding members Kyle Jensen, Sammy Romeo, and Charlie Romeo. What started as a basement experiment quickly grew into something bigger as their catalogue started to take shape into a full album. Drawing on their childhood and modern inspirations in metal and hard rock, the trio carved out Mortrem's distinct sound — heavy, experimental, and engaging. With the addition of Samuel George on vocals and Zak Stulla on bass, the band became a fully realized project, united by a shared vision to push musical and live show boundaries."
+
+bioText3 : String
+bioText3 = "Mortrem is currently rounding out their live show cycle that began in September 2024, steadily building a loyal local following while refining a full-scale production show. Their next chapter starts in early 2026 with the release of their debut album One With The Earth — a record designed to set the standard for the band's evolution and mark their entry onto the national stage. Backed by a Canadian tour and a consistent social media presence, this release is positioned to be a foundational blueprint for Mortrem's future."
+
+whyBookMortremText : String
+whyBookMortremText = "- We bring a unique sound and energy that keeps crowds engaged.\n-We are great at warming up an audience.\n- We handle our show ourselves (no need for monitoring engineers or lighting techs)"
 
 init : () -> ( Model, Cmd Msg )
 init _ =
@@ -59,7 +75,7 @@ init _ =
       , duration = 0
       , songs = songs
       , error = Nothing
-      , barHeights = List.repeat 60 25.0
+      , barHeights = List.repeat barsCount 25.0
       , currentVideo = "/videos/epk-banner-fixed.mp4"
       }
     , Cmd.none
@@ -77,36 +93,9 @@ update msg model =
     case msg of
         OnScroll y -> OnScroll.handle y model
         PlayPause -> PlayPause.handle currentSong model playAudio pauseAudio
-        NextSong ->
-            let
-                nextIndex =
-                    if model.currentSongIndex + 1 < List.length model.songs then
-                        model.currentSongIndex + 1
-                    else
-                        0
-                nextSong =
-                    List.drop nextIndex model.songs
-                        |> List.head
-                        |> Maybe.withDefault { title = "", src = "", released = False }
-            in
-            ( { model | currentSongIndex = nextIndex, isPlaying = True, currentTime = 0, error = Nothing }
-            , Cmd.batch [ playAudio ( "audioPlayer", nextSong.src ), updateWaveform True ]
-            )
-        PreviousSong ->
-            let
-                prevIndex =
-                    if model.currentSongIndex - 1 >= 0 then
-                        model.currentSongIndex - 1
-                    else
-                        List.length model.songs - 1
-                prevSong =
-                    List.drop prevIndex model.songs
-                        |> List.head
-                        |> Maybe.withDefault { title = "", src = "", released = False }
-            in
-            ( { model | currentSongIndex = prevIndex, isPlaying = True, currentTime = 0, error = Nothing }
-            , Cmd.batch [ playAudio ( "audioPlayer", prevSong.src ), updateWaveform True ]
-            )
+        NextSong -> startSong (model.currentSongIndex + 1) model
+        PreviousSong -> startSong (model.currentSongIndex - 1) model
+        SelectSong idx -> startSong idx model
         TimeUpdate current duration ->
             ( { model | currentTime = current, duration = duration }, Cmd.none )
         SongEnded ->
@@ -124,43 +113,44 @@ update msg model =
             )
         FrequencyData freqData ->
             let
-                -- Map 100 Hz–10 kHz to 60 bars
+                -- Map 100 Hz–10 kHz to barsCount bars
                 minFreq = 100
                 maxFreq = 10000
                 sampleRate = 44100
                 maxFreqNyquist = sampleRate / 2 -- 22050 Hz
                 bins = 1024 -- fftSize / 2
-                freqPerBin = maxFreqNyquist / bins -- ~21.5 Hz
-                minBin = minFreq / freqPerBin -- ~4.65
-                maxBin = maxFreq / freqPerBin -- ~465.12
-                binsPerBar = (maxBin - minBin) / 60
+                freqPerBin = maxFreqNyquist / bins
+                minBin = minFreq / freqPerBin
+                maxBin = maxFreq / freqPerBin
+                binsPerBar = (maxBin - minBin) / toFloat barsCount
+
                 barHeights =
                     if model.isPlaying then
-                        List.range 0 59
+                        List.range 0 (barsCount - 1)
                             |> List.map
                                 (\i ->
                                     let
                                         startBin = floor (minBin + toFloat i * binsPerBar)
                                         endBin = floor (minBin + toFloat (i + 1) * binsPerBar)
+                                        width = max 0 (endBin - startBin)
+
                                         binValues =
                                             freqData
                                                 |> List.drop startBin
-                                                |> List.take (endBin - startBin)
-                                        sum =
-                                            List.sum binValues
-                                        count =
-                                            toFloat (List.length binValues)
-                                        avg =
-                                            if count > 0 then sum / count else 0
+                                                |> List.take width
+
+                                        sum = List.sum binValues
+                                        count = toFloat (List.length binValues)
+                                        avg = if count > 0 then sum / count else 0
                                     in
-                                    (avg / 255) * 100 * 0.8 -- Scale to 80% of 100px canvas
+                                    (avg / 255) * 100 * 0.8 -- scale to 80% of 100px canvas
                                 )
                     else
-                        List.repeat 60 25.0 -- Static 25% height when paused
+                        List.repeat barsCount 25.0
             in
-                ( { model | barHeights = barHeights }
-                , drawWaveform barHeights
-                )
+            ( { model | barHeights = barHeights }
+            , drawWaveform barHeights
+            )
         VideoSwitch isSecondary ->
             let
                 newVideo =
@@ -175,6 +165,58 @@ update msg model =
                         Cmd.none
             in
             ( { model | currentVideo = newVideo }, videoCmd )
+
+
+playlistTable : Model -> Html Msg
+playlistTable model =
+    div [ class "bg-neutral-900/70 rounded-xl p-4 text-white" ]
+        [ h2 [ class "text-lg font-semibold mb-3" ] [ text "Playlist" ]
+        , table [ class "w-full table-fixed border-separate border-spacing-0 text-sm" ]
+            [ thead []
+                [ tr [ class "text-left uppercase text-xs tracking-wide opacity-60" ]
+                    [ th [ class "w-10 py-2 pr-2" ] [ text "#" ]
+                    , th [ class "py-2 pr-2" ] [ text "Title" ]
+                    , th [ class "w-32 py-2 text-right" ] [ text "Status" ]
+                    ]
+                ]
+            , tbody []
+                (model.songs
+                    |> List.indexedMap
+                        (\idx song ->
+                            let
+                                isCurrent = idx == model.currentSongIndex
+                                rowBase = "cursor-pointer hover:bg-white/10"
+                                active = if isCurrent then " bg-white/10" else ""
+                                badgeClasses =
+                                    if isCurrent then
+                                        "inline-flex items-center text-[10px] px-2 py-1 rounded bg-white text-black"
+                                    else
+                                        "inline-flex items-center text-[10px] px-2 py-1 rounded border border-white/30"
+                            in
+                            tr
+                                [ class (rowBase ++ active)
+                                , onClick (SelectSong idx)
+                                ]
+                                [ td [ class "py-2 pr-2 opacity-70" ] [ text (String.fromInt (idx + 1)) ]
+                                , td [ class "py-2 pr-2 truncate" ] [ text song.title ]
+                                , td [ class "py-2 text-right" ]
+                                    [ span [ class badgeClasses ]
+                                        [ text
+                                            (if isCurrent then
+                                                "Playing"
+                                             else if song.released then
+                                                "Released"
+                                             else
+                                                "Unreleased"
+                                            )
+                                        ]
+                                    ]
+                                ]
+                        )
+                )
+            ]
+        ]
+
 
 -- VIEW
 view : Model -> Html Msg
@@ -208,7 +250,7 @@ bottomUpBlackGradientSpan =
 
 topDownBlackGradientSpan : Html Msg
 topDownBlackGradientSpan =
-    div [ class "absolute top-0 h-[20%] w-full bg-gradient-to-b from-black to-black/0 z-10" ] []
+    div [ class "relative top-0 h-[10%] w-full bg-gradient-to-b from-black to-black/0 z-10" ] []
 
 heroBannerContent : Float -> Html Msg
 heroBannerContent scrollY =
@@ -233,6 +275,38 @@ heroBannerContent scrollY =
         , bottomUpBlackGradientSpan
         ]
 
+
+
+startSong : Int -> Model -> ( Model, Cmd Msg )
+startSong idx model =
+    let
+        total = List.length model.songs
+        boundedIndex =
+            if total == 0 then
+                0
+            else if idx < 0 then
+                total - 1
+            else if idx >= total then
+                0
+            else
+                idx
+
+        nextSong =
+            model.songs
+                |> List.drop boundedIndex
+                |> List.head
+                |> Maybe.withDefault { title = "", src = "", released = False }
+    in
+    ( { model
+        | currentSongIndex = boundedIndex
+        , isPlaying = True
+        , currentTime = 0
+        , error = Nothing
+      }
+    , Cmd.batch [ playAudio ( "audioPlayer", nextSong.src ), updateWaveform True ]
+    )
+
+
 audioPlayerPanel : Model -> Html Msg
 audioPlayerPanel model =
     let
@@ -240,24 +314,22 @@ audioPlayerPanel model =
             List.drop model.currentSongIndex model.songs
                 |> List.head
                 |> Maybe.withDefault { title = "", src = "", released = False }
+
         progress =
             if model.duration > 0 then
                 (model.currentTime / model.duration) * 100
             else
                 0
     in
-    -- Media Player
-    div [ class "mt-8 mb-12 max-w-2xl mx-auto" ]
-        [ -- Song Title
-          h2 [ class "text-2xl font-semibold mb-4 text-center" ] [ text currentSong.title ]
-        , -- Error Message
-          case model.error of
-              Just error ->
-                  p [ class "text-red-500 mb-4 text-center" ] [ text error ]
-              Nothing ->
-                  text ""
-        , -- Audio Element (hidden)
-          audio
+    div [ class "mt-8 mb-12 max-w-5xl mx-auto text-white" ]
+        [ h2 [ class "text-2xl font-semibold mb-4 text-center" ] [ text currentSong.title ]
+        , case model.error of
+            Just error ->
+                p [ class "text-red-500 mb-4 text-center" ] [ text error ]
+
+            Nothing ->
+                text ""
+        , audio
             [ id "audioPlayer"
             , src currentSong.src
             , preload "auto"
@@ -269,30 +341,33 @@ audioPlayerPanel model =
             , class "hidden"
             ]
             []
-        , -- Waveform Canvas
-          canvas
-            [ id "waveform"
-            , width 600
-            , height 100
-            , class "w-full mb-4"
-            ]
-            []
-        , -- Progress Bar
-          div
-            [ class "relative w-full h-2 bg-gray-700 rounded-full mb-4" ]
-                [ div
-                  [ class "absolute h-full bg-white rounded-full"
-                  , style "width" (String.fromFloat progress ++ "%")
-                  ]
-                  []
-                , -- Seek button
-                  div [ class "absolute top-0 left-0 w-full h-full cursor-pointer"
-                    , onClickSeek
+        , div [ class "grid grid-cols-1 lg:grid-cols-3 gap-6 items-start" ]
+            [ -- Player (2/3)
+              div [ class "lg:col-span-2 bg-neutral-900/70 rounded-xl p-4" ]
+                [ -- Visualizer (10 bars)
+                  canvas
+                    [ id "waveform"
+                    , width 600
+                    , height 100
+                    , class "w-full mb-4"
                     ]
                     []
-              ]
-              , -- Controls
-                div [ class "flex justify-center space-x-4" ]
+                , -- Progress
+                  div
+                    [ class "relative w-full h-2 bg-gray-700 rounded-full mb-4" ]
+                    [ div
+                        [ class "absolute h-full bg-white rounded-full"
+                        , style "width" (String.fromFloat progress ++ "%")
+                        ]
+                        []
+                    , div
+                        [ class "absolute top-0 left-0 w-full h-full cursor-pointer"
+                        , onClickSeek
+                        ]
+                        []
+                    ]
+                , -- Controls
+                  div [ class "flex justify-center gap-3" ]
                     [ button
                         [ class "px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600"
                         , onClick PreviousSong
@@ -309,7 +384,11 @@ audioPlayerPanel model =
                         ]
                         [ text "Next" ]
                     ]
-              ]
+                ]
+              ,
+              playlistTable model
+            ]
+        ]
 
 transparentGapPanel : Html Msg
 transparentGapPanel =
@@ -321,11 +400,10 @@ transparentGapPanel =
 
 navbar : Model -> Html Msg
 navbar model =
-    div [ id "navbar", class "fixed top-0 left-0 w-full h-18 z-[1000] transition-transform duration-300 ease-in-out transform translate-y-0" ]
+    div [ id "navbar", class "fixed top-0 left-0 w-full h-18 z-[1000] transition-transform duration-300 ease-in-out transform -translate-y-full" ]
         [ div [ class "h-16 bg-black text-white flex items-center justify-center relative" ]
-              [ img [ src "images/Mortrem-logo-white-transparent.png", alt "Mortrem Logo", class "h-12" ] []
-              , topDownBlackGradientSpan
-              ]
+              [ img [ src "images/Mortrem-logo-white-transparent.png", alt "Mortrem Logo", class "h-12" ] [] ]
+        , topDownBlackGradientSpan
         ]
 
 marker : Html Msg
@@ -334,16 +412,22 @@ marker =
 
 bioPanel : Model -> Html Msg
 bioPanel model =
-    div [ class "flex flex-col py-16 lg:px-16 xl:px-32" ] -- Added padding for smaller screens
-        [ div [ class "lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
+    div [ class "flex flex-col pt-12 pb-16 lg:px-16 xl:px-32" ] -- Added padding for smaller screens
+        [ div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
               [ div [ class "lg:w-2/5" ]
                   [ img [ src "images/zak-charlie-fourleaf.png", alt "test", class "w-full h-full object-cover" ] [] ]
               , div [ class "lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText1 ]
               ]
-        , div [ class "flex flex-row items-stretch gap-4 mt-4" ] -- items-stretch aligns heights
-              [ div [ class "w-3/5 text-white text-md leading-relaxed" ] [ text bioText2 ]
-              , div [ class "w-2/5" ]
-                  [ img [ src "images/gallery/charlie-romeo-lees.png", alt "test", class "w-full h-full object-cover" ] [] ]
+        , div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
+              [ div [ class "lg:w-3/5 text-white text-md leading-relaxed hidden lg:block" ] [ text bioText2 ]
+              , div [ class "lg:w-2/5" ]
+                  [ img [ src "images/mortrem-profile.jpg", alt "test", class "w-full h-full object-cover" ] [] ]
+              , div [ class "text-white text-md leading-relaxed visible lg:hidden" ] [ text bioText2 ]
+              ]
+        , div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
+              [ div [ class "lg:w-2/5" ]
+                  [ img [ src "images/mortrem-profile.jpg", alt "test", class "w-full h-full object-cover" ] [] ]
+              , div [ class "lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText3 ]
               ]
         ]
 
@@ -394,12 +478,38 @@ galleryImageComponent galleryImage =
 
 imageGallery : List GalleryImage -> Html Msg
 imageGallery images =
-    div [ class "grid grid-cols-12" ]
-        <| List.map galleryImageComponent images
+    div [ class "w-full" ]
+        [ titleText "Gallery"
+        , div [ class "grid grid-cols-12" ]
+            <| List.map galleryImageComponent images
+        ]
 
--- Custom Event for Seeking
+
 onClickSeek : Html.Attribute Msg
 onClickSeek =
+    let decodeOffsetX =
+            Decode.field "offsetX" Decode.float
+        decodeWidth =
+            Decode.at [ "currentTarget", "offsetWidth" ] Decode.float
+    in
+    on "click" <|
+        Decode.map2
+            (\offsetX width ->
+                let
+                    frac =
+                        if width > 0 then
+                            offsetX / width
+                        else
+                            0
+                in
+                SeekProgress (Basics.clamp 0 1 frac)
+            )
+            decodeOffsetX
+            decodeWidth
+
+-- Custom Event for Seeking
+onClickSeek2 : Html.Attribute Msg
+onClickSeek2 =
     let
         decodeOffsetX =
             Decode.field "offsetX" Decode.float
@@ -411,6 +521,8 @@ onClickSeek =
             (\offsetX targetWidth -> SeekProgress (offsetX / targetWidth))
             decodeOffsetX
             decodeTargetWidth
+
+
 
 -- BOOTSTRAP
 main : Program () Model Msg

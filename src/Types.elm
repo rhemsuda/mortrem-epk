@@ -41,3 +41,5 @@ type Msg
     | AudioError String
     | FrequencyData (List Float)
     | VideoSwitch Bool
+    | SelectSong Int
+    | ScrollToPlaylist

@@ -5,7 +5,7 @@
   "scripts": {
     "build:css": "tailwindcss -i styles/tailwind.css -o dist/output.css",
     "watch:css": "tailwindcss -i styles/tailwind.css -o dist/output.css --watch",
-    "dev-server": "python3 -m http.server 9999",
+    "dev-server": "python3 -m RangeHTTPServer 9999",
     "build:elm": "elm make src/Main.elm --output=elm.js",
     "build": "npm run build:css && npm run build:elm"
   },
