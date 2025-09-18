@@ -1,9 +1,13 @@
-module Types exposing (Song, Image, GalleryImage, Model, Msg(..))
+module Types exposing (..)
+
+import DateTime exposing (DateTime)
 
 type alias Song =
     { title : String
     , src : String
     , released : Bool
+    , duration : Float
+    , artwork : Maybe String
     }
 
 type alias Image =
@@ -17,6 +21,32 @@ type alias GalleryImage =
     , rowSpan : Int
     }
 
+type alias Venue =
+    { name : String
+    , city : String
+    , capacity : Int
+    , distanceFromHomeKm : Int
+    }
+
+type LineupPosition
+    = Open
+    | Support
+    | Headline
+
+type alias Performance =
+    { datetime : DateTime
+    , venue : Venue
+    , totalDraw : Int
+    , ourDraw : Int
+    , organicDraw : Int
+    , newFollowers : Int
+    , merchSales : Float
+    , ticketPrice : Float
+    , position : LineupPosition
+    , durationMinutes : Int
+    , hide : Bool
+    }
+
 type alias Model =
     { scrollY : Float
     , currentSongIndex : Int
@@ -27,6 +57,7 @@ type alias Model =
     , error : Maybe String
     , barHeights : List Float
     , currentVideo : String
+    , isMenuOpen : Bool
     }
 
 type Msg
@@ -42,4 +73,6 @@ type Msg
     | FrequencyData (List Float)
     | VideoSwitch Bool
     | SelectSong Int
-    | ScrollToPlaylist
+    | ToggleMenu
+    | CloseMenu
+    | ScrollTo String

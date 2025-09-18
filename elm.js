@@ -5185,9 +5185,15 @@ var $elm$core$List$repeat = F2(
 	});
 var $author$project$Main$songs = _List_fromArray(
 	[
-		{released: false, src: '/audio/mortrem-kingdom-come.mp3', title: '1. Kingdom Come'},
-		{released: true, src: '/audio/mortrem-nonfiction.mp3', title: '2. Nonfiction'},
-		{released: false, src: '/audio/mortrem-vanitybox.mp3', title: '3. Vanity Box'}
+		{artwork: $elm$core$Maybe$Nothing, duration: 120, released: false, src: '/audio/mortrem-kingdom-come.mp3', title: 'Kingdom Come'},
+		{
+		artwork: $elm$core$Maybe$Just('/images/coverart/mortrem-nonfiction.png'),
+		duration: 130,
+		released: true,
+		src: '/audio/mortrem-nonfiction.mp3',
+		title: 'Nonfiction'
+	},
+		{artwork: $elm$core$Maybe$Nothing, duration: 100, released: false, src: '/audio/mortrem-vanitybox.mp3', title: 'Vanity Box'}
 	]);
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
@@ -5198,6 +5204,7 @@ var $author$project$Main$init = function (_v0) {
 			currentVideo: '/videos/epk-banner-fixed.mp4',
 			duration: 0,
 			error: $elm$core$Maybe$Nothing,
+			isMenuOpen: false,
 			isPlaying: false,
 			scrollY: 0,
 			songs: $author$project$Main$songs
@@ -5354,6 +5361,7 @@ var $author$project$Main$playAudio = _Platform_outgoingPort(
 					$elm$json$Json$Encode$string(b)
 				]));
 	});
+var $author$project$Main$scrollToId = _Platform_outgoingPort('scrollToId', $elm$json$Json$Encode$string);
 var $author$project$Main$seekAudio = _Platform_outgoingPort(
 	'seekAudio',
 	function ($) {
@@ -5368,8 +5376,9 @@ var $author$project$Main$seekAudio = _Platform_outgoingPort(
 					$elm$json$Json$Encode$float(b)
 				]));
 	});
-var $elm$core$Basics$ge = _Utils_ge;
 var $elm$json$Json$Encode$bool = _Json_wrap;
+var $author$project$Main$setBodyScroll = _Platform_outgoingPort('setBodyScroll', $elm$json$Json$Encode$bool);
+var $elm$core$Basics$ge = _Utils_ge;
 var $author$project$Main$updateWaveform = _Platform_outgoingPort('updateWaveform', $elm$json$Json$Encode$bool);
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
@@ -5386,7 +5395,7 @@ var $author$project$Main$startSong = F2(
 		var boundedIndex = (!total) ? 0 : ((idx < 0) ? (total - 1) : ((_Utils_cmp(idx, total) > -1) ? 0 : idx));
 		var nextSong = A2(
 			$elm$core$Maybe$withDefault,
-			{released: false, src: '', title: ''},
+			{artwork: $elm$core$Maybe$Nothing, duration: 0, released: false, src: '', title: ''},
 			$elm$core$List$head(
 				A2($elm$core$List$drop, boundedIndex, model.songs)));
 		return _Utils_Tuple2(
@@ -5536,7 +5545,7 @@ var $author$project$Main$update = F2(
 		while (true) {
 			var currentSong = A2(
 				$elm$core$Maybe$withDefault,
-				{released: false, src: '', title: ''},
+				{artwork: $elm$core$Maybe$Nothing, duration: 0, released: false, src: '', title: ''},
 				$elm$core$List$head(
 					A2($elm$core$List$drop, model.currentSongIndex, model.songs)));
 			switch (msg.$) {
@@ -5552,6 +5561,31 @@ var $author$project$Main$update = F2(
 				case 'SelectSong':
 					var idx = msg.a;
 					return A2($author$project$Main$startSong, idx, model);
+				case 'ToggleMenu':
+					var newOpen = !model.isMenuOpen;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{isMenuOpen: newOpen}),
+						$author$project$Main$setBodyScroll(newOpen));
+				case 'CloseMenu':
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{isMenuOpen: false}),
+						$author$project$Main$setBodyScroll(false));
+				case 'ScrollTo':
+					var idStr = msg.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{isMenuOpen: false}),
+						$elm$core$Platform$Cmd$batch(
+							_List_fromArray(
+								[
+									$author$project$Main$scrollToId(idStr),
+									$author$project$Main$setBodyScroll(false)
+								])));
 				case 'TimeUpdate':
 					var current = msg.a;
 					var duration = msg.b;
@@ -5654,6 +5688,7 @@ var $author$project$Main$bioText2 = 'Born during the pandemic, Mortrem began as 
 var $author$project$Main$bioText3 = 'Mortrem is currently rounding out their live show cycle that began in September 2024, steadily building a loyal local following while refining a full-scale production show. Their next chapter starts in early 2026 with the release of their debut album One With The Earth — a record designed to set the standard for the band\'s evolution and mark their entry onto the national stage. Backed by a Canadian tour and a consistent social media presence, this release is positioned to be a foundational blueprint for Mortrem\'s future.';
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$img = _VirtualDom_node('img');
 var $elm$html$Html$Attributes$src = function (url) {
 	return A2(
@@ -5668,6 +5703,7 @@ var $author$project$Main$bioPanel = function (model) {
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
+				$elm$html$Html$Attributes$id('bio'),
 				$elm$html$Html$Attributes$class('flex flex-col pt-12 pb-16 lg:px-16 xl:px-32')
 			]),
 		_List_fromArray(
@@ -5801,7 +5837,7 @@ var $author$project$Main$contentPanel = F2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('bg-black w-full px-28')
+					$elm$html$Html$Attributes$class('bg-black w-full px-16 md:px-28')
 				]),
 			_List_fromArray(
 				[
@@ -5814,6 +5850,635 @@ var $author$project$Main$contentPanel = F2(
 					children)
 				]));
 	});
+var $author$project$Types$PlayPause = {$: 'PlayPause'};
+var $author$project$Types$PreviousSong = {$: 'PreviousSong'};
+var $elm$virtual_dom$VirtualDom$attribute = F2(
+	function (key, value) {
+		return A2(
+			_VirtualDom_attribute,
+			_VirtualDom_noOnOrFormAction(key),
+			_VirtualDom_noJavaScriptOrHtmlUri(value));
+	});
+var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
+var $elm$html$Html$audio = _VirtualDom_node('audio');
+var $elm$html$Html$button = _VirtualDom_node('button');
+var $elm$core$Basics$modBy = _Basics_modBy;
+var $elm$core$Basics$round = _Basics_round;
+var $author$project$Main$formatTime = function (secs) {
+	var total = $elm$core$Basics$round(secs);
+	var s = A2($elm$core$Basics$modBy, 60, total);
+	var pad = function (n) {
+		return (n < 10) ? ('0' + $elm$core$String$fromInt(n)) : $elm$core$String$fromInt(n);
+	};
+	var m = (total / 60) | 0;
+	return $elm$core$String$fromInt(m) + (':' + pad(s));
+};
+var $elm$core$String$fromFloat = _String_fromNumber;
+var $elm$html$Html$h2 = _VirtualDom_node('h2');
+var $elm$html$Html$i = _VirtualDom_node('i');
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $author$project$Types$SeekProgress = function (a) {
+	return {$: 'SeekProgress', a: a};
+};
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
+	});
+var $elm$core$Basics$clamp = F3(
+	function (low, high, number) {
+		return (_Utils_cmp(number, low) < 0) ? low : ((_Utils_cmp(number, high) > 0) ? high : number);
+	});
+var $author$project$Main$onClickSeek = function () {
+	var decodeWidth = A2(
+		$elm$json$Json$Decode$at,
+		_List_fromArray(
+			['currentTarget', 'offsetWidth']),
+		$elm$json$Json$Decode$float);
+	var decodeOffsetX = A2($elm$json$Json$Decode$field, 'offsetX', $elm$json$Json$Decode$float);
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		A3(
+			$elm$json$Json$Decode$map2,
+			F2(
+				function (offsetX, width) {
+					var frac = (width > 0) ? (offsetX / width) : 0;
+					return $author$project$Types$SeekProgress(
+						A3($elm$core$Basics$clamp, 0, 1, frac));
+				}),
+			decodeOffsetX,
+			decodeWidth));
+}();
+var $elm$html$Html$p = _VirtualDom_node('p');
+var $author$project$Types$SelectSong = function (a) {
+	return {$: 'SelectSong', a: a};
+};
+var $elm$html$Html$h3 = _VirtualDom_node('h3');
+var $elm$virtual_dom$VirtualDom$node = function (tag) {
+	return _VirtualDom_node(
+		_VirtualDom_noScript(tag));
+};
+var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
+var $elm$html$Html$table = _VirtualDom_node('table');
+var $elm$html$Html$tbody = _VirtualDom_node('tbody');
+var $elm$html$Html$td = _VirtualDom_node('td');
+var $elm$html$Html$th = _VirtualDom_node('th');
+var $elm$html$Html$thead = _VirtualDom_node('thead');
+var $elm$html$Html$tr = _VirtualDom_node('tr');
+var $author$project$Main$playlistTableRedesigned = function (model) {
+	var releaseDateFor = function (song) {
+		return song.released ? '—' : '—';
+	};
+	var durationFor = function (idx) {
+		return (_Utils_eq(idx, model.currentSongIndex) && (model.duration > 0)) ? $author$project$Main$formatTime(model.duration) : '--:--';
+	};
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$id('playlist'),
+				$elm$html$Html$Attributes$class('mt-6 rounded-2xl bg-slate-900/50 text-white shadow-2xl px-4 py-5 sm:px-6 sm:py-6')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$h3,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('text-xl font-semibold mb-4')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Playlist')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('overflow-hidden rounded-xl')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$table,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('w-full table-auto text-sm')
+							]),
+						_List_fromArray(
+							[
+								A3(
+								$elm$html$Html$node,
+								'colgroup',
+								_List_Nil,
+								_List_fromArray(
+									[
+										A3(
+										$elm$html$Html$node,
+										'col',
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('w-12')
+											]),
+										_List_Nil),
+										A3($elm$html$Html$node, 'col', _List_Nil, _List_Nil),
+										A3(
+										$elm$html$Html$node,
+										'col',
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('w-24')
+											]),
+										_List_Nil),
+										A3(
+										$elm$html$Html$node,
+										'col',
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('w-40')
+											]),
+										_List_Nil)
+									])),
+								A2(
+								$elm$html$Html$thead,
+								_List_Nil,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$tr,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('text-left uppercase text-[11px] tracking-wide text-white/60 border-b border-white/10')
+											]),
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$th,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$class('py-2 pl-3 pr-2')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text('#')
+													])),
+												A2(
+												$elm$html$Html$th,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$class('py-2 pr-2')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Song Title')
+													])),
+												A2(
+												$elm$html$Html$th,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$class('py-2 pr-2')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Duration')
+													])),
+												A2(
+												$elm$html$Html$th,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$class('py-2 pr-3 text-right')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Release Date')
+													]))
+											]))
+									])),
+								A2(
+								$elm$html$Html$tbody,
+								_List_Nil,
+								A2(
+									$elm$core$List$indexedMap,
+									F2(
+										function (idx, song) {
+											var rowBase = 'cursor-pointer border-b border-white/5';
+											var isCurrent = _Utils_eq(idx, model.currentSongIndex);
+											var rowState = isCurrent ? ' bg-white/10' : ' hover:bg-white/5';
+											return A2(
+												$elm$html$Html$tr,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$class(
+														_Utils_ap(rowBase, rowState)),
+														$elm$html$Html$Events$onClick(
+														$author$project$Types$SelectSong(idx))
+													]),
+												_List_fromArray(
+													[
+														A2(
+														$elm$html$Html$td,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$class('py-2 pl-3 pr-2 opacity-70 whitespace-nowrap')
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text(
+																$elm$core$String$fromInt(idx + 1))
+															])),
+														A2(
+														$elm$html$Html$td,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$class('py-2 pr-2')
+															]),
+														_List_fromArray(
+															[
+																A2(
+																$elm$html$Html$div,
+																_List_fromArray(
+																	[
+																		$elm$html$Html$Attributes$class('truncate')
+																	]),
+																_List_fromArray(
+																	[
+																		$elm$html$Html$text(song.title)
+																	]))
+															])),
+														A2(
+														$elm$html$Html$td,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$class('py-2 pr-2 whitespace-nowrap')
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text(
+																$author$project$Main$formatTime(song.duration))
+															])),
+														A2(
+														$elm$html$Html$td,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$class('py-2 pr-3 text-right whitespace-nowrap')
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text(
+																releaseDateFor(song))
+															]))
+													]));
+										}),
+									model.songs))
+							]))
+					]))
+			]));
+};
+var $elm$html$Html$Attributes$preload = $elm$html$Html$Attributes$stringProperty('preload');
+var $elm$html$Html$span = _VirtualDom_node('span');
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
+var $elm$html$Html$Attributes$title = $elm$html$Html$Attributes$stringProperty('title');
+var $author$project$Main$discographyPanel = function (model) {
+	var progressPct = (model.duration > 0) ? ((model.currentTime / model.duration) * 100) : 0;
+	var currentSong = A2(
+		$elm$core$Maybe$withDefault,
+		{artwork: $elm$core$Maybe$Nothing, duration: 0, released: false, src: '', title: ''},
+		$elm$core$List$head(
+			A2($elm$core$List$drop, model.currentSongIndex, model.songs)));
+	var releaseDateText = currentSong.released ? 'Released' : 'Unreleased';
+	var artistName = 'Mortrem';
+	var artSrc = function () {
+		var _v0 = currentSong.artwork;
+		if (_v0.$ === 'Just') {
+			var url = _v0.a;
+			return url;
+		} else {
+			return 'images/coverart/default.png';
+		}
+	}();
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('max-w-5xl mx-auto text-white')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$audio,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$id('audioPlayer'),
+						$elm$html$Html$Attributes$src(currentSong.src),
+						$elm$html$Html$Attributes$preload('auto'),
+						$elm$html$Html$Attributes$class('hidden')
+					]),
+				_List_Nil),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class(
+						A2(
+							$elm$core$String$join,
+							' ',
+							_List_fromArray(
+								['rounded-2xl bg-slate-900/50 text-white shadow 2xl', 'px-4 py-5 sm:px-6 sm:py-6'])))
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('grid grid-cols-12 gap-4 sm:gap-6 items-center')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('col-span-4 sm:col-span-3 md:col-span-3 flex justify-center')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$img,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$src(artSrc),
+												$elm$html$Html$Attributes$alt('Album cover art'),
+												$elm$html$Html$Attributes$class('w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-xl object-cover shadow-md')
+											]),
+										_List_Nil)
+									])),
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('col-span-8 sm:col-span-9 md:col-span-9')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$div,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('flex items-start justify-between gap-4')
+											]),
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$div,
+												_List_Nil,
+												_List_fromArray(
+													[
+														A2(
+														$elm$html$Html$h2,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$class('text-2xl sm:text-3xl font-bold leading-tight')
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text(currentSong.title)
+															])),
+														A2(
+														$elm$html$Html$p,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$class('mt-1 text-sm sm:text-base text-white/70')
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text(artistName)
+															]))
+													])),
+												A2(
+												$elm$html$Html$span,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$class(
+														A2(
+															$elm$core$String$join,
+															' ',
+															_List_fromArray(
+																[
+																	'hidden sm:inline-flex items-center text-xs px-2 py-1',
+																	'rounded-full border border-white/20',
+																	currentSong.released ? 'bg-white/10' : 'bg-amber-500/10 text-amber-200'
+																])))
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text(releaseDateText)
+													]))
+											])),
+										A2(
+										$elm$html$Html$div,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('mt-4 relative')
+											]),
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$div,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$class('w-full h-2 rounded-full bg-slate-700/70 overflow-hidden')
+													]),
+												_List_Nil),
+												A2(
+												$elm$html$Html$div,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$class('absolute left-0 top-0 h-2 rounded-full bg-sky-400/80'),
+														A2(
+														$elm$html$Html$Attributes$style,
+														'width',
+														$elm$core$String$fromFloat(progressPct) + '%')
+													]),
+												_List_Nil),
+												A2(
+												$elm$html$Html$div,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$class('absolute inset-0 cursor-pointer'),
+														$author$project$Main$onClickSeek
+													]),
+												_List_Nil)
+											])),
+										A2(
+										$elm$html$Html$div,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('mt-1 flex justify-between text-xs text-white/60')
+											]),
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$span,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text(
+														$author$project$Main$formatTime(model.currentTime))
+													])),
+												A2(
+												$elm$html$Html$span,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text(
+														(model.duration > 0) ? $author$project$Main$formatTime(model.duration) : '--:--')
+													]))
+											]))
+									]))
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('mt-6 flex justify-center gap-4')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 shadow-md'),
+										$elm$html$Html$Events$onClick($author$project$Types$PreviousSong),
+										$elm$html$Html$Attributes$title('Previous')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$i,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('fa-solid fa-backward-step text-xl'),
+												A2($elm$html$Html$Attributes$attribute, 'aria-hidden', 'true')
+											]),
+										_List_Nil),
+										A2(
+										$elm$html$Html$span,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('sr-only')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('Previous')
+											]))
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 shadow-md'),
+										$elm$html$Html$Events$onClick($author$project$Types$PlayPause),
+										$elm$html$Html$Attributes$title(
+										model.isPlaying ? 'Pause' : 'Play')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$i,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class(
+												'fa-solid ' + ((model.isPlaying ? 'fa-pause' : 'fa-play') + ' text-xl')),
+												A2($elm$html$Html$Attributes$attribute, 'aria-hidden', 'true')
+											]),
+										_List_Nil),
+										A2(
+										$elm$html$Html$span,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('sr-only')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text(
+												model.isPlaying ? 'Pause' : 'Play')
+											]))
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 shadow-md'),
+										$elm$html$Html$Events$onClick($author$project$Types$NextSong),
+										$elm$html$Html$Attributes$title('Next')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$i,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('fa-solid fa-forward-step text-xl'),
+												A2($elm$html$Html$Attributes$attribute, 'aria-hidden', 'true')
+											]),
+										_List_Nil),
+										A2(
+										$elm$html$Html$span,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('sr-only')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('Next')
+											]))
+									]))
+							]))
+					])),
+				$author$project$Main$playlistTableRedesigned(model)
+			]));
+};
+var $author$project$Main$discographySection = function (model) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('bg-black w-full px-6 md:px-16 min-h-screen')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('mx-auto max-w-[80rem] min-h-screen py-18 md:py-26 flex flex-col gap-6 justify-center')
+					]),
+				_List_fromArray(
+					[
+						$author$project$Main$discographyPanel(model)
+					]))
+			]));
+};
 var $author$project$Main$galleryImages = _List_fromArray(
 	[
 		{
@@ -5859,11 +6524,8 @@ var $author$project$Main$bottomUpBlackGradientSpan = A2(
 			$elm$html$Html$Attributes$class('absolute bottom-0 h-[2%] w-full bg-gradient-to-t from-black to-black/0 z-10')
 		]),
 	_List_Nil);
-var $elm$core$String$fromFloat = _String_fromNumber;
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $author$project$Main$heroBannerContent = function (scrollY) {
-	var scale = A2($elm$core$Basics$max, 0.5, 1 - (scrollY / 300));
+	var scale = A2($elm$core$Basics$max, 0, 1 - (scrollY / 300));
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
@@ -5887,7 +6549,7 @@ var $author$project$Main$heroBannerContent = function (scrollY) {
 							[
 								$elm$html$Html$Attributes$src('images/Mortrem-logo-white-transparent.png'),
 								$elm$html$Html$Attributes$alt('Mortrem Logo'),
-								$elm$html$Html$Attributes$class('w-[60%] transition-transform duration-300'),
+								$elm$html$Html$Attributes$class('w-[60%] transition-transform duration-100'),
 								A2(
 								$elm$html$Html$Attributes$style,
 								'transform',
@@ -5917,28 +6579,16 @@ var $author$project$Main$galleryImageComponent = function (galleryImage) {
 			]),
 		_List_Nil);
 };
-var $author$project$Main$titleText = function (msg) {
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				$elm$html$Html$Attributes$class('text-white font-serif text-5xl text-center pb-8')
-			]),
-		_List_fromArray(
-			[
-				$elm$html$Html$text(msg)
-			]));
-};
 var $author$project$Main$imageGallery = function (images) {
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$class('w-full')
+				$elm$html$Html$Attributes$id('gallery'),
+				$elm$html$Html$Attributes$class('w-full pt-26')
 			]),
 		_List_fromArray(
 			[
-				$author$project$Main$titleText('Gallery'),
 				A2(
 				$elm$html$Html$div,
 				_List_fromArray(
@@ -5948,8 +6598,6 @@ var $author$project$Main$imageGallery = function (images) {
 				A2($elm$core$List$map, $author$project$Main$galleryImageComponent, images))
 			]));
 };
-var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
-var $elm$html$Html$span = _VirtualDom_node('span');
 var $author$project$Main$marker = A2(
 	$elm$html$Html$span,
 	_List_fromArray(
@@ -5958,425 +6606,163 @@ var $author$project$Main$marker = A2(
 			$elm$html$Html$Attributes$class('h-[1px] bg-black block')
 		]),
 	_List_Nil);
-var $author$project$Types$PlayPause = {$: 'PlayPause'};
-var $author$project$Types$PreviousSong = {$: 'PreviousSong'};
-var $elm$json$Json$Decode$field = _Json_decodeField;
-var $elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
-	});
-var $elm$html$Html$audio = _VirtualDom_node('audio');
-var $elm$html$Html$button = _VirtualDom_node('button');
-var $elm$html$Html$canvas = _VirtualDom_node('canvas');
-var $elm$html$Html$h2 = _VirtualDom_node('h2');
-var $elm$html$Html$Attributes$height = function (n) {
-	return A2(
-		_VirtualDom_attribute,
-		'height',
-		$elm$core$String$fromInt(n));
+var $author$project$Types$ScrollTo = function (a) {
+	return {$: 'ScrollTo', a: a};
 };
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var $elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'click',
-		$elm$json$Json$Decode$succeed(msg));
-};
-var $author$project$Types$SeekProgress = function (a) {
-	return {$: 'SeekProgress', a: a};
-};
-var $elm$core$Basics$clamp = F3(
-	function (low, high, number) {
-		return (_Utils_cmp(number, low) < 0) ? low : ((_Utils_cmp(number, high) > 0) ? high : number);
-	});
-var $author$project$Main$onClickSeek = function () {
-	var decodeWidth = A2(
-		$elm$json$Json$Decode$at,
-		_List_fromArray(
-			['currentTarget', 'offsetWidth']),
-		$elm$json$Json$Decode$float);
-	var decodeOffsetX = A2($elm$json$Json$Decode$field, 'offsetX', $elm$json$Json$Decode$float);
-	return A2(
-		$elm$html$Html$Events$on,
-		'click',
-		A3(
-			$elm$json$Json$Decode$map2,
-			F2(
-				function (offsetX, width) {
-					var frac = (width > 0) ? (offsetX / width) : 0;
-					return $author$project$Types$SeekProgress(
-						A3($elm$core$Basics$clamp, 0, 1, frac));
-				}),
-			decodeOffsetX,
-			decodeWidth));
-}();
-var $elm$html$Html$p = _VirtualDom_node('p');
-var $author$project$Types$SelectSong = function (a) {
-	return {$: 'SelectSong', a: a};
-};
-var $elm$html$Html$table = _VirtualDom_node('table');
-var $elm$html$Html$tbody = _VirtualDom_node('tbody');
-var $elm$html$Html$td = _VirtualDom_node('td');
-var $elm$html$Html$th = _VirtualDom_node('th');
-var $elm$html$Html$thead = _VirtualDom_node('thead');
-var $elm$html$Html$tr = _VirtualDom_node('tr');
-var $author$project$Main$playlistTable = function (model) {
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				$elm$html$Html$Attributes$class('bg-neutral-900/70 rounded-xl p-4 text-white')
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$h2,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('text-lg font-semibold mb-3')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Playlist')
-					])),
-				A2(
-				$elm$html$Html$table,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('w-full table-fixed border-separate border-spacing-0 text-sm')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$thead,
-						_List_Nil,
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$tr,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('text-left uppercase text-xs tracking-wide opacity-60')
-									]),
-								_List_fromArray(
-									[
-										A2(
-										$elm$html$Html$th,
-										_List_fromArray(
-											[
-												$elm$html$Html$Attributes$class('w-10 py-2 pr-2')
-											]),
-										_List_fromArray(
-											[
-												$elm$html$Html$text('#')
-											])),
-										A2(
-										$elm$html$Html$th,
-										_List_fromArray(
-											[
-												$elm$html$Html$Attributes$class('py-2 pr-2')
-											]),
-										_List_fromArray(
-											[
-												$elm$html$Html$text('Title')
-											])),
-										A2(
-										$elm$html$Html$th,
-										_List_fromArray(
-											[
-												$elm$html$Html$Attributes$class('w-32 py-2 text-right')
-											]),
-										_List_fromArray(
-											[
-												$elm$html$Html$text('Status')
-											]))
-									]))
-							])),
-						A2(
-						$elm$html$Html$tbody,
-						_List_Nil,
-						A2(
-							$elm$core$List$indexedMap,
-							F2(
-								function (idx, song) {
-									var rowBase = 'cursor-pointer hover:bg-white/10';
-									var isCurrent = _Utils_eq(idx, model.currentSongIndex);
-									var badgeClasses = isCurrent ? 'inline-flex items-center text-[10px] px-2 py-1 rounded bg-white text-black' : 'inline-flex items-center text-[10px] px-2 py-1 rounded border border-white/30';
-									var active = isCurrent ? ' bg-white/10' : '';
-									return A2(
-										$elm$html$Html$tr,
-										_List_fromArray(
-											[
-												$elm$html$Html$Attributes$class(
-												_Utils_ap(rowBase, active)),
-												$elm$html$Html$Events$onClick(
-												$author$project$Types$SelectSong(idx))
-											]),
-										_List_fromArray(
-											[
-												A2(
-												$elm$html$Html$td,
-												_List_fromArray(
-													[
-														$elm$html$Html$Attributes$class('py-2 pr-2 opacity-70')
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text(
-														$elm$core$String$fromInt(idx + 1))
-													])),
-												A2(
-												$elm$html$Html$td,
-												_List_fromArray(
-													[
-														$elm$html$Html$Attributes$class('py-2 pr-2 truncate')
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text(song.title)
-													])),
-												A2(
-												$elm$html$Html$td,
-												_List_fromArray(
-													[
-														$elm$html$Html$Attributes$class('py-2 text-right')
-													]),
-												_List_fromArray(
-													[
-														A2(
-														$elm$html$Html$span,
-														_List_fromArray(
-															[
-																$elm$html$Html$Attributes$class(badgeClasses)
-															]),
-														_List_fromArray(
-															[
-																$elm$html$Html$text(
-																isCurrent ? 'Playing' : (song.released ? 'Released' : 'Unreleased'))
-															]))
-													]))
-											]));
-								}),
-							model.songs))
-					]))
-			]));
-};
-var $elm$html$Html$Attributes$preload = $elm$html$Html$Attributes$stringProperty('preload');
-var $elm$html$Html$Attributes$width = function (n) {
-	return A2(
-		_VirtualDom_attribute,
-		'width',
-		$elm$core$String$fromInt(n));
-};
-var $author$project$Main$audioPlayerPanel = function (model) {
-	var progress = (model.duration > 0) ? ((model.currentTime / model.duration) * 100) : 0;
+var $author$project$Main$miniPlayer = function (model) {
+	var playLabel = model.isPlaying ? 'Pause' : 'Play';
 	var currentSong = A2(
 		$elm$core$Maybe$withDefault,
-		{released: false, src: '', title: ''},
+		{artwork: $elm$core$Maybe$Nothing, duration: 0, released: false, src: '', title: ''},
 		$elm$core$List$head(
 			A2($elm$core$List$drop, model.currentSongIndex, model.songs)));
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$class('mt-8 mb-12 max-w-5xl mx-auto text-white')
+				$elm$html$Html$Attributes$class('w-full flex items-center gap-3 text-white py-2')
 			]),
 		_List_fromArray(
 			[
 				A2(
-				$elm$html$Html$h2,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('text-2xl font-semibold mb-4 text-center')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text(currentSong.title)
-					])),
-				function () {
-				var _v0 = model.error;
-				if (_v0.$ === 'Just') {
-					var error = _v0.a;
-					return A2(
-						$elm$html$Html$p,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('text-red-500 mb-4 text-center')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text(error)
-							]));
-				} else {
-					return $elm$html$Html$text('');
-				}
-			}(),
-				A2(
-				$elm$html$Html$audio,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$id('audioPlayer'),
-						$elm$html$Html$Attributes$src(currentSong.src),
-						$elm$html$Html$Attributes$preload('auto'),
-						A2(
-						$elm$html$Html$Events$on,
-						'timeupdate',
-						A3(
-							$elm$json$Json$Decode$map2,
-							$author$project$Types$TimeUpdate,
-							A2(
-								$elm$json$Json$Decode$at,
-								_List_fromArray(
-									['target', 'currentTime']),
-								$elm$json$Json$Decode$float),
-							A2(
-								$elm$json$Json$Decode$at,
-								_List_fromArray(
-									['target', 'duration']),
-								$elm$json$Json$Decode$float))),
-						A2(
-						$elm$html$Html$Events$on,
-						'ended',
-						$elm$json$Json$Decode$succeed($author$project$Types$SongEnded)),
-						A2(
-						$elm$html$Html$Events$on,
-						'error',
-						A2(
-							$elm$json$Json$Decode$map,
-							$author$project$Types$AudioError,
-							A2(
-								$elm$json$Json$Decode$at,
-								_List_fromArray(
-									['target', 'error', 'message']),
-								$elm$json$Json$Decode$string))),
-						$elm$html$Html$Attributes$class('hidden')
-					]),
-				_List_Nil),
-				A2(
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('grid grid-cols-1 lg:grid-cols-3 gap-6 items-start')
+						$elm$html$Html$Attributes$class('flex items-center gap-2 cursor-pointer'),
+						$elm$html$Html$Events$onClick(
+						$author$project$Types$ScrollTo('playlist'))
 					]),
 				_List_fromArray(
 					[
+						A2(
+						$elm$html$Html$img,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$src(
+								A2($elm$core$Maybe$withDefault, 'images/coverart/default.png', currentSong.artwork)),
+								$elm$html$Html$Attributes$alt('Cover'),
+								$elm$html$Html$Attributes$class('w-10 h-10 rounded object-cover')
+							]),
+						_List_Nil),
 						A2(
 						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$class('lg:col-span-2 bg-neutral-900/70 rounded-xl p-4')
+								$elm$html$Html$Attributes$class('text-base truncate')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(currentSong.title)
+							]))
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('ml-auto flex items-center gap-3')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('px-3 py-2 rounded hover:bg-white/10'),
+								$elm$html$Html$Events$onClick($author$project$Types$PreviousSong),
+								$elm$html$Html$Attributes$title('Previous')
 							]),
 						_List_fromArray(
 							[
 								A2(
-								$elm$html$Html$canvas,
+								$elm$html$Html$i,
 								_List_fromArray(
 									[
-										$elm$html$Html$Attributes$id('waveform'),
-										$elm$html$Html$Attributes$width(600),
-										$elm$html$Html$Attributes$height(100),
-										$elm$html$Html$Attributes$class('w-full mb-4')
+										$elm$html$Html$Attributes$class('fa-solid fa-backward-step text-xl'),
+										A2($elm$html$Html$Attributes$attribute, 'aria-hidden', 'true')
 									]),
 								_List_Nil),
 								A2(
-								$elm$html$Html$div,
+								$elm$html$Html$span,
 								_List_fromArray(
 									[
-										$elm$html$Html$Attributes$class('relative w-full h-2 bg-gray-700 rounded-full mb-4')
+										$elm$html$Html$Attributes$class('sr-only')
 									]),
 								_List_fromArray(
 									[
-										A2(
-										$elm$html$Html$div,
-										_List_fromArray(
-											[
-												$elm$html$Html$Attributes$class('absolute h-full bg-white rounded-full'),
-												A2(
-												$elm$html$Html$Attributes$style,
-												'width',
-												$elm$core$String$fromFloat(progress) + '%')
-											]),
-										_List_Nil),
-										A2(
-										$elm$html$Html$div,
-										_List_fromArray(
-											[
-												$elm$html$Html$Attributes$class('absolute top-0 left-0 w-full h-full cursor-pointer'),
-												$author$project$Main$onClickSeek
-											]),
-										_List_Nil)
-									])),
-								A2(
-								$elm$html$Html$div,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('flex justify-center gap-3')
-									]),
-								_List_fromArray(
-									[
-										A2(
-										$elm$html$Html$button,
-										_List_fromArray(
-											[
-												$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
-												$elm$html$Html$Events$onClick($author$project$Types$PreviousSong)
-											]),
-										_List_fromArray(
-											[
-												$elm$html$Html$text('Previous')
-											])),
-										A2(
-										$elm$html$Html$button,
-										_List_fromArray(
-											[
-												$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
-												$elm$html$Html$Events$onClick($author$project$Types$PlayPause)
-											]),
-										_List_fromArray(
-											[
-												$elm$html$Html$text(
-												model.isPlaying ? 'Pause' : 'Play')
-											])),
-										A2(
-										$elm$html$Html$button,
-										_List_fromArray(
-											[
-												$elm$html$Html$Attributes$class('px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600'),
-												$elm$html$Html$Events$onClick($author$project$Types$NextSong)
-											]),
-										_List_fromArray(
-											[
-												$elm$html$Html$text('Next')
-											]))
+										$elm$html$Html$text('Previous')
 									]))
 							])),
-						$author$project$Main$playlistTable(model)
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('px-3 py-2 rounded hover:bg-white/10'),
+								$elm$html$Html$Events$onClick($author$project$Types$PlayPause),
+								$elm$html$Html$Attributes$title(playLabel)
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$i,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class(
+										'fa-solid ' + ((model.isPlaying ? 'fa-pause' : 'fa-play') + ' text-xl')),
+										A2($elm$html$Html$Attributes$attribute, 'aria-hidden', 'true')
+									]),
+								_List_Nil),
+								A2(
+								$elm$html$Html$span,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('sr-only')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(playLabel)
+									]))
+							])),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('px-3 py-2 rounded hover:bg-white/10'),
+								$elm$html$Html$Events$onClick($author$project$Types$NextSong),
+								$elm$html$Html$Attributes$title('Next')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$i,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('fa-solid fa-forward-step text-xl'),
+										A2($elm$html$Html$Attributes$attribute, 'aria-hidden', 'true')
+									]),
+								_List_Nil),
+								A2(
+								$elm$html$Html$span,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('sr-only')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Next')
+									]))
+							]))
 					]))
 			]));
 };
-var $elm$html$Html$h1 = _VirtualDom_node('h1');
-var $author$project$Main$myTestPanel = function (model) {
-	var progress = (model.duration > 0) ? ((model.currentTime / model.duration) * 100) : 0;
-	var currentSong = A2(
-		$elm$core$Maybe$withDefault,
-		{released: false, src: '', title: ''},
-		$elm$core$List$head(
-			A2($elm$core$List$drop, model.currentSongIndex, model.songs)));
+var $author$project$Main$mobileSidePanel = function (model) {
+	var translateClass = model.isMenuOpen ? ' translate-x-0' : ' -translate-x-full';
+	var panelClasses = 'fixed left-0 top-16 h-[calc(100vh-4rem)] z-[900] w-full ' + ('transform transition-transform duration-300 will-change-transform ' + ('backdrop-blur-xl backdrop-saturate-150 bg-black/95 ' + 'ring-1 ring-white/10 shadow-2xl text-white overflow-y-auto no-scrollbar'));
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$class('text-white pt-12 px-48 relative')
+				$elm$html$Html$Attributes$class(
+				_Utils_ap(panelClasses, translateClass))
 			]),
 		_List_fromArray(
 			[
@@ -6384,40 +6770,80 @@ var $author$project$Main$myTestPanel = function (model) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('absolute top-0 left-0 right-0 h-[100px] bg-gradient-to-b from-transparent to-black')
-					]),
-				_List_Nil),
-				$author$project$Main$audioPlayerPanel(model),
-				A2(
-				$elm$html$Html$h1,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('text-3xl font-semibold mb-4')
+						$elm$html$Html$Attributes$class('p-4 space-y-6')
 					]),
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Who We Are')
-					])),
-				A2(
-				$elm$html$Html$p,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('leading-relaxed')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost.')
-					])),
-				A2(
-				$elm$html$Html$span,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$id('marker'),
-						$elm$html$Html$Attributes$class('h-[1px] bg-transparent')
-					]),
-				_List_Nil)
+						A2(
+						$elm$html$Html$h2,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('text-sm uppercase tracking-wider opacity-80')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Media Player')
+							])),
+						$author$project$Main$miniPlayer(model),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('space-y-2')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$h2,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('text-sm uppercase tracking-wider opacity-80')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Quick Links')
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('w-full text-left px-3 py-2 rounded hover:bg-white/10'),
+										$elm$html$Html$Events$onClick(
+										$author$project$Types$ScrollTo('playlist'))
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Playlist')
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('w-full text-left px-3 py-2 rounded hover:bg-white/10'),
+										$elm$html$Html$Events$onClick(
+										$author$project$Types$ScrollTo('bio'))
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Who We Are / Bio')
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('w-full text-left px-3 py-2 rounded hover:bg-white/10'),
+										$elm$html$Html$Events$onClick(
+										$author$project$Types$ScrollTo('gallery'))
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Gallery')
+									]))
+							]))
+					]))
 			]));
 };
+var $author$project$Types$ToggleMenu = {$: 'ToggleMenu'};
 var $author$project$Main$topDownBlackGradientSpan = A2(
 	$elm$html$Html$div,
 	_List_fromArray(
@@ -6451,19 +6877,75 @@ var $author$project$Main$navbar = function (model) {
 								$elm$html$Html$Attributes$alt('Mortrem Logo'),
 								$elm$html$Html$Attributes$class('h-12')
 							]),
-						_List_Nil)
+						_List_Nil),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('absolute right-4 top-1/2 -translate-y-1/2 py-1 px-2.5 rounded-md border border-black bg-white/10 hover:bg-white/15 shadow-md'),
+								$elm$html$Html$Events$onClick($author$project$Types$ToggleMenu),
+								A2($elm$html$Html$Attributes$attribute, 'aria-label', 'Menu'),
+								A2(
+								$elm$html$Html$Attributes$attribute,
+								'aria-expanded',
+								model.isMenuOpen ? 'true' : 'false')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$i,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class(
+										'fa-solid ' + ((model.isMenuOpen ? 'fa-xmark' : 'fa-bars') + ' text-lg'))
+									]),
+								_List_Nil)
+							]))
 					])),
 				$author$project$Main$topDownBlackGradientSpan
 			]));
 };
-var $author$project$Main$transparentGapPanel = A2(
-	$elm$html$Html$div,
-	_List_fromArray(
-		[
-			$elm$html$Html$Attributes$class('h-[100px] w-full'),
-			A2($elm$html$Html$Attributes$style, 'background', 'transparent')
-		]),
-	_List_Nil);
+var $author$project$Main$performanceHistoryPanel = function (model) {
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$text('Performance History')
+			]));
+};
+var $author$project$Main$statisticsPanel = function (model) {
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$text('Statistics')
+			]));
+};
+var $author$project$Main$videoBanner = function (title) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('h-screen flex items-center justify-center text-white relative'),
+				A2($elm$html$Html$Attributes$style, 'z-index', '10')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('relative z-20 flex items-center justify-center h-full font-serif text-8xl breathe')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(title)
+					])),
+				$author$project$Main$bottomUpBlackGradientSpan
+			]));
+};
 var $author$project$Main$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
@@ -6471,6 +6953,7 @@ var $author$project$Main$view = function (model) {
 		_List_fromArray(
 			[
 				$author$project$Main$navbar(model),
+				$author$project$Main$mobileSidePanel(model),
 				$author$project$Main$heroBannerContent(model.scrollY),
 				$author$project$Main$marker,
 				A2(
@@ -6478,16 +6961,25 @@ var $author$project$Main$view = function (model) {
 				model,
 				_List_fromArray(
 					[
-						$author$project$Main$bioPanel(model),
-						$author$project$Main$imageGallery($author$project$Main$galleryImages)
+						$author$project$Main$bioPanel(model)
 					])),
-				$author$project$Main$transparentGapPanel,
+				$author$project$Main$videoBanner('Discography'),
+				$author$project$Main$discographySection(model),
+				$author$project$Main$videoBanner('Performance History & Statistics'),
 				A2(
 				$author$project$Main$contentPanel,
 				model,
 				_List_fromArray(
 					[
-						$author$project$Main$myTestPanel(model),
+						$author$project$Main$performanceHistoryPanel(model),
+						$author$project$Main$statisticsPanel(model)
+					])),
+				$author$project$Main$videoBanner('Gallery'),
+				A2(
+				$author$project$Main$contentPanel,
+				model,
+				_List_fromArray(
+					[
 						$author$project$Main$imageGallery($author$project$Main$galleryImages)
 					]))
 			]));

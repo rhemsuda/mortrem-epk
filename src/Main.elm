@@ -1,15 +1,19 @@
 port module Main exposing (main)
 
 import Browser
-import Html exposing (Html, div, h1, h2, p, text, img, audio, canvas, button, span, table, thead, tbody, tr, th, td)
-import Html.Attributes exposing (class, style, src, alt, id, width, height, preload)
+import Html exposing (Html, div, span, h1, h2, h3, p, text, img, i, audio, canvas, button, span, table, thead, tbody, tr, th, td)
+import Html.Attributes exposing (class, style, src, alt, id, width, height, preload, title, attribute)
 import Html.Events exposing (on, onClick)
 import Json.Decode as Decode
+import DateTime exposing (fromPosix)
 
-import Types exposing (Model, Msg (..), Song, Image, GalleryImage)
+import Constants exposing (..)
+import Types exposing (Model, Msg (..), Song, Image, GalleryImage, Performance, LineupPosition (..))
 
 import Update.OnScroll as OnScroll
 import Update.PlayPause as PlayPause
+
+import Time exposing (millisToPosix)
 
 -- PORTS
 port playAudio : (String, String) -> Cmd msg
@@ -25,6 +29,7 @@ port drawWaveform : List Float -> Cmd msg
 port changeVideo : String -> Cmd msg
 port videoSwitch : (Bool -> msg) -> Sub msg
 port scrollToId : String -> Cmd msg
+port setBodyScroll : Bool -> Cmd msg
 
 
 barsCount : Int
@@ -38,20 +43,15 @@ titleText msg =
 -- MODEL
 songs : List Song
 songs =
-    [ { title = "1. Kingdom Come", src = "/audio/mortrem-kingdom-come.mp3", released = False, artwork = None }
-    , { title = "2. Nonfiction", src = "/audio/mortrem-nonfiction.mp3", released = True, artwork = "/images/coverart/mortrem-nonfiction.png" }
-    , { title = "3. Vanity Box", src = "/audio/mortrem-vanitybox.mp3", released = False }
+    [ { title = "Kingdom Come", src = "/audio/mortrem-kingdom-come.mp3", duration = 120, released = False, artwork = Nothing }
+    , { title = "Nonfiction", src = "/audio/mortrem-nonfiction.mp3", duration = 130, released = True, artwork = Just "/images/coverart/mortrem-nonfiction.png" }
+    , { title = "Vanity Box", src = "/audio/mortrem-vanitybox.mp3", duration = 100, released = False, artwork = Nothing }
     ]
 
-galleryImages : List GalleryImage
-galleryImages =
-    [ { colSpan = 4, rowSpan = 6, image = { src = "/images/gallery/samuel-george-lees.png", alt = "Samuel George. Lead Singer. Walking on stage in red light." } }
-    , { colSpan = 4, rowSpan = 4, image = { src = "/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
-    , { colSpan = 4, rowSpan = 4, image = { src = "/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
-    , { colSpan = 6, rowSpan = 4, image = { src = "/images/gallery/kyle-jensen-lees.png", alt = "Kyle Jensen. Guitar & Vocals. Playing guitar and singing with a blue light." } }
-    , { colSpan = 4, rowSpan = 6, image = { src = "/images/gallery/sammy-romeo-lees.png", alt = "Sammy Romeo. Drums. Playing drums on stage." } }
-    , { colSpan = 4, rowSpan = 6, image = { src = "/images/gallery/zak-stulla-lees.png", alt = "Zak Stulla. Bass Guitar. Holding a black bass guitar." } }
-    , { colSpan = 4, rowSpan = 4, image = { src = "/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+videos : List String
+videos =
+    [ "https://www.youtube.com/embed/pGWly6GZbs4?si=be_sf5X7V4wGHtgC"
+    , ""
     ]
 
 bioText1 : String
@@ -66,6 +66,40 @@ bioText3 = "Mortrem is currently rounding out their live show cycle that began i
 whyBookMortremText : String
 whyBookMortremText = "- We bring a unique sound and energy that keeps crowds engaged.\n-We are great at warming up an audience.\n- We handle our show ourselves (no need for monitoring engineers or lighting techs)"
 
+
+galleryImages : List GalleryImage
+galleryImages =
+    [ { colSpan = 4, rowSpan = 6, image = { src = "/images/gallery/samuel-george-lees.png", alt = "Samuel George. Lead Singer. Walking on stage in red light." } }
+    , { colSpan = 4, rowSpan = 4, image = { src = "/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+    , { colSpan = 4, rowSpan = 4, image = { src = "/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+    , { colSpan = 6, rowSpan = 4, image = { src = "/images/gallery/kyle-jensen-lees.png", alt = "Kyle Jensen. Guitar & Vocals. Playing guitar and singing with a blue light." } }
+    , { colSpan = 4, rowSpan = 6, image = { src = "/images/gallery/sammy-romeo-lees.png", alt = "Sammy Romeo. Drums. Playing drums on stage." } }
+    , { colSpan = 4, rowSpan = 6, image = { src = "/images/gallery/zak-stulla-lees.png", alt = "Zak Stulla. Bass Guitar. Holding a black bass guitar." } }
+    , { colSpan = 4, rowSpan = 4, image = { src = "/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+    ]
+
+
+
+
+-- idea: do analysis on this information and show the numbers ticking up to the current totals when the user scrolls to them first time
+-- also show total number of streams and total number of people we've played to and ratios for fan:revenue and performance:following
+performances : List Performance
+performances =
+    [ { datetime = fromPosix (Time.millisToPosix 1727315100000), venue = venue_theCasbah, totalDraw = 31, ourDraw = 18, organicDraw = 0, newFollowers = 3, merchSales = 400.0, ticketPrice = 15.0, position = Support, durationMinutes = 30, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1731121200000), venue = venue_tailOfTheJunction, totalDraw = 18, ourDraw = 11, organicDraw = 0, newFollowers = 1, merchSales = 10.0, ticketPrice = 15.0, position = Headline, durationMinutes = 30, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1735357500000), venue = venue_jimmyJazz, totalDraw = 43, ourDraw = 14, organicDraw = 0, newFollowers = 8, merchSales = 40.0, ticketPrice = 0.0, position = Support, durationMinutes = 40, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_theUnion, totalDraw = 26, ourDraw = 13, organicDraw = 0, newFollowers = 3, merchSales = 0.0, ticketPrice = 15.0, position = Headline, durationMinutes = 30, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_leesPalace, totalDraw = 47, ourDraw = 19, organicDraw = 0, newFollowers = 6, merchSales = 0.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_theUnion, totalDraw = 33, ourDraw = 16, organicDraw = 0, newFollowers = 2, merchSales = 0.0, ticketPrice = 15.0, position = Open, durationMinutes = 30, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_sneakyDees, totalDraw = 67, ourDraw = 17, organicDraw = 3, newFollowers = 12, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_absinthe, totalDraw = 42, ourDraw = 13, organicDraw = 1, newFollowers = 4, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 40, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_duffysTavern, totalDraw = 18, ourDraw = 6, organicDraw = 1, newFollowers = 8, merchSales = 0.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_redPapaya, totalDraw = 38, ourDraw = 10, organicDraw = 0, newFollowers = 6, merchSales = 90.0, ticketPrice = 20.0, position = Open, durationMinutes = 30, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_hardLuck, totalDraw = 23, ourDraw = 7, organicDraw = 0, newFollowers = 3, merchSales = 30.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_sneakyDees, totalDraw = 16, ourDraw = 9, organicDraw = 2, newFollowers = 5, merchSales = 30.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, hide = False }
+    ]
+
+
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { scrollY = 0
@@ -77,9 +111,32 @@ init _ =
       , error = Nothing
       , barHeights = List.repeat barsCount 25.0
       , currentVideo = "/videos/epk-banner-fixed.mp4"
+      , isMenuOpen = False
       }
     , Cmd.none
     )
+
+
+-- VIEW
+view : Model -> Html Msg
+view model =
+    div []
+        [ navbar model
+        , mobileSidePanel model
+        , heroBannerContent model.scrollY
+        , marker
+        , contentPanel model [ bioPanel model ]
+        , videoBanner "Discography" -- TODO: This video should be candid closeup video of the band working on writing
+        --, discographySection model
+        , contentPanel model [ discographyPanel model, streamingServicesPanel, musicVideosPanel model ]
+        , videoBanner "Performance History & Statistics"
+        , contentPanel model [ performanceHistoryPanel model, statisticsPanel model ]
+        , videoBanner "Gallery"
+        , contentPanel model [ imageGallery galleryImages ]
+        -- , contentPanel model [ myTestPanel model, imageGallery galleryImages ]
+        --, imageGallery galleryImages
+        ]
+
 
 -- UPDATE
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -88,7 +145,7 @@ update msg model =
         currentSong =
             List.drop model.currentSongIndex model.songs
                 |> List.head
-                |> Maybe.withDefault { title = "", src = "", released = False }
+                |> Maybe.withDefault { title = "", src = "", duration = 0, released = False, artwork = Nothing }
     in
     case msg of
         OnScroll y -> OnScroll.handle y model
@@ -96,6 +153,21 @@ update msg model =
         NextSong -> startSong (model.currentSongIndex + 1) model
         PreviousSong -> startSong (model.currentSongIndex - 1) model
         SelectSong idx -> startSong idx model
+        ToggleMenu ->
+            let
+                newOpen = not model.isMenuOpen
+            in
+            ( { model | isMenuOpen = newOpen }
+            , setBodyScroll newOpen
+            )
+        CloseMenu ->
+            ( { model | isMenuOpen = False }
+            , setBodyScroll False
+            )
+        ScrollTo idStr ->
+            ( { model | isMenuOpen = False }
+            , Cmd.batch [ scrollToId idStr, setBodyScroll False ]
+            )
         TimeUpdate current duration ->
             ( { model | currentTime = current, duration = duration }, Cmd.none )
         SongEnded ->
@@ -167,69 +239,149 @@ update msg model =
             ( { model | currentVideo = newVideo }, videoCmd )
 
 
-playlistTable : Model -> Html Msg
-playlistTable model =
-    div [ class "bg-neutral-900/70 rounded-xl p-4 text-white" ]
-        [ h2 [ class "text-lg font-semibold mb-3" ] [ text "Playlist" ]
-        , table [ class "w-full table-fixed border-separate border-spacing-0 text-sm" ]
-            [ thead []
-                [ tr [ class "text-left uppercase text-xs tracking-wide opacity-60" ]
-                    [ th [ class "w-10 py-2 pr-2" ] [ text "#" ]
-                    , th [ class "py-2 pr-2" ] [ text "Title" ]
-                    , th [ class "w-32 py-2 text-right" ] [ text "Status" ]
-                    ]
-                ]
-            , tbody []
-                (model.songs
-                    |> List.indexedMap
-                        (\idx song ->
-                            let
-                                isCurrent = idx == model.currentSongIndex
-                                rowBase = "cursor-pointer hover:bg-white/10"
-                                active = if isCurrent then " bg-white/10" else ""
-                                badgeClasses =
-                                    if isCurrent then
-                                        "inline-flex items-center text-[10px] px-2 py-1 rounded bg-white text-black"
-                                    else
-                                        "inline-flex items-center text-[10px] px-2 py-1 rounded border border-white/30"
-                            in
-                            tr
-                                [ class (rowBase ++ active)
-                                , onClick (SelectSong idx)
-                                ]
-                                [ td [ class "py-2 pr-2 opacity-70" ] [ text (String.fromInt (idx + 1)) ]
-                                , td [ class "py-2 pr-2 truncate" ] [ text song.title ]
-                                , td [ class "py-2 text-right" ]
-                                    [ span [ class badgeClasses ]
-                                        [ text
-                                            (if isCurrent then
-                                                "Playing"
-                                             else if song.released then
-                                                "Released"
-                                             else
-                                                "Unreleased"
-                                            )
-                                        ]
-                                    ]
-                                ]
-                        )
-                )
+miniPlayer : Model -> Html Msg
+miniPlayer model =
+    let
+        currentSong =
+            List.drop model.currentSongIndex model.songs
+                |> List.head
+                |> Maybe.withDefault { title = "", src = "", duration = 0, released = False, artwork = Nothing }
+
+        playLabel = if model.isPlaying then "Pause" else "Play"
+    in
+    div [ class "w-full flex items-center gap-3 text-white py-2" ]
+        [ div [ class "flex items-center gap-2 cursor-pointer", onClick (ScrollTo "playlist") ]
+            [ img [ src (Maybe.withDefault "images/coverart/default.png" currentSong.artwork), alt "Cover", class "w-10 h-10 rounded object-cover" ] []
+            , div [ class "text-base truncate" ] [ text currentSong.title ]
+            ]
+        , div [ class "ml-auto flex items-center gap-3" ]
+            [ button [ class "px-3 py-2 rounded hover:bg-white/10", onClick PreviousSong, Html.Attributes.title "Previous" ]
+                [ i [ class "fa-solid fa-backward-step text-xl", attribute "aria-hidden" "true" ] [], span [ class "sr-only" ] [ text "Previous" ] ]
+            , button [ class "px-3 py-2 rounded hover:bg-white/10", onClick PlayPause, Html.Attributes.title playLabel ]
+                [ i [ class ("fa-solid " ++ (if model.isPlaying then "fa-pause" else "fa-play") ++ " text-xl"), attribute "aria-hidden" "true" ] [], span [ class "sr-only" ] [ text playLabel ] ]
+            , button [ class "px-3 py-2 rounded hover:bg-white/10", onClick NextSong, Html.Attributes.title "Next" ]
+                [ i [ class "fa-solid fa-forward-step text-xl", attribute "aria-hidden" "true" ] [], span [ class "sr-only" ] [ text "Next" ] ]
             ]
         ]
 
 
--- VIEW
-view : Model -> Html Msg
-view model =
-    div []
-        [ navbar model -- Navbar is rendered at the top level
-        , heroBannerContent model.scrollY
-        , marker
-        , contentPanel model [ bioPanel model, imageGallery galleryImages ]
-        , transparentGapPanel
-        , contentPanel model [ myTestPanel model, imageGallery galleryImages ]
-        --, imageGallery galleryImages
+-- playlistTable : Model -> Html Msg
+-- playlistTable model =
+--     div [ id "playlist", class "bg-neutral-900/70 rounded-xl p-4 text-white" ]
+--         [ h2 [ class "text-lg font-semibold mb-3" ] [ text "Playlist" ]
+--         , table [ class "w-full table-fixed border-separate border-spacing-0 text-sm" ]
+--             [ thead []
+--                 [ tr [ class "text-left uppercase text-xs tracking-wide opacity-60" ]
+--                     [ th [ class "w-10 py-2 pr-2" ] [ text "#" ]
+--                     , th [ class "py-2 pr-2" ] [ text "Title" ]
+--                     , th [ class "w-32 py-2 text-right" ] [ text "Status" ]
+--                     ]
+--                 ]
+--             , tbody []
+--                 (model.songs
+--                     |> List.indexedMap
+--                         (\idx song ->
+--                             let
+--                                 isCurrent = idx == model.currentSongIndex
+--                                 rowBase = "cursor-pointer hover:bg-white/10"
+--                                 active = if isCurrent then " bg-white/10" else ""
+--                                 badgeClasses =
+--                                     if isCurrent then
+--                                         "inline-flex items-center text-[10px] px-2 py-1 rounded bg-white text-black"
+--                                     else
+--                                         "inline-flex items-center text-[10px] px-2 py-1 rounded border border-white/30"
+--                             in
+--                             tr
+--                                 [ class (rowBase ++ active)
+--                                 , onClick (SelectSong idx)
+--                                 ]
+--                                 [ td [ class "py-2 pr-2 opacity-70" ] [ text (String.fromInt (idx + 1)) ]
+--                                 , td [ class "py-2 pr-2 truncate" ] [ text song.title ]
+--                                 , td [ class "py-2 text-right" ]
+--                                     [ span [ class badgeClasses ]
+--                                         [ text
+--                                             (if isCurrent then
+--                                                 "Playing"
+--                                              else if song.released then
+--                                                 "Released"
+--                                              else
+--                                                 "Unreleased"
+--                                             )
+--                                         ]
+--                                     ]
+--                                 ]
+--                         )
+--                 )
+--             ]
+--         ]
+
+
+playlistTableRedesigned : Model -> Html Msg
+playlistTableRedesigned model =
+    let
+        durationFor : Int -> String
+        durationFor idx =
+            if idx == model.currentSongIndex && model.duration > 0 then
+                formatTime model.duration
+            else
+                "--:--"
+
+        releaseDateFor : Song -> String
+        releaseDateFor song =
+            if song.released then "—" else "—"
+    in
+    div
+        [ id "playlist"
+        , class "mt-6 rounded-2xl bg-slate-900/50 text-white shadow-2xl px-4 py-5 sm:px-6 sm:py-6"
         ]
+        [ h3 [ class "text-xl font-semibold mb-4" ] [ text "Playlist" ]
+        , div [ class "overflow-hidden rounded-xl" ]
+            [ table [ class "w-full table-auto text-sm" ]
+                [ -- Column widths (index / title / duration / date)
+                  Html.node "colgroup" []
+                    [ Html.node "col" [ class "w-12" ] []
+                    , Html.node "col" [] []
+                    , Html.node "col" [ class "w-24" ] []
+                    , Html.node "col" [ class "w-40" ] []
+                    ]
+                , thead []
+                    [ tr [ class "text-left uppercase text-[11px] tracking-wide text-white/60 border-b border-white/10" ]
+                        [ th [ class "py-2 pl-3 pr-2" ] [ text "#" ]
+                        , th [ class "py-2 pr-2" ] [ text "Song Title" ]
+                        , th [ class "py-2 pr-2" ] [ text "Duration" ]
+                        , th [ class "py-2 pr-3 text-right" ] [ text "Release Date" ]
+                        ]
+                    ]
+                , tbody []
+                    (model.songs
+                        |> List.indexedMap
+                            (\idx song ->
+                                let
+                                    isCurrent = idx == model.currentSongIndex
+                                    rowBase = "cursor-pointer border-b border-white/5"
+                                    rowState = if isCurrent then " bg-white/10" else " hover:bg-white/5"
+                                in
+                                tr
+                                    [ class (rowBase ++ rowState)
+                                    , onClick (SelectSong idx)
+                                    ]
+                                    [ td [ class "py-2 pl-3 pr-2 opacity-70 whitespace-nowrap" ]
+                                        [ text (String.fromInt (idx + 1)) ]
+                                    , td [ class "py-2 pr-2" ]
+                                        [ -- truncate needs a wrapping block with constrained width in table cells
+                                          div [ class "truncate" ] [ text song.title ]
+                                        ]
+                                    , td [ class "py-2 pr-2 whitespace-nowrap" ]
+                                        [ text (formatTime song.duration) ]
+                                    , td [ class "py-2 pr-3 text-right whitespace-nowrap" ]
+                                        [ text (releaseDateFor song) ]
+                                    ]
+                            )
+                    )
+                ]
+            ]
+        ]
+
 
 -- SUBSCRIPTIONS
 subscriptions : Model -> Sub Msg
@@ -252,22 +404,26 @@ topDownBlackGradientSpan : Html Msg
 topDownBlackGradientSpan =
     div [ class "relative top-0 h-[10%] w-full bg-gradient-to-b from-black to-black/0 z-10" ] []
 
+albumArtwork : Song -> String
+albumArtwork song =
+    Maybe.withDefault "images/coverart/default.png" song.artwork
+
+
 heroBannerContent : Float -> Html Msg
 heroBannerContent scrollY =
     let
         scale =
-            max 0.5 (1 - scrollY / 300)
+            max 0 (1 - scrollY / 300)
     in
     div
         [ class "h-screen flex items-center justify-center text-white relative"
         , style "z-index" "10" -- Lower z-index for hero banner
         ]
-        [ -- Centered Logo
-          div [ class "relative z-20 flex items-center justify-center h-full" ]
+        [ div [ class "relative z-20 flex items-center justify-center h-full" ]
               [ img
                     [ src "images/Mortrem-logo-white-transparent.png"
                     , alt "Mortrem Logo"
-                    , class "w-[60%] transition-transform duration-300"
+                    , class "w-[60%] transition-transform duration-100"
                     , style "transform" ("scale(" ++ String.fromFloat scale ++ ")")
                     ]
                     []
@@ -275,6 +431,39 @@ heroBannerContent scrollY =
         , bottomUpBlackGradientSpan
         ]
 
+
+videoBanner : String ->Html Msg
+videoBanner title =
+    div
+        [ class "h-screen flex items-center justify-center text-white relative", style "z-index" "10" ]
+        [ div [ class "relative z-20 flex items-center justify-center h-full font-serif text-8xl breathe" ] [ text title ]
+        , bottomUpBlackGradientSpan
+        ]
+
+
+heroBannerContent2 : Float -> Html Msg
+heroBannerContent2 scrollY =
+    let
+        scale =
+            Basics.clamp 0 1 (scrollY / 10000)
+        -- scale =
+        --     max 0 (1 - scrollY / 300)
+    in
+    div
+        [ class "h-screen flex items-center justify-center text-white relative"
+        , style "z-index" "10" -- Lower z-index for hero banner
+        ]
+        [ div [ class "relative z-20 flex items-center justify-center h-full" ]
+              [ img
+                    [ src "images/Mortrem-logo-white-transparent.png"
+                    , alt "Mortrem Logo"
+                    , class "w-[60%] transition-transform duration-100"
+                    , style "transform" ("scale(" ++ String.fromFloat scale ++ ")")
+                    ]
+                    []
+              ]
+        , bottomUpBlackGradientSpan
+        ]
 
 
 startSong : Int -> Model -> ( Model, Cmd Msg )
@@ -295,7 +484,7 @@ startSong idx model =
             model.songs
                 |> List.drop boundedIndex
                 |> List.head
-                |> Maybe.withDefault { title = "", src = "", released = False }
+                |> Maybe.withDefault { title = "", src = "", duration = 0, released = False, artwork = Nothing }
     in
     ( { model
         | currentSongIndex = boundedIndex
@@ -307,112 +496,232 @@ startSong idx model =
     )
 
 
-audioPlayerPanel : Model -> Html Msg
-audioPlayerPanel model =
+-- Centered, responsive discography section with min height = viewport
+-- discographySection : Model -> Html Msg
+-- discographySection model =
+--     div
+--         [ class "bg-black w-full px-6 md:px-16 min-h-screen" ]
+--         [ div
+--             [ class "mx-auto max-w-[80rem] min-h-screen py-18 md:py-26 flex flex-col gap-6 justify-center"
+--             ]
+--             [ discographyPanel model ]
+--         ]
+
+discographyPanel : Model -> Html Msg
+discographyPanel model =
     let
         currentSong =
             List.drop model.currentSongIndex model.songs
                 |> List.head
-                |> Maybe.withDefault { title = "", src = "", released = False }
+                |> Maybe.withDefault
+                    { title = "", src = "", duration = 0, released = False, artwork = Nothing }
 
-        progress =
+        progressPct =
             if model.duration > 0 then
                 (model.currentTime / model.duration) * 100
             else
                 0
-    in
-    div [ class "mt-8 mb-12 max-w-5xl mx-auto text-white" ]
-        [ h2 [ class "text-2xl font-semibold mb-4 text-center" ] [ text currentSong.title ]
-        , case model.error of
-            Just error ->
-                p [ class "text-red-500 mb-4 text-center" ] [ text error ]
 
-            Nothing ->
-                text ""
-        , audio
+        -- artwork fallback (swap to your preferred default)
+        artSrc =
+            case currentSong.artwork of
+                Just url -> url
+                Nothing -> "images/coverart/default.png"
+
+        artistName = "Mortrem" -- change if you store artist elsewhere
+
+        releaseDateText =
+            -- If you later add dates, format them here; for now show a friendly status
+            if currentSong.released then "Released" else "Unreleased"
+    in
+    div [ class "max-w-5xl mx-auto text-white" ]
+        [ audio
             [ id "audioPlayer"
             , src currentSong.src
             , preload "auto"
-            , on "timeupdate" (Decode.map2 TimeUpdate
-                                   (Decode.at ["target", "currentTime"] Decode.float)
-                                   (Decode.at ["target", "duration"] Decode.float))
-            , on "ended" (Decode.succeed SongEnded)
-            , on "error" (Decode.at ["target", "error", "message"] Decode.string |> Decode.map AudioError)
             , class "hidden"
             ]
             []
-        , div [ class "grid grid-cols-1 lg:grid-cols-3 gap-6 items-start" ]
-            [ -- Player (2/3)
-              div [ class "lg:col-span-2 bg-neutral-900/70 rounded-xl p-4" ]
-                [ -- Visualizer (10 bars)
-                  canvas
-                    [ id "waveform"
-                    , width 600
-                    , height 100
-                    , class "w-full mb-4"
+
+        -- Player Card
+        , div
+            [ class
+                (String.join " "
+                    [ "rounded-2xl bg-slate-900/50 text-white shadow 2xl"
+                    , "px-4 py-5 sm:px-6 sm:py-6"
                     ]
-                    []
-                , -- Progress
-                  div
-                    [ class "relative w-full h-2 bg-gray-700 rounded-full mb-4" ]
-                    [ div
-                        [ class "absolute h-full bg-white rounded-full"
-                        , style "width" (String.fromFloat progress ++ "%")
-                        ]
-                        []
-                    , div
-                        [ class "absolute top-0 left-0 w-full h-full cursor-pointer"
-                        , onClickSeek
+                )
+            ]
+            [ -- Top row: art | info
+              div [ class "grid grid-cols-12 gap-4 sm:gap-6 items-center" ]
+                [ -- Album art
+                  div [ class "col-span-4 sm:col-span-3 md:col-span-3 flex justify-center" ]
+                    [ img
+                        [ src artSrc
+                        , alt "Album cover art"
+                        , class "w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-xl object-cover shadow-md"
                         ]
                         []
                     ]
-                , -- Controls
-                  div [ class "flex justify-center gap-3" ]
-                    [ button
-                        [ class "px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600"
-                        , onClick PreviousSong
+                , -- Title / artist / release status
+                  div [ class "col-span-8 sm:col-span-9 md:col-span-9" ]
+                    [ div [ class "flex items-start justify-between gap-4" ]
+                        [ div []
+                            [ h2 [ class "text-2xl sm:text-3xl font-bold leading-tight" ]
+                                [ text currentSong.title ]
+                            , p [ class "mt-1 text-sm sm:text-base text-white/70" ]
+                                [ text artistName ]
+                            ]
+                        , span
+                            [ class
+                                (String.join " "
+                                    [ "hidden sm:inline-flex items-center text-xs px-2 py-1"
+                                    , "rounded-full border border-white/20"
+                                    , if currentSong.released then "bg-white/10" else "bg-amber-500/10 text-amber-200"
+                                    ]
+                                )
+                            ]
+                            [ text releaseDateText ]
                         ]
-                        [ text "Previous" ]
-                    , button
-                        [ class "px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600"
-                        , onClick PlayPause
+                    , -- Progress bar
+                      div [ class "mt-4 relative" ]
+                        [ -- track
+                          div [ class "w-full h-2 rounded-full bg-slate-700/70 overflow-hidden" ] []
+                        , -- fill
+                          div
+                            [ class "absolute left-0 top-0 h-2 rounded-full bg-sky-400/80"
+                            , style "width" (String.fromFloat progressPct ++ "%")
+                            ]
+                            []
+                        , -- click target
+                          div
+                            [ class "absolute inset-0 cursor-pointer"
+                            , onClickSeek
+                            ]
+                            []
                         ]
-                        [ text (if model.isPlaying then "Pause" else "Play") ]
-                    , button
-                        [ class "px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-600"
-                        , onClick NextSong
+                    , -- timecodes (optional)
+                      div [ class "mt-1 flex justify-between text-xs text-white/60" ]
+                        [ span [] [ text (formatTime model.currentTime) ]
+                        , span []
+                            [ text
+                                (if model.duration > 0 then
+                                    formatTime model.duration
+                                 else
+                                    "--:--"
+                                )
+                            ]
                         ]
-                        [ text "Next" ]
                     ]
                 ]
-              ,
-              playlistTable model
+            , -- Controls row
+              div [ class "mt-6 flex justify-center gap-4" ]
+                [ button
+                    [ class "px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 shadow-md"
+                    , onClick PreviousSong
+                    , Html.Attributes.title "Previous"
+                    ]
+                    [ i [ class "fa-solid fa-backward-step text-xl", Html.Attributes.attribute "aria-hidden" "true" ] []
+                    , span [ class "sr-only" ] [ text "Previous" ]
+                    ]
+                , button
+                    [ class "px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 shadow-md"
+                    , onClick PlayPause
+                    , Html.Attributes.title (if model.isPlaying then "Pause" else "Play")
+                    ]
+                    [ i
+                        [ class
+                            ("fa-solid " ++ (if model.isPlaying then "fa-pause" else "fa-play") ++ " text-xl")
+                        , Html.Attributes.attribute "aria-hidden" "true"
+                        ]
+                        []
+                    , span [ class "sr-only" ] [ text (if model.isPlaying then "Pause" else "Play") ]
+                    ]
+                , button
+                    [ class "px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 shadow-md"
+                    , onClick NextSong
+                    , Html.Attributes.title "Next"
+                    ]
+                    [ i [ class "fa-solid fa-forward-step text-xl", Html.Attributes.attribute "aria-hidden" "true" ] []
+                    , span [ class "sr-only" ] [ text "Next" ]
+                    ]
+                ]
             ]
+        , -- Playlist Card
+          playlistTableRedesigned model
         ]
+
 
 transparentGapPanel : Html Msg
 transparentGapPanel =
     div
-        [ class "h-[100px] w-full"
+        [ class "h-screen w-full"
         , style "background" "transparent"
         ]
         []
+
 
 navbar : Model -> Html Msg
 navbar model =
     div [ id "navbar", class "fixed top-0 left-0 w-full h-18 z-[1000] transition-transform duration-300 ease-in-out transform -translate-y-full" ]
         [ div [ class "h-16 bg-black text-white flex items-center justify-center relative" ]
-              [ img [ src "images/Mortrem-logo-white-transparent.png", alt "Mortrem Logo", class "h-12" ] [] ]
+            [ img [ src "images/Mortrem-logo-white-transparent.png", alt "Mortrem Logo", class "h-12" ] []
+            , button
+                [ class "absolute right-4 top-1/2 -translate-y-1/2 py-1 px-2.5 rounded-md border border-black bg-white/10 hover:bg-white/15 shadow-md"
+                , onClick ToggleMenu
+                , Html.Attributes.attribute "aria-label" "Menu"
+                , Html.Attributes.attribute "aria-expanded" (if model.isMenuOpen then "true" else "false")
+                ]
+                [ i [ class ("fa-solid " ++ (if model.isMenuOpen then "fa-xmark" else "fa-bars") ++ " text-lg") ] [] ]
+            ]
         , topDownBlackGradientSpan
         ]
+
+
+mobileSidePanel : Model -> Html Msg
+mobileSidePanel model =
+    let
+        panelClasses =
+            "fixed left-0 top-16 h-[calc(100vh-4rem)] z-[900] w-full " ++
+            --"w-full " ++ --md:w-1/4 md:max-w-[25vw] " ++            -- ← key change
+            "transform transition-transform duration-300 will-change-transform " ++
+            "backdrop-blur-xl backdrop-saturate-150 bg-black/95 " ++
+            "ring-1 ring-white/10 shadow-2xl text-white overflow-y-auto no-scrollbar"
+
+        translateClass =
+            if model.isMenuOpen then " translate-x-0" else " -translate-x-full"
+    in
+    div [ class (panelClasses ++ translateClass) ]
+        [ div [ class "p-4 space-y-6" ]
+            [ h2 [ class "text-sm uppercase tracking-wider opacity-80" ] [ text "Media Player" ]
+            , miniPlayer model
+            , div [ class "space-y-2" ]
+                [ h2 [ class "text-sm uppercase tracking-wider opacity-80" ] [ text "Quick Links" ]
+                , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "playlist") ] [ text "Playlist" ]
+                , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "bio") ] [ text "Who We Are / Bio" ]
+                , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "gallery") ] [ text "Gallery" ]
+                ]
+            ]
+        ]
+
+
 
 marker : Html Msg
 marker =
     span [ id "navbar-marker", class "h-[1px] bg-black block" ] []
 
+
+contentPanel : Model -> List (Html Msg) -> Html Msg
+contentPanel model children =
+    div [ class "bg-black w-full px-16 md:px-28" ]
+        [ div [ class "mx-auto max-w-[80rem]" ]
+              children
+        ]
+
+
 bioPanel : Model -> Html Msg
 bioPanel model =
-    div [ class "flex flex-col pt-12 pb-16 lg:px-16 xl:px-32" ] -- Added padding for smaller screens
+    div [ id "bio", class "flex flex-col pt-12 pb-16 lg:px-16 xl:px-32" ] -- Added padding for smaller screens
         [ div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
               [ div [ class "lg:w-2/5" ]
                   [ img [ src "images/zak-charlie-fourleaf.png", alt "test", class "w-full h-full object-cover" ] [] ]
@@ -431,38 +740,12 @@ bioPanel model =
               ]
         ]
 
-contentPanel : Model -> List (Html Msg) -> Html Msg
-contentPanel model children =
-    div [ class "bg-black w-full px-28" ]
-        [ div [ class "mx-auto max-w-[80rem]" ]
-              children
-        ]
 
-myTestPanel : Model -> Html Msg
-myTestPanel model =
-    let
-        currentSong =
-            List.drop model.currentSongIndex model.songs
-                |> List.head
-                |> Maybe.withDefault { title = "", src = "", released = False }
-        progress =
-            if model.duration > 0 then
-                (model.currentTime / model.duration) * 100
-            else
-                0
-    in
-    div [ class "text-white pt-12 px-48 relative" ]
-        [ -- Gradient overlay at the top
-          div [ class "absolute top-0 left-0 right-0 h-[100px] bg-gradient-to-b from-transparent to-black" ] []
-        , -- Audio player
-          audioPlayerPanel model
-        , -- Original Content
-          h1 [ class "text-3xl font-semibold mb-4" ] [ text "Who We Are" ]
-        , p [ class "leading-relaxed" ]
-            [ text "The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost. The quick brown fox jumped over the lazy dog into a shimmering pool of rainwater that had gathered since the last frost." ]
-        , -- Video Switch Marker
-          span [ id "marker", class "h-[1px] bg-transparent" ] []
-        ]
+performanceHistoryPanel : Model -> Html Msg
+performanceHistoryPanel model = div [] [text "Performance History"]
+
+statisticsPanel : Model -> Html Msg
+statisticsPanel model = div [] [text "Statistics"]
 
 colrowspan : Int -> Int -> String
 colrowspan col row = "col-span-" ++ String.fromInt col ++ " " ++ "row-span-" ++ String.fromInt row
@@ -478,11 +761,20 @@ galleryImageComponent galleryImage =
 
 imageGallery : List GalleryImage -> Html Msg
 imageGallery images =
-    div [ class "w-full" ]
-        [ titleText "Gallery"
-        , div [ class "grid grid-cols-12" ]
+    div [ id "gallery", class "w-full pt-26" ]
+        [ div [ class "grid grid-cols-12" ]
             <| List.map galleryImageComponent images
         ]
+
+formatTime : Float -> String
+formatTime secs =
+    let
+        total = round secs
+        m = total // 60
+        s = modBy 60 total
+        pad n = if n < 10 then "0" ++ String.fromInt n else String.fromInt n
+    in
+    (String.fromInt m) ++ ":" ++ pad s
 
 
 onClickSeek : Html.Attribute Msg

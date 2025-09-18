@@ -3,10 +3,36 @@
     transform: scale(1);
   }
   50% {
-    transform: scale(1.02);
+    transform: scale(1.06);
   }
 }
 
 .breathe {
-  animation: breathe 4s ease-in-out infinite;
+  animation: breathe 3s ease-in-out infinite;
+}
+
+html {
+  /* Force a scrollbar track to exist at all times */
+  overflow-y: scroll;              /* <- important: not auto */
+  /* Hide it */
+  scrollbar-width: none;           /* Firefox */
+}
+html::-webkit-scrollbar {
+  width: 0 !important;             /* Chrome/Safari/Edge */
+  height: 0 !important;
+  background: transparent !important;
+}
+
+/* Body can stay default; no special overflow here */
+body {
+  -ms-overflow-style: none;        /* IE/old Edge safe noop */
+}
+
+/* Optional: any custom scrollable areas (like the side panel) also hide bars */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
 }

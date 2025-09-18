@@ -1,15 +1,82 @@
 document.addEventListener('DOMContentLoaded', () => {
   var app = Elm.Main.init({ node: document.getElementById('elm') });
-  let scrollTimeout;
-  const debounceScroll = (callback, wait) => {
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(callback, wait);
-  };
-  window.addEventListener('scroll', () => {
-    debounceScroll(() => {
-      app.ports.onScroll.send(window.scrollY);
-    }, 100);
-  });
+
+  let latestY = window.scrollY || 0;
+  let ticking = false;
+
+  function onScrollRAF() {
+    latestY = window.scrollY || window.pageYOffset || 0;
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        app.ports.onScroll.send(latestY);
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }
+  window.addEventListener('scroll', onScrollRAF, { passive: true });
+
+  // Lock/unlock body scroll only on mobile (<768px), and keep it correct on resize
+  (() => {
+    if (!app.ports.setBodyScroll) return;
+
+    let scrollYBeforeLock = 0;
+    let lastLockRequested = false;   // what Elm last asked for (true=open, false=closed)
+    let currentlyLocked = false;     // what we've actually applied
+
+    // const isMobile = () => window.matchMedia('(max-width: 767.98px)').matches;
+
+    function applyLock(shouldLock) {
+      if (shouldLock === currentlyLocked) return; // no-op
+      if (shouldLock) {
+        scrollYBeforeLock = window.scrollY || window.pageYOffset || 0;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollYBeforeLock}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
+        document.body.style.overflow = 'hidden';
+        document.body.style.touchAction = 'none';
+        document.body.style.overscrollBehavior = 'contain';
+        currentlyLocked = true;
+      } else {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
+        document.body.style.overscrollBehavior = '';
+        window.scrollTo(0, scrollYBeforeLock);
+        currentlyLocked = false;
+      }
+    }
+
+    // Elm asks to lock/unlock; only lock if mobile
+    app.ports.setBodyScroll.subscribe((lock) => {
+      lastLockRequested = lock;
+      applyLock(lock);
+    });
+
+    // If user resizes across the md breakpoint while the menu is open/closed,
+    // re-apply the correct lock state.
+    window.addEventListener('resize', () => {
+      applyLock(lastLockRequested);
+    });
+  })();
+
+  // Smooth-scroll to an element id
+  if (app.ports.scrollToId) {
+    app.ports.scrollToId.subscribe((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        console.warn('scrollToId: element not found', id);
+      }
+    });
+  }
 
   // IntersectionObserver for video switch
   const marker = document.getElementById('marker');
