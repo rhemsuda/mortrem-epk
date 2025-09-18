@@ -28,20 +28,20 @@ port videoSwitch : (Bool -> msg) -> Sub msg
 -- MODEL
 songs : List Song
 songs =
-    [ { title = "1. Kingdom Come", src = "/audio/mortrem-kingdom-come.mp3", released = False }
-    , { title = "2. Nonfiction", src = "/audio/mortrem-nonfiction.mp3", released = True }
-    , { title = "3. Vanity Box", src = "/audio/mortrem-vanitybox.mp3", released = False }
+    [ { title = "1. Kingdom Come", src = "/assets/audio/mortrem-kingdom-come.mp3", released = False }
+    , { title = "2. Nonfiction", src = "/assets/audio/mortrem-nonfiction.mp3", released = True }
+    , { title = "3. Vanity Box", src = "/assets/audio/mortrem-vanitybox.mp3", released = False }
     ]
 
 galleryImages : List GalleryImage
 galleryImages =
-    [ { colSpan = 4, rowSpan = 6, image = { src = "/images/gallery/samuel-george-lees.png", alt = "Samuel George. Lead Singer. Walking on stage in red light." } }
-    , { colSpan = 4, rowSpan = 4, image = { src = "/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
-    , { colSpan = 4, rowSpan = 4, image = { src = "/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
-    , { colSpan = 6, rowSpan = 4, image = { src = "/images/gallery/kyle-jensen-lees.png", alt = "Kyle Jensen. Guitar & Vocals. Playing guitar and singing with a blue light." } }
-    , { colSpan = 4, rowSpan = 6, image = { src = "/images/gallery/sammy-romeo-lees.png", alt = "Sammy Romeo. Drums. Playing drums on stage." } }
-    , { colSpan = 4, rowSpan = 6, image = { src = "/images/gallery/zak-stulla-lees.png", alt = "Zak Stulla. Bass Guitar. Holding a black bass guitar." } }
-    , { colSpan = 4, rowSpan = 4, image = { src = "/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+    [ { colSpan = 4, rowSpan = 6, image = { src = "/assets/images/gallery/samuel-george-lees.png", alt = "Samuel George. Lead Singer. Walking on stage in red light." } }
+    , { colSpan = 4, rowSpan = 4, image = { src = "/assets/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+    , { colSpan = 4, rowSpan = 4, image = { src = "/assets/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+    , { colSpan = 6, rowSpan = 4, image = { src = "/assets/images/gallery/kyle-jensen-lees.png", alt = "Kyle Jensen. Guitar & Vocals. Playing guitar and singing with a blue light." } }
+    , { colSpan = 4, rowSpan = 6, image = { src = "/assets/images/gallery/sammy-romeo-lees.png", alt = "Sammy Romeo. Drums. Playing drums on stage." } }
+    , { colSpan = 4, rowSpan = 6, image = { src = "/assets/images/gallery/zak-stulla-lees.png", alt = "Zak Stulla. Bass Guitar. Holding a black bass guitar." } }
+    , { colSpan = 4, rowSpan = 4, image = { src = "/assets/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
     ]
 
 bioText1 : String
@@ -60,7 +60,7 @@ init _ =
       , songs = songs
       , error = Nothing
       , barHeights = List.repeat 60 25.0
-      , currentVideo = "/videos/epk-banner-fixed.mp4"
+      , currentVideo = "/assets/videos/epk-banner-fixed.mp4"
       }
     , Cmd.none
     )
@@ -165,9 +165,9 @@ update msg model =
             let
                 newVideo =
                     if isSecondary then
-                        "/videos/epk-banner-fixed.mp4"
+                        "/assets/videos/epk-banner-fixed.mp4"
                     else
-                        "/videos/epk-banner-fixed-clid.mp4"
+                        "/assets/videos/epk-banner-fixed-clid.mp4"
                 videoCmd =
                     if newVideo /= model.currentVideo then
                         changeVideo newVideo
@@ -223,7 +223,7 @@ heroBannerContent scrollY =
         [ -- Centered Logo
           div [ class "relative z-20 flex items-center justify-center h-full" ]
               [ img
-                    [ src "images/Mortrem-logo-white-transparent.png"
+                    [ src "assets/images/Mortrem-logo-white-transparent.png"
                     , alt "Mortrem Logo"
                     , class "w-[60%] transition-transform duration-300"
                     , style "transform" ("scale(" ++ String.fromFloat scale ++ ")")
@@ -323,7 +323,7 @@ navbar : Model -> Html Msg
 navbar model =
     div [ id "navbar", class "fixed top-0 left-0 w-full h-18 z-[1000] transition-transform duration-300 ease-in-out transform translate-y-0" ]
         [ div [ class "h-16 bg-black text-white flex items-center justify-center relative" ]
-              [ img [ src "images/Mortrem-logo-white-transparent.png", alt "Mortrem Logo", class "h-12" ] []
+              [ img [ src "assets/images/Mortrem-logo-white-transparent.png", alt "Mortrem Logo", class "h-12" ] []
               , topDownBlackGradientSpan
               ]
         ]
@@ -337,13 +337,13 @@ bioPanel model =
     div [ class "flex flex-col py-16 lg:px-16 xl:px-32" ] -- Added padding for smaller screens
         [ div [ class "lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
               [ div [ class "lg:w-2/5" ]
-                  [ img [ src "images/zak-charlie-fourleaf.png", alt "test", class "w-full h-full object-cover" ] [] ]
+                  [ img [ src "assets/images/zak-charlie-fourleaf.png", alt "test", class "w-full h-full object-cover" ] [] ]
               , div [ class "lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText1 ]
               ]
         , div [ class "flex flex-row items-stretch gap-4 mt-4" ] -- items-stretch aligns heights
               [ div [ class "w-3/5 text-white text-md leading-relaxed" ] [ text bioText2 ]
               , div [ class "w-2/5" ]
-                  [ img [ src "images/gallery/charlie-romeo-lees.png", alt "test", class "w-full h-full object-cover" ] [] ]
+                  [ img [ src "assets/images/gallery/charlie-romeo-lees.png", alt "test", class "w-full h-full object-cover" ] [] ]
               ]
         ]
 
