@@ -1,14 +1,14 @@
 port module Main exposing (main)
 
 import Browser
-import Html exposing (Html, div, span, h1, h2, h3, p, text, img, i, audio, canvas, button, span, table, thead, tbody, tr, th, td)
-import Html.Attributes exposing (class, style, src, alt, id, width, height, preload, title, attribute)
+import Html exposing (Html, div, span, h1, h2, h3, p, text, img, i, audio, canvas, button, span, table, thead, tbody, tr, th, td, a)
+import Html.Attributes exposing (class, style, src, alt, id, href, target, width, height, preload, title, attribute)
 import Html.Events exposing (on, onClick)
 import Json.Decode as Decode
 import DateTime exposing (fromPosix)
 
 import Constants exposing (..)
-import Types exposing (Model, Msg (..), Song, Image, GalleryImage, Performance, LineupPosition (..))
+import Types exposing (Model, Msg (..), Song, Image, GalleryImage, Performance, LineupPosition (..), YoutubeVideo)
 
 import Update.OnScroll as OnScroll
 import Update.PlayPause as PlayPause
@@ -30,6 +30,7 @@ port changeVideo : String -> Cmd msg
 port videoSwitch : (Bool -> msg) -> Sub msg
 port scrollToId : String -> Cmd msg
 port setBodyScroll : Bool -> Cmd msg
+port scrollReel : (String, Int) -> Cmd msg
 
 
 barsCount : Int
@@ -48,10 +49,11 @@ songs =
     , { title = "Vanity Box", src = "/audio/mortrem-vanitybox.mp3", duration = 100, released = False, artwork = Nothing }
     ]
 
-videos : List String
-videos =
-    [ "https://www.youtube.com/embed/pGWly6GZbs4?si=be_sf5X7V4wGHtgC"
-    , ""
+musicVideos : List YoutubeVideo
+musicVideos =
+    [ { title = "WATCH: Mortrem's Epic Performance at the Whiskey Pit Will Leave You Speechless!", youtubeId = "BBLWe1Go59E", thumbnail = "" }
+    , { title = "Mortrem - Nonfiction (Music Video)", youtubeId = "pGWly6GZbs4", thumbnail = "" }
+    , { title = "Mortrem - Big Blue (Official Lyric Video)", youtubeId = "tsgr0ryIGAY", thumbnail = "" }
     ]
 
 bioText1 : String
@@ -61,7 +63,7 @@ bioText2 : String
 bioText2 = "Born during the pandemic, Mortrem began as a recording project between founding members Kyle Jensen, Sammy Romeo, and Charlie Romeo. What started as a basement experiment quickly grew into something bigger as their catalogue started to take shape into a full album. Drawing on their childhood and modern inspirations in metal and hard rock, the trio carved out Mortrem's distinct sound — heavy, experimental, and engaging. With the addition of Samuel George on vocals and Zak Stulla on bass, the band became a fully realized project, united by a shared vision to push musical and live show boundaries."
 
 bioText3 : String
-bioText3 = "Mortrem is currently rounding out their live show cycle that began in September 2024, steadily building a loyal local following while refining a full-scale production show. Their next chapter starts in early 2026 with the release of their debut album One With The Earth — a record designed to set the standard for the band's evolution and mark their entry onto the national stage. Backed by a Canadian tour and a consistent social media presence, this release is positioned to be a foundational blueprint for Mortrem's future."
+bioText3 = "Mortrem is currently rounding out their first live show cycle that began in September 2024, steadily building a loyal local following while refining a full-scale production show. Their next chapter starts in early 2026 with the release of their debut album One With The Earth — a record designed to set the standard for the band's evolution and mark their entry onto the national stage. Backed by a Canadian tour and a consistent social media presence, this release is positioned to be a foundational blueprint for Mortrem's future."
 
 whyBookMortremText : String
 whyBookMortremText = "- We bring a unique sound and energy that keeps crowds engaged.\n-We are great at warming up an audience.\n- We handle our show ourselves (no need for monitoring engineers or lighting techs)"
@@ -77,8 +79,6 @@ galleryImages =
     , { colSpan = 4, rowSpan = 6, image = { src = "/images/gallery/zak-stulla-lees.png", alt = "Zak Stulla. Bass Guitar. Holding a black bass guitar." } }
     , { colSpan = 4, rowSpan = 4, image = { src = "/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
     ]
-
-
 
 
 -- idea: do analysis on this information and show the numbers ticking up to the current totals when the user scrolls to them first time
@@ -108,6 +108,8 @@ init _ =
       , currentTime = 0
       , duration = 0
       , songs = songs
+      , musicVideos = musicVideos
+      , selectedMusicVideoIndex = 0
       , error = Nothing
       , barHeights = List.repeat barsCount 25.0
       , currentVideo = "/videos/epk-banner-fixed.mp4"
@@ -124,12 +126,15 @@ view model =
         [ navbar model
         , mobileSidePanel model
         , heroBannerContent model.scrollY
-        , marker
-        , contentPanel model [ bioPanel model ]
-        , videoBanner "Discography" -- TODO: This video should be candid closeup video of the band working on writing
+        , navbarMarker
+
+        , contentPanel model [ bioPanel model, videoSwitchMarker1 ]
+
+        , videoBanner "Music & Videos" -- TODO: This video should be candid closeup video of the band working on writing
+
         --, discographySection model
-        , contentPanel model [ discographyPanel model, streamingServicesPanel, musicVideosPanel model ]
-        , videoBanner "Performance History & Statistics"
+        , contentPanel model [ discographyPanel model, musicVideosPanel model, streamingServicesPanel]
+        , videoBanner "Performance Metrics"
         , contentPanel model [ performanceHistoryPanel model, statisticsPanel model ]
         , videoBanner "Gallery"
         , contentPanel model [ imageGallery galleryImages ]
@@ -168,6 +173,12 @@ update msg model =
             ( { model | isMenuOpen = False }
             , Cmd.batch [ scrollToId idStr, setBodyScroll False ]
             )
+        SelectMusicVideo idx ->
+            ( { model | selectedMusicVideoIndex = idx }, Cmd.none )
+        ScrollVideoReelLeft ->
+            ( model, scrollReel ("video-reel", -1) )
+        ScrollVideoReelRight ->
+            ( model, scrollReel ("video-reel", 1) )
         TimeUpdate current duration ->
             ( { model | currentTime = current, duration = duration }, Cmd.none )
         SongEnded ->
@@ -251,7 +262,7 @@ miniPlayer model =
     in
     div [ class "w-full flex items-center gap-3 text-white py-2" ]
         [ div [ class "flex items-center gap-2 cursor-pointer", onClick (ScrollTo "playlist") ]
-            [ img [ src (Maybe.withDefault "images/coverart/default.png" currentSong.artwork), alt "Cover", class "w-10 h-10 rounded object-cover" ] []
+            [ img [ src (albumArtwork currentSong), alt "Cover", class "w-10 h-10 rounded object-cover" ] []
             , div [ class "text-base truncate" ] [ text currentSong.title ]
             ]
         , div [ class "ml-auto flex items-center gap-3" ]
@@ -263,57 +274,6 @@ miniPlayer model =
                 [ i [ class "fa-solid fa-forward-step text-xl", attribute "aria-hidden" "true" ] [], span [ class "sr-only" ] [ text "Next" ] ]
             ]
         ]
-
-
--- playlistTable : Model -> Html Msg
--- playlistTable model =
---     div [ id "playlist", class "bg-neutral-900/70 rounded-xl p-4 text-white" ]
---         [ h2 [ class "text-lg font-semibold mb-3" ] [ text "Playlist" ]
---         , table [ class "w-full table-fixed border-separate border-spacing-0 text-sm" ]
---             [ thead []
---                 [ tr [ class "text-left uppercase text-xs tracking-wide opacity-60" ]
---                     [ th [ class "w-10 py-2 pr-2" ] [ text "#" ]
---                     , th [ class "py-2 pr-2" ] [ text "Title" ]
---                     , th [ class "w-32 py-2 text-right" ] [ text "Status" ]
---                     ]
---                 ]
---             , tbody []
---                 (model.songs
---                     |> List.indexedMap
---                         (\idx song ->
---                             let
---                                 isCurrent = idx == model.currentSongIndex
---                                 rowBase = "cursor-pointer hover:bg-white/10"
---                                 active = if isCurrent then " bg-white/10" else ""
---                                 badgeClasses =
---                                     if isCurrent then
---                                         "inline-flex items-center text-[10px] px-2 py-1 rounded bg-white text-black"
---                                     else
---                                         "inline-flex items-center text-[10px] px-2 py-1 rounded border border-white/30"
---                             in
---                             tr
---                                 [ class (rowBase ++ active)
---                                 , onClick (SelectSong idx)
---                                 ]
---                                 [ td [ class "py-2 pr-2 opacity-70" ] [ text (String.fromInt (idx + 1)) ]
---                                 , td [ class "py-2 pr-2 truncate" ] [ text song.title ]
---                                 , td [ class "py-2 text-right" ]
---                                     [ span [ class badgeClasses ]
---                                         [ text
---                                             (if isCurrent then
---                                                 "Playing"
---                                              else if song.released then
---                                                 "Released"
---                                              else
---                                                 "Unreleased"
---                                             )
---                                         ]
---                                     ]
---                                 ]
---                         )
---                 )
---             ]
---         ]
 
 
 playlistTableRedesigned : Model -> Html Msg
@@ -496,17 +456,6 @@ startSong idx model =
     )
 
 
--- Centered, responsive discography section with min height = viewport
--- discographySection : Model -> Html Msg
--- discographySection model =
---     div
---         [ class "bg-black w-full px-6 md:px-16 min-h-screen" ]
---         [ div
---             [ class "mx-auto max-w-[80rem] min-h-screen py-18 md:py-26 flex flex-col gap-6 justify-center"
---             ]
---             [ discographyPanel model ]
---         ]
-
 discographyPanel : Model -> Html Msg
 discographyPanel model =
     let
@@ -534,7 +483,7 @@ discographyPanel model =
             -- If you later add dates, format them here; for now show a friendly status
             if currentSong.released then "Released" else "Unreleased"
     in
-    div [ class "max-w-5xl mx-auto text-white" ]
+    div [ id "discography", class "pt-16 md:pt-28 px-6 lg:px-16 md:max-w-5xl lg:max-w-8xl mx-auto text-white" ]
         [ audio
             [ id "audioPlayer"
             , src currentSong.src
@@ -652,10 +601,154 @@ discographyPanel model =
         ]
 
 
+streamingServicesPanel : Html Msg
+streamingServicesPanel =
+    div [ class "pt-8 md:pt-16 pb-8 md:pb-16 lg:px-16 xl:px-32" ]
+        [ h1 [ class "text-lg md:text-xl text-white font-bold" ] [ text "Streaming Links" ]
+        , div [ class "flex items-center justify-center gap-8 md:gap-24 py-6 md:py-12" ]
+            [ a
+              [ href "https://open.spotify.com/artist/1z9AQTlfG5SjjDtKf1r2Mt?si=pnTiiO5UTziuu4YgCPaTAA"
+              , target "_blank"
+              ]
+              [ img
+                    [ src "images/spotify-logo.png"
+                    , class "max-w-18 md:max-w-32"
+                    , alt "Spotify logo. Clicking this takes you to Mortrem's Spotify page."
+                    ]
+                    []
+              ]
+            , a
+              [ href "https://music.apple.com/ca/artist/mortrem/1723532370"
+              , target "_blank"
+              ]
+              [ img
+                    [ src "images/apple-music-logo.png"
+                    , class "max-w-14 md:max-w-28"
+                    , alt "Apple Music logo. Clicking this takes you to Mortrem's Apple Music page."
+                    ]
+                    []
+              ]
+            , a
+              [ href "https://www.youtube.com/channel/UCLaZTiER4UOVGzsCV50tbfA"
+              , target "_blank"
+              ]
+              [ img
+                    [ src "images/youtube-logo.png"
+                    , class "max-w-18 md:max-w-32"
+                    , alt "Youtube logo. Clicking this takes you to Mortrem's Youtube page."
+                    ]
+                    []
+              ]
+            ]
+        ]
+
+musicVideosPanel : Model -> Html Msg
+musicVideosPanel model =
+    let
+        videos = model.musicVideos
+        total  = List.length videos
+
+        currentVideo =
+            List.drop model.selectedMusicVideoIndex videos
+                |> List.head
+                |> Maybe.withDefault
+                    { title = "", youtubeId = "", thumbnail = "" }
+    in
+    div [ class "pt-8 md:pt-16 lg:px-16 xl:px-32" ]
+        [ h1 [ class "text-lg md:text-xl text-white font-bold mb-4 md:mb-6" ] [ text "Videos" ]
+
+        , -- EMBED PLAYER (16:9, rounded)
+          div [ class "relative w-full rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl bg-black" ]
+            [ div [ class "pt-[56.25%]" ] []  -- aspect-ratio shim (16:9)
+            , Html.node "iframe"
+                [ attribute "src" (youtubeEmbedUrl currentVideo.youtubeId)
+                , attribute "title" currentVideo.title
+                , class "absolute inset-0 w-full h-full"
+                , attribute "frameborder" "0"
+                , attribute "allow"
+                    "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                , attribute "allowfullscreen" ""
+                , attribute "referrerpolicy" "strict-origin-when-cross-origin"
+                ]
+                []
+            ]
+
+        , -- THUMB REEL
+          div [ class "relative mt-4" ]
+            [ -- Left arrow
+              button
+                [ class "absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 ring-1 ring-white/20 shadow"
+                , onClick ScrollVideoReelLeft
+                , attribute "aria-label" "Scroll left"
+                ]
+                [ i [ class "fa-solid fa-chevron-left text-white" ] [] ]
+
+            , -- Reel
+              div
+                [ id "video-reel"
+                , class (String.join " "
+                             [ "mx-10 px-4 md:px-6 py-2"
+                             , "flex gap-3 overflow-x-auto no-scrollbar scroll-smooth"
+                             , "snap-x snap-mandatory"
+                             , "[scroll-padding-left:1rem] [scroll-padding-right:1rem]"
+                             ]
+                        )
+                ]
+                (videos
+                    |> List.indexedMap
+                        (\idx mv ->
+                            let
+                                isCurrent = idx == model.selectedMusicVideoIndex
+                                ringCls =
+                                    if isCurrent then
+                                        "ring-2 ring-gray-400"
+                                    else
+                                        "ring-1 ring-white/15 hover:ring-white/30"
+                            in
+                            button
+                                [ class
+                                    ("relative flex-shrink-0 snap-start " ++
+                                     "rounded-xl overflow-hidden bg-black/60 " ++
+                                     "w-40 sm:w-52 md:w-60 aspect-video " ++
+                                     ringCls)
+                                , onClick (SelectMusicVideo idx)
+                                , attribute "title" mv.title
+                                ]
+                                [ img
+                                    [ src (youtubeThumb mv)
+                                    , alt mv.title
+                                    , class "absolute inset-0 w-full h-full object-cover opacity-90"
+                                    ]
+                                    []
+                                , div
+                                    [ class
+                                        "absolute inset-0 flex items-center justify-center"
+                                    ]
+                                    [ div
+                                        [ class
+                                            ("rounded-full p-3 bg-black/50 " ++
+                                             (if isCurrent then "text-gray-300" else "text-white"))
+                                        ]
+                                        [ i [ class "fa-solid fa-play" ] [] ]
+                                    ]
+                                ]
+                        )
+                )
+
+            , -- Right arrow
+              button
+                [ class "absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 ring-1 ring-white/20 shadow"
+                , onClick ScrollVideoReelRight
+                , attribute "aria-label" "Scroll right"
+                ]
+                [ i [ class "fa-solid fa-chevron-right text-white" ] [] ]
+            ]
+        ]
+
+
 transparentGapPanel : Html Msg
 transparentGapPanel =
-    div
-        [ class "h-screen w-full"
+    div [ class "h-screen w-full"
         , style "background" "transparent"
         ]
         []
@@ -663,7 +756,12 @@ transparentGapPanel =
 
 navbar : Model -> Html Msg
 navbar model =
-    div [ id "navbar", class "fixed top-0 left-0 w-full h-18 z-[1000] transition-transform duration-300 ease-in-out transform -translate-y-full" ]
+    div [ id "navbar"
+        , attribute "data-ready" "false"
+        , class
+            ("fixed top-0 left-0 w-full h-18 z-[1000] transform -translate-y-full" ++
+            "data-[ready=true]:transition-transform data-[ready=true]:duration-300 data-[ready=true]:ease-in-out ")
+        ]
         [ div [ class "h-16 bg-black text-white flex items-center justify-center relative" ]
             [ img [ src "images/Mortrem-logo-white-transparent.png", alt "Mortrem Logo", class "h-12" ] []
             , button
@@ -683,32 +781,35 @@ mobileSidePanel model =
     let
         panelClasses =
             "fixed left-0 top-16 h-[calc(100vh-4rem)] z-[900] w-full " ++
-            --"w-full " ++ --md:w-1/4 md:max-w-[25vw] " ++            -- ← key change
-            "transform transition-transform duration-300 will-change-transform " ++
+            "transform  will-change-transform " ++
             "backdrop-blur-xl backdrop-saturate-150 bg-black/95 " ++
-            "ring-1 ring-white/10 shadow-2xl text-white overflow-y-auto no-scrollbar"
+            "ring-1 ring-white/10 shadow-2xl text-white overflow-y-auto no-scrollbar " ++
+            "data-[ready=true]:transition-transform data-[ready=true]:duration-300"
 
         translateClass =
             if model.isMenuOpen then " translate-x-0" else " -translate-x-full"
     in
-    div [ class (panelClasses ++ translateClass) ]
+    div [ id "sidepanel", class (panelClasses ++ translateClass) ]
         [ div [ class "p-4 space-y-6" ]
             [ h2 [ class "text-sm uppercase tracking-wider opacity-80" ] [ text "Media Player" ]
             , miniPlayer model
             , div [ class "space-y-2" ]
                 [ h2 [ class "text-sm uppercase tracking-wider opacity-80" ] [ text "Quick Links" ]
-                , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "playlist") ] [ text "Playlist" ]
-                , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "bio") ] [ text "Who We Are / Bio" ]
+                , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "bio") ] [ text "Who We Are" ]
+                , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "discography") ] [ text "Discography" ]
                 , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "gallery") ] [ text "Gallery" ]
                 ]
             ]
         ]
 
 
-
-marker : Html Msg
-marker =
+navbarMarker : Html Msg
+navbarMarker =
     span [ id "navbar-marker", class "h-[1px] bg-black block" ] []
+
+videoSwitchMarker1 : Html Msg
+videoSwitchMarker1 =
+    span [ id "videoswitch-marker-1", class "h-[1px] bg-black block" ] []
 
 
 contentPanel : Model -> List (Html Msg) -> Html Msg
@@ -814,6 +915,19 @@ onClickSeek2 =
             decodeOffsetX
             decodeTargetWidth
 
+
+youtubeEmbedUrl : String -> String
+youtubeEmbedUrl ytId =
+    "https://www.youtube.com/embed/"
+        ++ ytId
+        ++ "?rel=0&modestbranding=1&playsinline=1"
+
+youtubeThumb : YoutubeVideo -> String
+youtubeThumb mv =
+    if String.length mv.thumbnail > 0 then
+        mv.thumbnail
+    else
+        "https://img.youtube.com/vi/" ++ mv.youtubeId ++ "/hqdefault.jpg"
 
 
 -- BOOTSTRAP

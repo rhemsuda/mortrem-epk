@@ -5160,6 +5160,12 @@ var $elm$core$Task$perform = F2(
 	});
 var $elm$browser$Browser$element = _Browser_element;
 var $author$project$Main$barsCount = 10;
+var $author$project$Main$musicVideos = _List_fromArray(
+	[
+		{thumbnail: '', title: 'WATCH: Mortrem\'s Epic Performance at the Whiskey Pit Will Leave You Speechless!', youtubeId: 'BBLWe1Go59E'},
+		{thumbnail: '', title: 'Mortrem - Nonfiction (Music Video)', youtubeId: 'pGWly6GZbs4'},
+		{thumbnail: '', title: 'Mortrem - Big Blue (Official Lyric Video)', youtubeId: 'tsgr0ryIGAY'}
+	]);
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$List$repeatHelp = F3(
@@ -5206,7 +5212,9 @@ var $author$project$Main$init = function (_v0) {
 			error: $elm$core$Maybe$Nothing,
 			isMenuOpen: false,
 			isPlaying: false,
+			musicVideos: $author$project$Main$musicVideos,
 			scrollY: 0,
+			selectedMusicVideoIndex: 0,
 			songs: $author$project$Main$songs
 		},
 		$elm$core$Platform$Cmd$none);
@@ -5345,6 +5353,9 @@ var $elm$core$List$head = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$Main$pauseAudio = _Platform_outgoingPort('pauseAudio', $elm$json$Json$Encode$string);
 var $author$project$Main$playAudio = _Platform_outgoingPort(
@@ -5359,6 +5370,21 @@ var $author$project$Main$playAudio = _Platform_outgoingPort(
 				[
 					$elm$json$Json$Encode$string(a),
 					$elm$json$Json$Encode$string(b)
+				]));
+	});
+var $elm$json$Json$Encode$int = _Json_wrap;
+var $author$project$Main$scrollReel = _Platform_outgoingPort(
+	'scrollReel',
+	function ($) {
+		var a = $.a;
+		var b = $.b;
+		return A2(
+			$elm$json$Json$Encode$list,
+			$elm$core$Basics$identity,
+			_List_fromArray(
+				[
+					$elm$json$Json$Encode$string(a),
+					$elm$json$Json$Encode$int(b)
 				]));
 	});
 var $author$project$Main$scrollToId = _Platform_outgoingPort('scrollToId', $elm$json$Json$Encode$string);
@@ -5586,6 +5612,23 @@ var $author$project$Main$update = F2(
 									$author$project$Main$scrollToId(idStr),
 									$author$project$Main$setBodyScroll(false)
 								])));
+				case 'SelectMusicVideo':
+					var idx = msg.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{selectedMusicVideoIndex: idx}),
+						$elm$core$Platform$Cmd$none);
+				case 'ScrollVideoReelLeft':
+					return _Utils_Tuple2(
+						model,
+						$author$project$Main$scrollReel(
+							_Utils_Tuple2('video-reel', -1)));
+				case 'ScrollVideoReelRight':
+					return _Utils_Tuple2(
+						model,
+						$author$project$Main$scrollReel(
+							_Utils_Tuple2('video-reel', 1)));
 				case 'TimeUpdate':
 					var current = msg.a;
 					var duration = msg.b;
@@ -5685,7 +5728,7 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 var $elm$html$Html$Attributes$alt = $elm$html$Html$Attributes$stringProperty('alt');
 var $author$project$Main$bioText1 = 'Mortrem is the result of raw energy, fearless experimentation, and an obsession with crafting unforgettable live shows. A Waterloo, Ontario-based band determined to reshape the future of alternative metal. With songs that balance intensity and creativity, Mortrem has built a reputation of making audiences feel every emotion of their music.\nMortrem is a band driven to create the ultimate live experience for their fans. In an ever-evolving online world, their ability to engage their fans in a raw and energetic sets them apart from competing acts. From programming their own light shows to writing music that keeps listeners hooked from the first riff to the last note, Mortrem thrives on building moments that linger long after the amps fade. Whether in a packed venue or an intimate club, Mortrem ensures every performance feels immersive, inclusive, and unforgettable.';
 var $author$project$Main$bioText2 = 'Born during the pandemic, Mortrem began as a recording project between founding members Kyle Jensen, Sammy Romeo, and Charlie Romeo. What started as a basement experiment quickly grew into something bigger as their catalogue started to take shape into a full album. Drawing on their childhood and modern inspirations in metal and hard rock, the trio carved out Mortrem\'s distinct sound — heavy, experimental, and engaging. With the addition of Samuel George on vocals and Zak Stulla on bass, the band became a fully realized project, united by a shared vision to push musical and live show boundaries.';
-var $author$project$Main$bioText3 = 'Mortrem is currently rounding out their live show cycle that began in September 2024, steadily building a loyal local following while refining a full-scale production show. Their next chapter starts in early 2026 with the release of their debut album One With The Earth — a record designed to set the standard for the band\'s evolution and mark their entry onto the national stage. Backed by a Canadian tour and a consistent social media presence, this release is positioned to be a foundational blueprint for Mortrem\'s future.';
+var $author$project$Main$bioText3 = 'Mortrem is currently rounding out their first live show cycle that began in September 2024, steadily building a loyal local following while refining a full-scale production show. Their next chapter starts in early 2026 with the release of their debut album One With The Earth — a record designed to set the standard for the band\'s evolution and mark their entry onto the national stage. Backed by a Canadian tour and a consistent social media presence, this release is positioned to be a foundational blueprint for Mortrem\'s future.';
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
@@ -6178,7 +6221,8 @@ var $author$project$Main$discographyPanel = function (model) {
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$class('max-w-5xl mx-auto text-white')
+				$elm$html$Html$Attributes$id('discography'),
+				$elm$html$Html$Attributes$class('pt-16 md:pt-28 px-6 lg:px-16 md:max-w-5xl lg:max-w-8xl mx-auto text-white')
 			]),
 		_List_fromArray(
 			[
@@ -6458,27 +6502,6 @@ var $author$project$Main$discographyPanel = function (model) {
 				$author$project$Main$playlistTableRedesigned(model)
 			]));
 };
-var $author$project$Main$discographySection = function (model) {
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				$elm$html$Html$Attributes$class('bg-black w-full px-6 md:px-16 min-h-screen')
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('mx-auto max-w-[80rem] min-h-screen py-18 md:py-26 flex flex-col gap-6 justify-center')
-					]),
-				_List_fromArray(
-					[
-						$author$project$Main$discographyPanel(model)
-					]))
-			]));
-};
 var $author$project$Main$galleryImages = _List_fromArray(
 	[
 		{
@@ -6598,16 +6621,11 @@ var $author$project$Main$imageGallery = function (images) {
 				A2($elm$core$List$map, $author$project$Main$galleryImageComponent, images))
 			]));
 };
-var $author$project$Main$marker = A2(
-	$elm$html$Html$span,
-	_List_fromArray(
-		[
-			$elm$html$Html$Attributes$id('navbar-marker'),
-			$elm$html$Html$Attributes$class('h-[1px] bg-black block')
-		]),
-	_List_Nil);
 var $author$project$Types$ScrollTo = function (a) {
 	return {$: 'ScrollTo', a: a};
+};
+var $author$project$Main$albumArtwork = function (song) {
+	return A2($elm$core$Maybe$withDefault, 'images/coverart/default.png', song.artwork);
 };
 var $author$project$Main$miniPlayer = function (model) {
 	var playLabel = model.isPlaying ? 'Pause' : 'Play';
@@ -6639,7 +6657,7 @@ var $author$project$Main$miniPlayer = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$Attributes$src(
-								A2($elm$core$Maybe$withDefault, 'images/coverart/default.png', currentSong.artwork)),
+								$author$project$Main$albumArtwork(currentSong)),
 								$elm$html$Html$Attributes$alt('Cover'),
 								$elm$html$Html$Attributes$class('w-10 h-10 rounded object-cover')
 							]),
@@ -6756,11 +6774,12 @@ var $author$project$Main$miniPlayer = function (model) {
 };
 var $author$project$Main$mobileSidePanel = function (model) {
 	var translateClass = model.isMenuOpen ? ' translate-x-0' : ' -translate-x-full';
-	var panelClasses = 'fixed left-0 top-16 h-[calc(100vh-4rem)] z-[900] w-full ' + ('transform transition-transform duration-300 will-change-transform ' + ('backdrop-blur-xl backdrop-saturate-150 bg-black/95 ' + 'ring-1 ring-white/10 shadow-2xl text-white overflow-y-auto no-scrollbar'));
+	var panelClasses = 'fixed left-0 top-16 h-[calc(100vh-4rem)] z-[900] w-full ' + ('transform  will-change-transform ' + ('backdrop-blur-xl backdrop-saturate-150 bg-black/95 ' + ('ring-1 ring-white/10 shadow-2xl text-white overflow-y-auto no-scrollbar ' + 'data-[ready=true]:transition-transform data-[ready=true]:duration-300')));
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
+				$elm$html$Html$Attributes$id('sidepanel'),
 				$elm$html$Html$Attributes$class(
 				_Utils_ap(panelClasses, translateClass))
 			]),
@@ -6809,11 +6828,11 @@ var $author$project$Main$mobileSidePanel = function (model) {
 									[
 										$elm$html$Html$Attributes$class('w-full text-left px-3 py-2 rounded hover:bg-white/10'),
 										$elm$html$Html$Events$onClick(
-										$author$project$Types$ScrollTo('playlist'))
+										$author$project$Types$ScrollTo('bio'))
 									]),
 								_List_fromArray(
 									[
-										$elm$html$Html$text('Playlist')
+										$elm$html$Html$text('Who We Are')
 									])),
 								A2(
 								$elm$html$Html$button,
@@ -6821,11 +6840,11 @@ var $author$project$Main$mobileSidePanel = function (model) {
 									[
 										$elm$html$Html$Attributes$class('w-full text-left px-3 py-2 rounded hover:bg-white/10'),
 										$elm$html$Html$Events$onClick(
-										$author$project$Types$ScrollTo('bio'))
+										$author$project$Types$ScrollTo('discography'))
 									]),
 								_List_fromArray(
 									[
-										$elm$html$Html$text('Who We Are / Bio')
+										$elm$html$Html$text('Discography')
 									])),
 								A2(
 								$elm$html$Html$button,
@@ -6839,6 +6858,192 @@ var $author$project$Main$mobileSidePanel = function (model) {
 									[
 										$elm$html$Html$text('Gallery')
 									]))
+							]))
+					]))
+			]));
+};
+var $author$project$Types$ScrollVideoReelLeft = {$: 'ScrollVideoReelLeft'};
+var $author$project$Types$ScrollVideoReelRight = {$: 'ScrollVideoReelRight'};
+var $author$project$Types$SelectMusicVideo = function (a) {
+	return {$: 'SelectMusicVideo', a: a};
+};
+var $elm$html$Html$h1 = _VirtualDom_node('h1');
+var $author$project$Main$youtubeEmbedUrl = function (ytId) {
+	return 'https://www.youtube.com/embed/' + (ytId + '?rel=0&modestbranding=1&playsinline=1');
+};
+var $author$project$Main$youtubeThumb = function (mv) {
+	return ($elm$core$String$length(mv.thumbnail) > 0) ? mv.thumbnail : ('https://img.youtube.com/vi/' + (mv.youtubeId + '/hqdefault.jpg'));
+};
+var $author$project$Main$musicVideosPanel = function (model) {
+	var videos = model.musicVideos;
+	var total = $elm$core$List$length(videos);
+	var currentVideo = A2(
+		$elm$core$Maybe$withDefault,
+		{thumbnail: '', title: '', youtubeId: ''},
+		$elm$core$List$head(
+			A2($elm$core$List$drop, model.selectedMusicVideoIndex, videos)));
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('pt-8 md:pt-16 lg:px-16 xl:px-32')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$h1,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('text-lg md:text-xl text-white font-bold mb-4 md:mb-6')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Videos')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('relative w-full rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl bg-black')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('pt-[56.25%]')
+							]),
+						_List_Nil),
+						A3(
+						$elm$html$Html$node,
+						'iframe',
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$Attributes$attribute,
+								'src',
+								$author$project$Main$youtubeEmbedUrl(currentVideo.youtubeId)),
+								A2($elm$html$Html$Attributes$attribute, 'title', currentVideo.title),
+								$elm$html$Html$Attributes$class('absolute inset-0 w-full h-full'),
+								A2($elm$html$Html$Attributes$attribute, 'frameborder', '0'),
+								A2($elm$html$Html$Attributes$attribute, 'allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'),
+								A2($elm$html$Html$Attributes$attribute, 'allowfullscreen', ''),
+								A2($elm$html$Html$Attributes$attribute, 'referrerpolicy', 'strict-origin-when-cross-origin')
+							]),
+						_List_Nil)
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('relative mt-4')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 ring-1 ring-white/20 shadow'),
+								$elm$html$Html$Events$onClick($author$project$Types$ScrollVideoReelLeft),
+								A2($elm$html$Html$Attributes$attribute, 'aria-label', 'Scroll left')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$i,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('fa-solid fa-chevron-left text-white')
+									]),
+								_List_Nil)
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$id('video-reel'),
+								$elm$html$Html$Attributes$class(
+								A2(
+									$elm$core$String$join,
+									' ',
+									_List_fromArray(
+										['mx-10 px-4 md:px-6 py-2', 'flex gap-3 overflow-x-auto no-scrollbar scroll-smooth', 'snap-x snap-mandatory', '[scroll-padding-left:1rem] [scroll-padding-right:1rem]'])))
+							]),
+						A2(
+							$elm$core$List$indexedMap,
+							F2(
+								function (idx, mv) {
+									var isCurrent = _Utils_eq(idx, model.selectedMusicVideoIndex);
+									var ringCls = isCurrent ? 'ring-2 ring-gray-400' : 'ring-1 ring-white/15 hover:ring-white/30';
+									return A2(
+										$elm$html$Html$button,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('relative flex-shrink-0 snap-start ' + ('rounded-xl overflow-hidden bg-black/60 ' + ('w-40 sm:w-52 md:w-60 aspect-video ' + ringCls))),
+												$elm$html$Html$Events$onClick(
+												$author$project$Types$SelectMusicVideo(idx)),
+												A2($elm$html$Html$Attributes$attribute, 'title', mv.title)
+											]),
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$img,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$src(
+														$author$project$Main$youtubeThumb(mv)),
+														$elm$html$Html$Attributes$alt(mv.title),
+														$elm$html$Html$Attributes$class('absolute inset-0 w-full h-full object-cover opacity-90')
+													]),
+												_List_Nil),
+												A2(
+												$elm$html$Html$div,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$class('absolute inset-0 flex items-center justify-center')
+													]),
+												_List_fromArray(
+													[
+														A2(
+														$elm$html$Html$div,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$class(
+																'rounded-full p-3 bg-black/50 ' + (isCurrent ? 'text-gray-300' : 'text-white'))
+															]),
+														_List_fromArray(
+															[
+																A2(
+																$elm$html$Html$i,
+																_List_fromArray(
+																	[
+																		$elm$html$Html$Attributes$class('fa-solid fa-play')
+																	]),
+																_List_Nil)
+															]))
+													]))
+											]));
+								}),
+							videos)),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 ring-1 ring-white/20 shadow'),
+								$elm$html$Html$Events$onClick($author$project$Types$ScrollVideoReelRight),
+								A2($elm$html$Html$Attributes$attribute, 'aria-label', 'Scroll right')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$i,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('fa-solid fa-chevron-right text-white')
+									]),
+								_List_Nil)
 							]))
 					]))
 			]));
@@ -6857,7 +7062,8 @@ var $author$project$Main$navbar = function (model) {
 		_List_fromArray(
 			[
 				$elm$html$Html$Attributes$id('navbar'),
-				$elm$html$Html$Attributes$class('fixed top-0 left-0 w-full h-18 z-[1000] transition-transform duration-300 ease-in-out transform -translate-y-full')
+				A2($elm$html$Html$Attributes$attribute, 'data-ready', 'false'),
+				$elm$html$Html$Attributes$class('fixed top-0 left-0 w-full h-18 z-[1000] transform -translate-y-full' + 'data-[ready=true]:transition-transform data-[ready=true]:duration-300 data-[ready=true]:ease-in-out ')
 			]),
 		_List_fromArray(
 			[
@@ -6905,6 +7111,14 @@ var $author$project$Main$navbar = function (model) {
 				$author$project$Main$topDownBlackGradientSpan
 			]));
 };
+var $author$project$Main$navbarMarker = A2(
+	$elm$html$Html$span,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$id('navbar-marker'),
+			$elm$html$Html$Attributes$class('h-[1px] bg-black block')
+		]),
+	_List_Nil);
 var $author$project$Main$performanceHistoryPanel = function (model) {
 	return A2(
 		$elm$html$Html$div,
@@ -6923,6 +7137,99 @@ var $author$project$Main$statisticsPanel = function (model) {
 				$elm$html$Html$text('Statistics')
 			]));
 };
+var $elm$html$Html$a = _VirtualDom_node('a');
+var $elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
+var $elm$html$Html$Attributes$target = $elm$html$Html$Attributes$stringProperty('target');
+var $author$project$Main$streamingServicesPanel = A2(
+	$elm$html$Html$div,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$class('pt-8 md:pt-16 pb-8 md:pb-16 lg:px-16 xl:px-32')
+		]),
+	_List_fromArray(
+		[
+			A2(
+			$elm$html$Html$h1,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('text-lg md:text-xl text-white font-bold')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('Streaming Links')
+				])),
+			A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('flex items-center justify-center gap-8 md:gap-24 py-6 md:py-12')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$a,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$href('https://open.spotify.com/artist/1z9AQTlfG5SjjDtKf1r2Mt?si=pnTiiO5UTziuu4YgCPaTAA'),
+							$elm$html$Html$Attributes$target('_blank')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$img,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$src('images/spotify-logo.png'),
+									$elm$html$Html$Attributes$class('max-w-18 md:max-w-32'),
+									$elm$html$Html$Attributes$alt('Spotify logo. Clicking this takes you to Mortrem\'s Spotify page.')
+								]),
+							_List_Nil)
+						])),
+					A2(
+					$elm$html$Html$a,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$href('https://music.apple.com/ca/artist/mortrem/1723532370'),
+							$elm$html$Html$Attributes$target('_blank')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$img,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$src('images/apple-music-logo.png'),
+									$elm$html$Html$Attributes$class('max-w-14 md:max-w-28'),
+									$elm$html$Html$Attributes$alt('Apple Music logo. Clicking this takes you to Mortrem\'s Apple Music page.')
+								]),
+							_List_Nil)
+						])),
+					A2(
+					$elm$html$Html$a,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$href('https://www.youtube.com/channel/UCLaZTiER4UOVGzsCV50tbfA'),
+							$elm$html$Html$Attributes$target('_blank')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$img,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$src('images/youtube-logo.png'),
+									$elm$html$Html$Attributes$class('max-w-18 md:max-w-32'),
+									$elm$html$Html$Attributes$alt('Youtube logo. Clicking this takes you to Mortrem\'s Youtube page.')
+								]),
+							_List_Nil)
+						]))
+				]))
+		]));
 var $author$project$Main$videoBanner = function (title) {
 	return A2(
 		$elm$html$Html$div,
@@ -6946,6 +7253,14 @@ var $author$project$Main$videoBanner = function (title) {
 				$author$project$Main$bottomUpBlackGradientSpan
 			]));
 };
+var $author$project$Main$videoSwitchMarker1 = A2(
+	$elm$html$Html$span,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$id('videoswitch-marker-1'),
+			$elm$html$Html$Attributes$class('h-[1px] bg-black block')
+		]),
+	_List_Nil);
 var $author$project$Main$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
@@ -6955,17 +7270,26 @@ var $author$project$Main$view = function (model) {
 				$author$project$Main$navbar(model),
 				$author$project$Main$mobileSidePanel(model),
 				$author$project$Main$heroBannerContent(model.scrollY),
-				$author$project$Main$marker,
+				$author$project$Main$navbarMarker,
 				A2(
 				$author$project$Main$contentPanel,
 				model,
 				_List_fromArray(
 					[
-						$author$project$Main$bioPanel(model)
+						$author$project$Main$bioPanel(model),
+						$author$project$Main$videoSwitchMarker1
 					])),
-				$author$project$Main$videoBanner('Discography'),
-				$author$project$Main$discographySection(model),
-				$author$project$Main$videoBanner('Performance History & Statistics'),
+				$author$project$Main$videoBanner('Music & Videos'),
+				A2(
+				$author$project$Main$contentPanel,
+				model,
+				_List_fromArray(
+					[
+						$author$project$Main$discographyPanel(model),
+						$author$project$Main$musicVideosPanel(model),
+						$author$project$Main$streamingServicesPanel
+					])),
+				$author$project$Main$videoBanner('Performance Metrics'),
 				A2(
 				$author$project$Main$contentPanel,
 				model,

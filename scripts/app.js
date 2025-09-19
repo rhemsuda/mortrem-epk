@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let latestY = window.scrollY || 0;
   let ticking = false;
 
+  const navbarLoadTime = 300;
+  const sidepanelLoadTime = 300;
+
   function onScrollRAF() {
     latestY = window.scrollY || window.pageYOffset || 0;
     if (!ticking) {
@@ -15,6 +18,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   window.addEventListener('scroll', onScrollRAF, { passive: true });
+
+  // Smoothly scroll the horizontal video reel by ~one viewport width
+  if (app.ports.scrollReel) {
+    app.ports.scrollReel.subscribe(([id, dir]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const amount = Math.round(el.clientWidth * 0.85); // ~one page of thumbnails
+      el.scrollBy({ left: amount * (dir || 1), behavior: 'smooth' });
+    });
+  }
 
   // Lock/unlock body scroll only on mobile (<768px), and keep it correct on resize
   (() => {
@@ -69,18 +82,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // Smooth-scroll to an element id
   if (app.ports.scrollToId) {
     app.ports.scrollToId.subscribe((id) => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        console.warn('scrollToId: element not found', id);
-      }
+      const run = () => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          console.warn('scrollToId: element not found', id);
+        }
+      };
+      setTimeout(() => requestAnimationFrame(run), 60);
     });
   }
 
   // IntersectionObserver for video switch
-  const marker = document.getElementById('marker');
-  if (marker) {
+  const videoswitchMarker1 = document.getElementById('videoswitch-marker-1');
+  if (videoswitchMarker1) {
     let prevIntersecting = false;
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -106,9 +122,9 @@ document.addEventListener('DOMContentLoaded', () => {
         rootMargin: '0px'
       }
     );
-    observer.observe(marker);
+    observer.observe(videoswitchMarker1);
   } else {
-    console.error('Marker element not found');
+    console.error('videoswitch-marker-1 element not found');
   }
 
   // IntersectionObserver for navbar
@@ -138,26 +154,116 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('Navbar marker or navbar element not found');
   }
 
-  // Video autoplay and switching
-  const video = document.getElementById('myVideo');
-  if (video) {
-    video.play().catch(error => console.error('Auto-play failed:', error.message));
-    video.playbackRate = 0.9;
-    app.ports.changeVideo.subscribe(newSrc => {
-      const normalizedSrc = new URL(newSrc, window.location.origin).href;
-      if (video.src !== normalizedSrc) {
-        console.log('Changing video to:', newSrc);
-        video.src = newSrc;
-        video.load();
-        video.play().catch(error => {
-          console.error('Video play failed:', error.message);
-          setTimeout(() => {
-            video.play().catch(e => console.error('Retry play failed:', e.message));
-          }, 500);
-        });
-      }
+  (function initNavbar() {
+    if (!navbar) return;
+
+    // If we're already past the marker on load, show the navbar immediately.
+    let pastMarker = false;
+    if (navbarMarker) {
+      const r = navbarMarker.getBoundingClientRect();
+      pastMarker = r.bottom <= 0; // marker is above viewport → past hero
+    }
+
+    navbar.classList.toggle('-translate-y-full', !pastMarker);
+    navbar.classList.toggle('translate-y-0', pastMarker);
+
+    setTimeout(() => {
+      navbar.dataset.ready = 'true';
+    }, navbarLoadTime);
+  })();
+
+  const sidepanel = document.getElementById('sidepanel');
+  (function initSidepanel() {
+    if (!sidepanel) return;
+
+    setTimeout(() => {
+      sidepanel.dataset.ready = 'true';
+    }, sidepanelLoadTime)
+  })();
+
+  // // Video autoplay and switching
+  // const video = document.getElementById('myVideo');
+  // if (video) {
+  //   video.play().catch(error => console.error('Auto-play failed:', error.message));
+  //   video.playbackRate = 0.9;
+  //   app.ports.changeVideo.subscribe(newSrc => {
+  //     const normalizedSrc = new URL(newSrc, window.location.origin).href;
+  //     if (video.src !== normalizedSrc) {
+  //       console.log('Changing video to:', newSrc);
+  //       video.src = newSrc;
+  //       video.load();
+  //       video.play().catch(error => {
+  //         console.error('Video play failed:', error.message);
+  //         setTimeout(() => {
+  //           video.play().catch(e => console.error('Retry play failed:', e.message));
+  //         }, 500);
+  //       });
+  //     }
+  //   });
+  // }
+
+
+
+  // SEPARATE THESE INTO APP SUBSCRIPTION FILES
+  //
+  // Dual-video background: pre-play both, swap visibility instantly w/ fade
+  const videoA = document.getElementById('video-herobanner');
+  const videoB = document.getElementById('video-discography');
+
+  function prewarm(v) {
+    if (!v) return;
+    v.muted = true;
+    v.loop = true;
+    v.playsInline = true;
+    // keep same vibe as before
+    try { v.playbackRate = 0.9; } catch (_) {}
+    // start playback; ignore promise rejections on Safari/Brave nuance
+    v.play().catch(e => console.warn('Banner video play failed:', e?.message || e));
+  }
+
+  // Start both as soon as possible
+  prewarm(videoA);
+  prewarm(videoB);
+
+  // Helpers to fade between tracks (show new first → hide old)
+  function showVideo(el) {
+    if (!el) return;
+    el.classList.remove('opacity-0', 'pointer-events-none');
+    el.classList.add('opacity-100');
+    // nudge playback in case a browser paused it
+    el.play().catch(() => {});
+  }
+  function hideVideo(el) {
+    if (!el) return;
+    el.classList.add('opacity-0', 'pointer-events-none');
+    el.classList.remove('opacity-100');
+  }
+
+  function swapTo(which) {
+    const show = which === 'B' ? videoB : videoA;
+    const hide = which === 'B' ? videoA : videoB;
+    if (!show || !hide) return;
+
+    // Turn ON new first to avoid any gray flash…
+    showVideo(show);
+    // …then hide old on next paint so there’s always something visible
+    requestAnimationFrame(() => hideVideo(hide));
+  }
+
+  // Listen to Elm's changeVideo port and map the requested src → A/B
+  if (app.ports.changeVideo) {
+    app.ports.changeVideo.subscribe((newSrc) => {
+      // heuristic: if the path contains "clid" use B, otherwise A
+      const use = /clid/i.test(newSrc) ? 'B' : 'A';
+      console.log('choosing to use', use);
+      swapTo(use);
     });
   }
+
+  // END SEPARATE THESE INTO APP SUBSCRIPTION FILES
+
+
+
 
   // Audio controls and Web Audio API
   const audio = document.getElementById('audioPlayer');

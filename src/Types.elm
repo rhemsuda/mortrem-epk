@@ -47,6 +47,12 @@ type alias Performance =
     , hide : Bool
     }
 
+type alias YoutubeVideo =
+    { title : String
+    , youtubeId : String
+    , thumbnail : String
+    }
+
 type alias Model =
     { scrollY : Float
     , currentSongIndex : Int
@@ -54,6 +60,8 @@ type alias Model =
     , currentTime : Float
     , duration : Float
     , songs : List Song
+    , musicVideos : List YoutubeVideo
+    , selectedMusicVideoIndex : Int
     , error : Maybe String
     , barHeights : List Float
     , currentVideo : String
@@ -76,3 +84,6 @@ type Msg
     | ToggleMenu
     | CloseMenu
     | ScrollTo String
+    | SelectMusicVideo Int
+    | ScrollVideoReelLeft
+    | ScrollVideoReelRight
