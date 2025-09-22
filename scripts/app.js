@@ -29,6 +29,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Copy-to-clipboard
+  if (app.ports.copyToClipboard) {
+    app.ports.copyToClipboard.subscribe(async (text) => {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const el = document.createElement('textarea');
+          el.value = text;
+          el.setAttribute('readonly', '');
+          el.style.position = 'absolute';
+          el.style.left = '-9999px';
+          document.body.appendChild(el);
+          el.select();
+          document.execCommand('copy');
+          document.body.removeChild(el);
+        }
+        console.log('Copied to clipboard:', text);
+      } catch (e) {
+        console.warn('Clipboard failed:', e);
+      }
+    });
+  }
+
   // Lock/unlock body scroll only on mobile (<768px), and keep it correct on resize
   (() => {
     if (!app.ports.setBodyScroll) return;
@@ -205,60 +229,159 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // SEPARATE THESE INTO APP SUBSCRIPTION FILES
-  //
-  // Dual-video background: pre-play both, swap visibility instantly w/ fade
-  const videoA = document.getElementById('video-herobanner');
-  const videoB = document.getElementById('video-discography');
 
+
+  // ==== Marker-based background video switcher (bottom-of-viewport trigger) ====
+  // Put one marker *between* each pair of video banners.
+  // Example page order:
+  // [Video Banner 1] [Content 1] [#videoswitch-marker-1] [Video Banner 2] [Content 2] [#videoswitch-marker-2] [Video Banner 3]
+
+  // 1) Declare your video chain top→bottom
+  const VIDEO_CHAIN = ['#bg-hero', '#bg-discography', '#bg-metrics', '#bg-gallery']; // add/remove as needed
+
+  // 2) Declare your marker ids in order they appear top→bottom (one less than videos)
+  const MARKER_IDS  = ['#videoswitch-marker-1', '#videoswitch-marker-2', '#videoswitch-marker-3']; // add/remove to match
+
+  // Cache videos (ignore missing so you can stage gradually)
+  const videoEls = VIDEO_CHAIN.map(sel => document.querySelector(sel)).filter(Boolean);
+
+  // Ensure each video has opacity transition in markup:
+  // class="absolute inset-0 w-full h-screen object-cover opacity-0 pointer-events-none transition-opacity duration-300"
   function prewarm(v) {
     if (!v) return;
-    v.muted = true;
-    v.loop = true;
-    v.playsInline = true;
-    // keep same vibe as before
+    v.muted = true; v.loop = true; v.playsInline = true;
     try { v.playbackRate = 0.9; } catch (_) {}
-    // start playback; ignore promise rejections on Safari/Brave nuance
-    v.play().catch(e => console.warn('Banner video play failed:', e?.message || e));
+    v.play().catch(() => {}); // ignore autoplay rejections (muted should pass)
+  }
+  videoEls.forEach(prewarm);
+
+  let activeIndex = null;
+  function showIndex(i) {
+    if (i === activeIndex || !videoEls[i]) return;
+    const next = videoEls[i];
+    const prev = activeIndex != null ? videoEls[activeIndex] : null;
+
+    // Turn ON new first → no gray flash
+    next.classList.remove('opacity-0', 'pointer-events-none');
+    next.classList.add('opacity-100');
+    next.play?.().catch(() => {});
+
+    // Hide old on next paint
+    if (prev && prev !== next) {
+      requestAnimationFrame(() => {
+        prev.classList.add('opacity-0', 'pointer-events-none');
+        prev.classList.remove('opacity-100');
+      });
+    }
+    activeIndex = i;
   }
 
-  // Start both as soon as possible
-  prewarm(videoA);
-  prewarm(videoB);
-
-  // Helpers to fade between tracks (show new first → hide old)
-  function showVideo(el) {
-    if (!el) return;
-    el.classList.remove('opacity-0', 'pointer-events-none');
-    el.classList.add('opacity-100');
-    // nudge playback in case a browser paused it
-    el.play().catch(() => {});
-  }
-  function hideVideo(el) {
-    if (!el) return;
-    el.classList.add('opacity-0', 'pointer-events-none');
-    el.classList.remove('opacity-100');
+  // Compute initial video for current scroll position.
+  // Logic: count how many markers the bottom-of-viewport has passed.
+  function pickInitialIndex() {
+    let passed = -1;
+    for (let k = 0; k < MARKER_IDS.length; k++) {
+      const el = document.querySelector(MARKER_IDS[k]);
+      if (!el) continue;
+      const top = el.getBoundingClientRect().top;
+      if (top <= window.innerHeight) passed = k; // bottom has crossed this marker
+    }
+    // before first marker → index 0; after Nth marker → index N
+    return Math.min(passed + 1, VIDEO_CHAIN.length - 1);
   }
 
-  function swapTo(which) {
-    const show = which === 'B' ? videoB : videoA;
-    const hide = which === 'B' ? videoA : videoB;
-    if (!show || !hide) return;
+  // Set initial state on load (handles reload at deep scroll)
+  showIndex(pickInitialIndex());
 
-    // Turn ON new first to avoid any gray flash…
-    showVideo(show);
-    // …then hide old on next paint so there’s always something visible
-    requestAnimationFrame(() => hideVideo(hide));
-  }
+  // Direction-aware IntersectionObserver.
+  // We trigger exactly when the bottom-of-viewport hits a marker by moving the
+  // observer’s bottom edge up by 100% (rootMargin bottom = -100%).
+  const markers = MARKER_IDS
+        .map((sel, i) => {
+          const el = document.querySelector(sel);
+          // marker i sits between video i (above) and video i+1 (below)
+          return el ? { el, aboveIndex: i, belowIndex: i + 1 } : null;
+        })
+        .filter(Boolean);
 
-  // Listen to Elm's changeVideo port and map the requested src → A/B
-  if (app.ports.changeVideo) {
-    app.ports.changeVideo.subscribe((newSrc) => {
-      // heuristic: if the path contains "clid" use B, otherwise A
-      const use = /clid/i.test(newSrc) ? 'B' : 'A';
-      console.log('choosing to use', use);
-      swapTo(use);
-    });
-  }
+  let lastScrollY = window.scrollY || 0;
+
+  const io = new IntersectionObserver((entries) => {
+    const nowY = window.scrollY || 0;
+    const scrollingDown = nowY > lastScrollY;
+    lastScrollY = nowY;
+
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue; // we care about the instant of crossing
+      const m = markers.find(x => x.el === entry.target);
+      if (!m) continue;
+      showIndex(scrollingDown ? m.belowIndex : m.aboveIndex);
+    }
+  }, { root: null, threshold: 0, rootMargin: '0px 0px -100% 0px' });
+
+  markers.forEach(m => io.observe(m.el));
+
+  // Keep it correct on resize (re-evaluate which video should show)
+  window.addEventListener('resize', () => {
+    showIndex(pickInitialIndex());
+  });
+
+
+
+  //
+  // Dual-video background: pre-play both, swap visibility instantly w/ fade
+  // const videoA = document.getElementById('video-herobanner');
+  // const videoB = document.getElementById('video-discography');
+
+  // function prewarm(v) {
+  //   if (!v) return;
+  //   v.muted = true;
+  //   v.loop = true;
+  //   v.playsInline = true;
+  //   // keep same vibe as before
+  //   try { v.playbackRate = 0.9; } catch (_) {}
+  //   // start playback; ignore promise rejections on Safari/Brave nuance
+  //   v.play().catch(e => console.warn('Banner video play failed:', e?.message || e));
+  // }
+
+  // // Start both as soon as possible
+  // prewarm(videoA);
+  // prewarm(videoB);
+
+  // // Helpers to fade between tracks (show new first → hide old)
+  // function showVideo(el) {
+  //   if (!el) return;
+  //   el.classList.remove('opacity-0', 'pointer-events-none');
+  //   el.classList.add('opacity-100');
+  //   // nudge playback in case a browser paused it
+  //   el.play().catch(() => {});
+  // }
+  // function hideVideo(el) {
+  //   if (!el) return;
+  //   el.classList.add('opacity-0', 'pointer-events-none');
+  //   el.classList.remove('opacity-100');
+  // }
+
+  // function swapTo(which) {
+  //   const show = which === 'B' ? videoB : videoA;
+  //   const hide = which === 'B' ? videoA : videoB;
+  //   if (!show || !hide) return;
+
+  //   // Turn ON new first to avoid any gray flash…
+  //   showVideo(show);
+  //   // …then hide old on next paint so there’s always something visible
+  //   requestAnimationFrame(() => hideVideo(hide));
+  // }
+
+  // // Listen to Elm's changeVideo port and map the requested src → A/B
+  // if (app.ports.changeVideo) {
+  //   app.ports.changeVideo.subscribe((newSrc) => {
+  //     // heuristic: if the path contains "clid" use B, otherwise A
+  //     const use = /clid/i.test(newSrc) ? 'B' : 'A';
+  //     console.log('choosing to use', use);
+  //     swapTo(use);
+  //   });
+  // }
 
   // END SEPARATE THESE INTO APP SUBSCRIPTION FILES
 

@@ -34,3 +34,27 @@ venue_hardLuck = { name = "Hard Luck", city = "Toronto", capacity = 200, distanc
 
 venue_theHub : Venue
 venue_theHub = { name = "The Hub", city = "Kitchener", capacity = 500, distanceFromHomeKm = 7 }
+
+bandEmail : String
+bandEmail = "mortremofficial@gmail.com"
+
+web3formsEndpoint : String
+web3formsEndpoint = "https://api.web3forms.com/submit"
+
+web3formsAccessKey : String
+web3formsAccessKey = "9e3f19e3-d569-4576-8f47-1d96a511ae15"
+
+videoBgSources : List String
+videoBgSources =
+    [ "/videos/epk-banner-fixed.mp4"
+    , "/videos/epk-banner-fixed-clid.mp4"
+    , "/videos/epk-banner-fixed.mp4"
+    , "/videos/epk-banner-fixed-clid.mp4"
+    ]
+
+videoMarkerIds : List String
+videoMarkerIds =
+    [ "videoswitch-marker-1"
+    , "videoswitch-marker-2"
+    , "videoswitch-marker-3"
+    ]

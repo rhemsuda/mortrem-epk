@@ -1,14 +1,22 @@
 port module Main exposing (main)
 
 import Browser
-import Html exposing (Html, div, span, h1, h2, h3, p, text, img, i, audio, canvas, button, span, table, thead, tbody, tr, th, td, a)
+import Http
+import Json.Encode as Encode
+import Json.Decode as Decode exposing (Decoder)
+import Browser.Dom as Dom
+import Browser.Events
+import Task
+
+import Html exposing (Html, div, span, h1, h2, h3, p, text, img, i, audio, canvas, button, span, table, thead, tbody, tr, th, td, a, input, small, textarea, li, ul, hr)
 import Html.Attributes exposing (class, style, src, alt, id, href, target, width, height, preload, title, attribute)
-import Html.Events exposing (on, onClick)
+import Html.Events exposing (on, onClick, onInput, onSubmit)
 import Json.Decode as Decode
 import DateTime exposing (fromPosix)
 
 import Constants exposing (..)
-import Types exposing (Model, Msg (..), Song, Image, GalleryImage, Performance, LineupPosition (..), YoutubeVideo)
+import Utils exposing (activeIndexFrom)
+import Types exposing (..)
 
 import Update.OnScroll as OnScroll
 import Update.PlayPause as PlayPause
@@ -31,6 +39,7 @@ port videoSwitch : (Bool -> msg) -> Sub msg
 port scrollToId : String -> Cmd msg
 port setBodyScroll : Bool -> Cmd msg
 port scrollReel : (String, Int) -> Cmd msg
+port copyToClipboard : String -> Cmd msg
 
 
 barsCount : Int
@@ -103,6 +112,10 @@ performances =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { scrollY = 0
+      , viewportH = 0
+      , videoSources = videoBgSources
+      , videoMarkers = []
+      , activeBgIndex = 0
       , currentSongIndex = 0
       , isPlaying = False
       , currentTime = 0
@@ -114,8 +127,14 @@ init _ =
       , barHeights = List.repeat barsCount 25.0
       , currentVideo = "/videos/epk-banner-fixed.mp4"
       , isMenuOpen = False
+      , contact = { name = "", email = "", message = "", honeypot = "" }
+      , contactStatus = ContactIdle
+      , isContactModalOpen = False
       }
-    , Cmd.none
+    , Cmd.batch
+        [ Task.perform (\{ viewport } -> ViewportResize viewport.height) Dom.getViewport
+        , measureMarkersCmd
+        ]
     )
 
 
@@ -133,11 +152,12 @@ view model =
         , videoBanner "Music & Videos" -- TODO: This video should be candid closeup video of the band working on writing
 
         --, discographySection model
-        , contentPanel model [ discographyPanel model, musicVideosPanel model, streamingServicesPanel]
+        , contentPanel model [ discographyPanel model, musicVideosPanel model, streamingServicesPanel, videoSwitchMarker2 ]
         , videoBanner "Performance Metrics"
-        , contentPanel model [ performanceHistoryPanel model, statisticsPanel model ]
+        , contentPanel model [ performanceHistoryPanel model, statisticsPanel model, videoSwitchMarker3 ]
         , videoBanner "Gallery"
         , contentPanel model [ imageGallery galleryImages ]
+        , footer model
         -- , contentPanel model [ myTestPanel model, imageGallery galleryImages ]
         --, imageGallery galleryImages
         ]
@@ -151,9 +171,35 @@ update msg model =
             List.drop model.currentSongIndex model.songs
                 |> List.head
                 |> Maybe.withDefault { title = "", src = "", duration = 0, released = False, artwork = Nothing }
+        validEmail e =
+            String.contains "@" e && String.contains "." e && String.length e > 5
     in
     case msg of
         OnScroll y -> OnScroll.handle y model
+        ViewportResize h ->
+            let
+                m =
+                    { model | viewportH = h }
+
+                bottom =
+                    model.scrollY + h
+
+                idx =
+                    activeIndexFrom bottom m.videoMarkers (List.length m.videoSources)
+            in
+            ( { m | activeBgIndex = idx }, measureMarkersCmd )
+        MarkersMeasured pairs ->
+            let
+                sorted =
+                    List.sortBy Tuple.second pairs
+
+                bottom =
+                    model.scrollY + model.viewportH
+
+                idx =
+                    activeIndexFrom bottom sorted (List.length model.videoSources)
+            in
+            ( { model | videoMarkers = sorted, activeBgIndex = idx }, Cmd.none )
         PlayPause -> PlayPause.handle currentSong model playAudio pauseAudio
         NextSong -> startSong (model.currentSongIndex + 1) model
         PreviousSong -> startSong (model.currentSongIndex - 1) model
@@ -248,6 +294,115 @@ update msg model =
                         Cmd.none
             in
             ( { model | currentVideo = newVideo }, videoCmd )
+        UpdateContactName v ->
+            let
+                c = model.contact
+            in
+                ( { model | contact = { c | name = v }, contactStatus = ContactEditing }
+                , Cmd.none
+                )
+        UpdateContactEmail v ->
+            let
+                c = model.contact
+            in
+                ( { model | contact = { c | email = v }, contactStatus = ContactEditing }
+                , Cmd.none
+                )
+        UpdateContactMessage v ->
+            let
+                c = model.contact
+            in
+                ( { model | contact = { c | message = v }, contactStatus = ContactEditing }
+                , Cmd.none
+                )
+        UpdateContactHoneypot v ->
+            let
+                c = model.contact
+            in
+                ( { model | contact = { c | honeypot = v } }
+                , Cmd.none
+                )
+        SubmitContact ->
+            let
+                c = model.contact
+                valid =
+                    String.length c.name >= 2
+                        && String.contains "@" c.email
+                            && String.length c.message >= 5
+                                && String.length c.honeypot == 0
+            in
+                if not valid then
+                    ( { model | contactStatus = ContactError "Please complete all fields correctly." }
+                    , Cmd.none
+                    )
+                else
+                    ( { model | contactStatus = ContactSending }
+                    , postContact c
+                    )
+
+        ContactSent (Ok resp) ->
+            if resp.success then
+                ( { model | contactStatus = ContactSuccess }
+                , Cmd.none
+                )
+            else
+                ( { model | contactStatus = ContactError resp.message }
+                , Cmd.none
+                )
+
+        ContactSent (Err httpErr) ->
+            ( { model | contactStatus = ContactError (httpErrorToString httpErr) }
+            , Cmd.none
+            )
+
+        DismissContactModal ->
+            ( { model | contactStatus = ContactIdle }, Cmd.none )
+
+        CopyBandEmail ->
+            ( model, copyToClipboard bandEmail )
+
+
+measureMarkersCmd : Cmd Msg
+measureMarkersCmd =
+    let
+        one id =
+            Dom.getElement id
+                |> Task.map (\el -> ( id, el.element.y + el.viewport.y ))
+                |> Task.onError (\_ -> Task.succeed ( id, 9999999 )) -- if missing, push far down
+    in
+    videoMarkerIds
+        |> List.map one
+        |> Task.sequence
+        |> Task.perform MarkersMeasured
+
+
+
+backgroundVideoLayer : Model -> Html Msg
+backgroundVideoLayer model =
+    let
+        render i src =
+            Html.video
+                [ id ("bg-video-" ++ String.fromInt i)
+                , class
+                    (String.join " "
+                        [ "fixed inset-0 min-w-full h-screen object-cover"
+                        , if i == model.activeBgIndex then "opacity-100" else "opacity-0 pointer-events-none"
+                        , "transition-opacity duration-300"
+                        ]
+                    )
+                , Html.Attributes.autoplay True
+                , Html.Attributes.loop True
+                , Html.Attributes.attribute "muted" "true"
+                , Html.Attributes.attribute "playsinline" ""
+                , Html.Attributes.attribute "preload" "auto"
+                , Html.Attributes.src src
+                ]
+                [ text "Your browser does not support the video tag." ]
+    in
+    div [ class "fixed inset-0 z-[-1]" ]
+        (List.indexedMap render model.videoSources
+            ++ [ div [ class "absolute inset-0 bg-black/60" ] [] ]
+        )
 
 
 miniPlayer : Model -> Html Msg
@@ -348,6 +503,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ onScroll OnScroll
+        , Browser.Events.onResize (\_ h -> ViewportResize (toFloat h))
         , timeUpdate (\(current, duration) -> TimeUpdate current duration)
         , songEnded (\_ -> SongEnded)
         , audioError AudioError
@@ -809,7 +965,18 @@ navbarMarker =
 
 videoSwitchMarker1 : Html Msg
 videoSwitchMarker1 =
-    span [ id "videoswitch-marker-1", class "h-[1px] bg-black block" ] []
+    span [ id "videoswitch-marker-1", class "h-[1px] bg-red-700 block" ] []
+
+videoSwitchMarker2 : Html Msg
+videoSwitchMarker2 =
+    span [ id "videoswitch-marker-2", class "h-[1px] bg-red-700 block" ] []
+
+videoSwitchMarker3 : Html Msg
+videoSwitchMarker3 =
+    span [ id "videoswitch-marker-3", class "h-[1px] bg-red-700 block" ] []
+-- metricsMarker : Html Msg
+-- metricsMarker =
+--     span [ id "metrics", class "h-[2px] bg-red-200 block sr-only" ] []
 
 
 contentPanel : Model -> List (Html Msg) -> Html Msg
@@ -928,6 +1095,202 @@ youtubeThumb mv =
         mv.thumbnail
     else
         "https://img.youtube.com/vi/" ++ mv.youtubeId ++ "/hqdefault.jpg"
+
+
+update0 : Model -> (Model, Cmd Msg)
+update0 m = ( m, Cmd.none )
+
+editContact : (ContactForm -> ContactForm) -> Model -> Model
+editContact f m =
+    { m | contact = f m.contact }
+
+touchEditing : Model -> Model
+touchEditing m =
+    { m | contactStatus = ContactEditing }
+
+
+web3RespDecoder : Decoder Web3Resp
+web3RespDecoder =
+    Decode.map2 Web3Resp
+        (Decode.field "success" Decode.bool)
+        (Decode.field "message" Decode.string)
+
+
+encodeContact : ContactForm -> Encode.Value
+encodeContact c =
+    Encode.object
+        [ ( "access_key", Encode.string web3formsAccessKey )
+        , ( "from_name", Encode.string c.name )
+        , ( "from_email", Encode.string c.email )
+        , ( "subject", Encode.string ("New EPK message from " ++ c.name) )
+        , ( "message", Encode.string c.message )
+        , ( "botcheck", Encode.string c.honeypot ) -- honeypot field
+        ]
+
+
+postContact : ContactForm -> Cmd Msg
+postContact c =
+    Http.post
+        { url = web3formsEndpoint
+        , body = Http.jsonBody (encodeContact c)
+        , expect = Http.expectJson ContactSent web3RespDecoder
+        }
+
+
+httpErrorToString : Http.Error -> String
+httpErrorToString err =
+    case err of
+        Http.BadUrl _ -> "Bad URL."
+        Http.Timeout -> "Request timed out."
+        Http.NetworkError -> "Network error."
+        Http.BadStatus _ -> "Server returned an error."
+        Http.BadBody _ -> "Could not read server response."
+
+
+contactForm : Model -> Html Msg
+contactForm model =
+    let
+        inputBase =
+            "w-full px-3 py-2 rounded-md bg-white/10 text-white placeholder-white/50 outline-none ring-1 ring-white/10 focus:ring-white/30"
+
+        -- Failure modal shown when ContactError
+        failureModal =
+            case model.contactStatus of
+                ContactError msg ->
+                    Just <|
+                        div [ class "mt-4 p-3 rounded-md bg-red-500/10 ring-1 ring-red-400/30 text-red-200" ]
+                            [ p [ class "text-sm" ] [ text ("We couldn't send your message: " ++ msg ++ " Try again or email us directly: ") ]
+                            , div [ class "mt-3 flex items-stretch gap-2" ]
+                                [ input
+                                    [ class (inputBase ++ " flex-1 bg-black/20")
+                                    , Html.Attributes.value bandEmail
+                                    , Html.Attributes.readonly True
+                                    ]
+                                    []
+                                , button
+                                    [ class "px-3 rounded-md bg-white/15 hover:bg-white/25"
+                                    , onClick CopyBandEmail
+                                    ]
+                                    [ i [ class "fa-regular fa-copy" ] [] ]
+                                ]
+                            , div [ class "mt-3" ]
+                                [ button
+                                    [ class "px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/20"
+                                    , onClick DismissContactModal
+                                    ]
+                                    [ text "Close" ]
+                                ]
+                            ]
+                _ ->
+                    Nothing
+
+        successNote =
+            case model.contactStatus of
+                ContactSuccess ->
+                    Just <|
+                        div [ class "mt-4 p-3 rounded-md bg-emerald-500/10 ring-1 ring-emerald-400/30 text-emerald-200" ]
+                            [ text "Thanks! We received your message and will reply soon." ]
+                _ ->
+                    Nothing
+    in
+    div []
+        ([ div [ class "grid grid-cols-1 md:grid-cols-2 gap-3" ]
+            [ input
+                [ class inputBase
+                , Html.Attributes.placeholder "Your name"
+                , Html.Events.onInput UpdateContactName
+                , Html.Attributes.value model.contact.name
+                ]
+                []
+            , input
+                [ class inputBase
+                , Html.Attributes.placeholder "you@example.com"
+                , Html.Events.onInput UpdateContactEmail
+                , Html.Attributes.type_ "email"
+                , Html.Attributes.value model.contact.email
+                ]
+                []
+            , textarea
+                [ class (inputBase ++ " md:col-span-2 min-h-[120px]")
+                , Html.Attributes.placeholder "Tell us about the show, date, etc."
+                , Html.Events.onInput UpdateContactMessage
+                , Html.Attributes.value model.contact.message
+                ]
+                [ text model.contact.message ]
+            , input
+                [ class "hidden"
+                , Html.Attributes.placeholder "Leave empty"
+                , Html.Events.onInput UpdateContactHoneypot
+                , Html.Attributes.value model.contact.honeypot
+                , Html.Attributes.autocomplete False
+                ]
+                []
+            ]
+          , div [ class "mt-3 flex items-center gap-3" ]
+            [ button
+                [ class
+                    (case model.contactStatus of
+                        ContactSending ->
+                            "px-4 py-2 rounded-md bg-white/20 cursor-wait"
+
+                        _ ->
+                            "px-4 py-2 rounded-md bg-white/10 hover:bg-white/20"
+                    )
+                , onClick SubmitContact
+                ]
+                [ case model.contactStatus of
+                    ContactSending -> text "Sending…"
+                    _ -> text "Send"
+                ]
+            , small [ class "text-white/60" ] [ text "We’ll never share your info." ]
+            ]
+          ]
+            ++ (case successNote of
+                    Just n -> [ n ]
+                    Nothing -> []
+               )
+            ++ (case failureModal of
+                    Just m -> [ m ]
+                    Nothing -> []
+               )
+        )
+
+
+footer : Model -> Html Msg
+footer model =
+    div
+    [ id "footer", class "relative w-full py-10 md:py-14 px-6 md:px-12 backdrop-blur-xl bg-black/60 ring-1 ring-white/10"
+    ]
+    [ div [ class "mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8 text-white" ]
+          [ -- Left: Socials
+                div []
+                [ h3 [ class "uppercase text-sm tracking-wider text-white/70 mb-3" ] [ text "Follow us" ]
+                , div [ class "flex items-center gap-4 text-2xl" ]
+                    [ a [ href "https://open.spotify.com/artist/1z9AQTlfG5SjjDtKf1r2Mt", target "_blank", class "hover:text-white/70" ] [ i [ class "fa-brands fa-spotify" ] [] ]
+                    , a [ href "https://music.apple.com/ca/artist/mortrem/1723532370", target "_blank", class "hover:text-white/70" ] [ i [ class "fa-brands fa-apple" ] [] ]
+                    , a [ href "https://www.youtube.com/channel/UCLaZTiER4UOVGzsCV50tbfA", target "_blank", class "hover:text-white/70" ] [ i [ class "fa-brands fa-youtube" ] [] ]
+                    , a [ href "https://instagram.com/mortremband", target "_blank", class "hover:text-white/70" ] [ i [ class "fa-brands fa-instagram" ] [] ]
+                    , a [ href "https://tiktok.com/@mortremband", target "_blank", class "hover:text-white/70" ] [ i [ class "fa-brands fa-tiktok" ] [] ]
+                    ]
+                , hr [ class "my-6 border-white/10" ] []
+                , h3 [ class "uppercase text-sm tracking-wider text-white/70 mb-3" ] [ text "Contact" ]
+                , contactForm model
+                ]
+          , -- Right: Resources
+              div [ class "md:ml-auto md:justify-self-end md:text-right" ]
+                  [ h3 [ class "uppercase text-sm tracking-wider text-white/70 mb-3 md:text-right" ]
+                        [ text "Resources" ]
+                  , ul [ class "space-y-2 md:text-right" ]
+                      [ li [] [ a [ href "/docs/tech-rider.pdf", class "hover:underline" ] [ text "Tech Rider" ] ]
+                      , li [] [ a [ href "/docs/stage-plot.pdf", class "hover:underline" ] [ text "Stage Plot" ] ]
+                      , li [] [ a [ href "/docs/press-kit.zip", class "hover:underline" ] [ text "Press Kit" ] ]
+                      , li [] [ a [ href "/docs/other.pdf", class "hover:underline" ] [ text "Other Resources" ] ]
+                      ]
+                  ]
+          ]
+    ]
+
+
 
 
 -- BOOTSTRAP

@@ -1,5 +1,6 @@
 module Types exposing (..)
 
+import Http
 import DateTime exposing (DateTime)
 
 type alias Song =
@@ -28,6 +29,20 @@ type alias Venue =
     , distanceFromHomeKm : Int
     }
 
+type alias ContactForm =
+    { name : String
+    , email : String
+    , message : String
+    , honeypot : String
+    }
+
+type ContactStatus
+    = ContactIdle
+    | ContactEditing
+    | ContactSending
+    | ContactSuccess
+    | ContactError String
+
 type LineupPosition
     = Open
     | Support
@@ -53,6 +68,11 @@ type alias YoutubeVideo =
     , thumbnail : String
     }
 
+type alias Web3Resp =
+    { success : Bool
+    , message : String
+    }
+
 type alias Model =
     { scrollY : Float
     , currentSongIndex : Int
@@ -66,6 +86,13 @@ type alias Model =
     , barHeights : List Float
     , currentVideo : String
     , isMenuOpen : Bool
+    , contact : ContactForm
+    , contactStatus : ContactStatus
+    , isContactModalOpen : Bool
+    , viewportH : Float
+    , videoSources : List String
+    , videoMarkers : List ( String, Float ) -- (markerId, absoluteTop)
+    , activeBgIndex : Int
     }
 
 type Msg
@@ -87,3 +114,13 @@ type Msg
     | SelectMusicVideo Int
     | ScrollVideoReelLeft
     | ScrollVideoReelRight
+    | UpdateContactName String
+    | UpdateContactEmail String
+    | UpdateContactMessage String
+    | UpdateContactHoneypot String
+    | SubmitContact
+    | ContactSent (Result Http.Error Web3Resp)
+    | DismissContactModal
+    | CopyBandEmail
+    | ViewportResize Float
+    | MarkersMeasured (List ( String, Float ))

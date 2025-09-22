@@ -11,32 +11,36 @@
   <!-- Hero Banner -->
   <div class="fixed inset-0 z-[-1]">
     <video
-      class="min-w-full h-screen object-cover absolute inset-0 transition-opacity duration-200 opacity-100"
-      id="video-herobanner"
-      autoplay
-      loop
-      muted
-      playsinline
-      poster="images/hero-banner-poster-image.png"
-      onerror="console.error('Video error:', this.src)"
-    >
-      <source src="videos/epk-banner-fixed.mp4" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
+      id="bg-hero"
+      class="absolute inset-0 w-full h-screen object-cover opacity-100 transition-opacity duration-300"
+      autoplay muted loop playsinline
+      src="videos/epk-banner-fixed.mp4"
+      ></video>
+
+    <!-- Discography -->
     <video
-      class="min-w-full h-screen object-cover absolute inset-0 transition-opacity duration-200 opacity-0 pointer-events-none"
-      id="video-discography"
-      autoplay
-      loop
-      muted
-      playsinline
-      poster="images/hero-banner-poster-image.png"
-      onerror="console.error('Video error:', this.src)"
-    >
-      <source src="videos/epk-banner-fixed-clid.mp4" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
-    <!-- Translucent black overlay -->
+      id="bg-discography"
+      class="absolute inset-0 w-full h-screen object-cover opacity-0 pointer-events-none transition-opacity duration-300"
+      autoplay muted loop playsinline
+      src="videos/epk-banner-fixed-clid.mp4"
+      ></video>
+
+    <!-- Metrics (example/future) -->
+    <video
+      id="bg-metrics"
+      class="absolute inset-0 w-full h-screen object-cover opacity-0 pointer-events-none transition-opacity duration-300"
+      autoplay muted loop playsinline
+      src="videos/epk-banner-fixed.mp4"
+      ></video>
+
+    <!-- Gallery (example/future) -->
+    <video
+      id="bg-gallery"
+      class="absolute inset-0 w-full h-screen object-cover opacity-0 pointer-events-none transition-opacity duration-300"
+      autoplay muted loop playsinline
+      src="videos/epk-banner-fixed-clid.mp4"
+      ></video>
+
     <div class="absolute inset-0 bg-black/60"></div>
   </div>
 
