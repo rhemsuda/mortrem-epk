@@ -110,12 +110,8 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( { scrollY = 0
       , viewportH = 0
-      , videoMarkerIds =
-          [ "videoswitch-marker-1"
-          , "videoswitch-marker-2"
-          , "videoswitch-marker-3"
-          ]
-      , markerPositions = Dict.empty
+      , videoMarkerIds = Constants.videoMarkerIds
+      --, markerPositions = Dict.empty
       , videoSources = videoBgSources
       , videoMarkers = []
       , activeBgIndex = 0
@@ -128,7 +124,6 @@ init _ =
       , selectedMusicVideoIndex = 0
       , error = Nothing
       , barHeights = List.repeat barsCount 25.0
-      , currentVideo = "/videos/epk-banner-fixed.mp4"
       , isMenuOpen = False
       , contact = { name = "", email = "", message = "", honeypot = "" }
       , contactStatus = ContactIdle
@@ -814,8 +809,6 @@ musicVideosPanel : Model -> Html Msg
 musicVideosPanel model =
     let
         videos = model.musicVideos
-        total  = List.length videos
-
         currentVideo =
             List.drop model.selectedMusicVideoIndex videos
                 |> List.head
@@ -969,18 +962,15 @@ navbarMarker =
 
 videoSwitchMarker1 : Html Msg
 videoSwitchMarker1 =
-    span [ id "videoswitch-marker-1", class "h-[1px] bg-red-700 block" ] []
+    span [ id "videoswitch-marker-1", class "h-[0px] bg-black block" ] []
 
 videoSwitchMarker2 : Html Msg
 videoSwitchMarker2 =
-    span [ id "videoswitch-marker-2", class "h-[1px] bg-red-700 block" ] []
+    span [ id "videoswitch-marker-2", class "h-[0px] bg-black block" ] []
 
 videoSwitchMarker3 : Html Msg
 videoSwitchMarker3 =
-    span [ id "videoswitch-marker-3", class "h-[1px] bg-red-700 block" ] []
--- metricsMarker : Html Msg
--- metricsMarker =
---     span [ id "metrics", class "h-[2px] bg-red-200 block sr-only" ] []
+    span [ id "videoswitch-marker-3", class "h-[1px] bg-black block" ] []
 
 
 contentPanel : Model -> List (Html Msg) -> Html Msg

@@ -86,18 +86,14 @@ type alias Model =
     , selectedMusicVideoIndex : Int
     , error : Maybe String
     , barHeights : List Float
-    , currentVideo : String
     , isMenuOpen : Bool
     , contact : ContactForm
     , contactStatus : ContactStatus
     , isContactModalOpen : Bool
     , viewportH : Float
     , videoMarkerIds : List String
-    -- , markerPositions : Dict String Float
-    -- , viewportH : Float
-     , videoSources : List String
-     , videoMarkers : List ( String, Float )
-    -- (markerId, absoluteTop)
+    , videoSources : List String
+    , videoMarkers : List ( String, Float )
     , activeBgIndex : Int
     , debugMarkers : Bool
     }
@@ -113,7 +109,6 @@ type Msg
     | SeekProgress Float
     | AudioError String
     | FrequencyData (List Float)
-    -- | VideoSwitch Bool
     | SelectSong Int
     | ToggleMenu
     | CloseMenu
@@ -131,9 +126,4 @@ type Msg
     | CopyBandEmail
     | ViewportResized Int Int
     | GotViewport (Result Dom.Error Dom.Viewport)
-    -- | RecalcMarkers
-    -- | GotMarkerPos String (Result Dom.Error Dom.Element)
     | MarkersMeasured (List ( String, Float ))
-
-    --| ViewportResize Float
-    --| MarkersMeasured (List ( String, Float ))

@@ -8,11 +8,9 @@ handle y model setActiveBgCmd =
     let
         bottom =
             y + model.viewportH
-                --|> Debug.log "activeIndexFrom -> bottom"
 
         idx =
             activeIndexFrom bottom model.videoMarkers (List.length model.videoSources)
-                |> Debug.log "activeIndexFrom → idx"
 
         swapCmd =
             if idx /= model.activeBgIndex then
