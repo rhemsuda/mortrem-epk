@@ -1,7 +1,9 @@
 module Types exposing (..)
 
 import Http
+import Browser.Dom as Dom
 import DateTime exposing (DateTime)
+import Dict exposing (Dict)
 
 type alias Song =
     { title : String
@@ -90,9 +92,14 @@ type alias Model =
     , contactStatus : ContactStatus
     , isContactModalOpen : Bool
     , viewportH : Float
-    , videoSources : List String
-    , videoMarkers : List ( String, Float ) -- (markerId, absoluteTop)
+    , videoMarkerIds : List String
+    , markerPositions : Dict String Float
+    -- , viewportH : Float
+     , videoSources : List String
+     , videoMarkers : List ( String, Float )
+    -- (markerId, absoluteTop)
     , activeBgIndex : Int
+    , debugMarkers : Bool
     }
 
 type Msg
@@ -106,7 +113,7 @@ type Msg
     | SeekProgress Float
     | AudioError String
     | FrequencyData (List Float)
-    | VideoSwitch Bool
+    -- | VideoSwitch Bool
     | SelectSong Int
     | ToggleMenu
     | CloseMenu
@@ -122,5 +129,11 @@ type Msg
     | ContactSent (Result Http.Error Web3Resp)
     | DismissContactModal
     | CopyBandEmail
-    | ViewportResize Float
+    | ViewportResized Int Int
+    | GotViewport (Result Dom.Error Dom.Viewport)
+    | RecalcMarkers
+    | GotMarkerPos String (Result Dom.Error Dom.Element)
     | MarkersMeasured (List ( String, Float ))
+
+    --| ViewportResize Float
+    --| MarkersMeasured (List ( String, Float ))

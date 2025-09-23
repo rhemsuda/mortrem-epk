@@ -3,9 +3,10 @@ module Utils exposing (..)
 activeIndexFrom : Float -> List ( String, Float ) -> Int -> Int
 activeIndexFrom bottomY markers videosLen =
     let
-        passed =
+        crossed =
             markers
-                |> List.filter (\(_, top) -> top <= bottomY)
+                |> List.sortBy Tuple.second
+                |> List.filter (\(_, y) -> y <= bottomY)
                 |> List.length
     in
-    Basics.clamp 0 (videosLen - 1) passed
+    Basics.clamp 0 (videosLen - 1) crossed

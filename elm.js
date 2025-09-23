@@ -5335,40 +5335,84 @@ var $elm$core$Task$perform = F2(
 	});
 var $elm$browser$Browser$element = _Browser_element;
 var $author$project$Types$ContactIdle = {$: 'ContactIdle'};
-var $author$project$Types$ViewportResize = function (a) {
-	return {$: 'ViewportResize', a: a};
+var $author$project$Types$GotViewport = function (a) {
+	return {$: 'GotViewport', a: a};
 };
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var $elm$core$Task$onError = _Scheduler_onError;
+var $elm$core$Task$attempt = F2(
+	function (resultToMessage, task) {
+		return $elm$core$Task$command(
+			$elm$core$Task$Perform(
+				A2(
+					$elm$core$Task$onError,
+					A2(
+						$elm$core$Basics$composeL,
+						A2($elm$core$Basics$composeL, $elm$core$Task$succeed, resultToMessage),
+						$elm$core$Result$Err),
+					A2(
+						$elm$core$Task$andThen,
+						A2(
+							$elm$core$Basics$composeL,
+							A2($elm$core$Basics$composeL, $elm$core$Task$succeed, resultToMessage),
+							$elm$core$Result$Ok),
+						task))));
+	});
 var $author$project$Main$barsCount = 10;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
+var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $elm$browser$Browser$Dom$getViewport = _Browser_withWindow(_Browser_getViewport);
 var $author$project$Types$MarkersMeasured = function (a) {
 	return {$: 'MarkersMeasured', a: a};
 };
+var $elm$core$List$maybeCons = F3(
+	function (f, mx, xs) {
+		var _v0 = f(mx);
+		if (_v0.$ === 'Just') {
+			var x = _v0.a;
+			return A2($elm$core$List$cons, x, xs);
+		} else {
+			return xs;
+		}
+	});
+var $elm$core$List$filterMap = F2(
+	function (f, xs) {
+		return A3(
+			$elm$core$List$foldr,
+			$elm$core$List$maybeCons(f),
+			_List_Nil,
+			xs);
+	});
 var $elm$browser$Browser$Dom$getElement = _Browser_getElement;
-var $elm$core$Task$onError = _Scheduler_onError;
-var $author$project$Constants$videoMarkerIds = _List_fromArray(
-	['videoswitch-marker-1', 'videoswitch-marker-2', 'videoswitch-marker-3']);
-var $author$project$Main$measureMarkersCmd = function () {
-	var one = function (id) {
+var $author$project$Main$measureMarkersCmd = function (ids) {
+	var measureOne = function (id) {
 		return A2(
 			$elm$core$Task$onError,
 			function (_v0) {
-				return $elm$core$Task$succeed(
-					_Utils_Tuple2(id, 9999999));
+				return $elm$core$Task$succeed($elm$core$Maybe$Nothing);
 			},
 			A2(
 				$elm$core$Task$map,
 				function (el) {
-					return _Utils_Tuple2(id, el.element.y + el.viewport.y);
+					return $elm$core$Maybe$Just(
+						_Utils_Tuple2(id, el.element.y));
 				},
 				$elm$browser$Browser$Dom$getElement(id)));
 	};
 	return A2(
 		$elm$core$Task$perform,
 		$author$project$Types$MarkersMeasured,
-		$elm$core$Task$sequence(
-			A2($elm$core$List$map, one, $author$project$Constants$videoMarkerIds)));
-}();
+		A2(
+			$elm$core$Task$map,
+			$elm$core$List$filterMap($elm$core$Basics$identity),
+			$elm$core$Task$sequence(
+				A2($elm$core$List$map, measureOne, ids))));
+};
 var $author$project$Main$musicVideos = _List_fromArray(
 	[
 		{thumbnail: '', title: 'WATCH: Mortrem\'s Epic Performance at the Whiskey Pit Will Leave You Speechless!', youtubeId: 'BBLWe1Go59E'},
@@ -5410,6 +5454,8 @@ var $author$project$Main$songs = _List_fromArray(
 	]);
 var $author$project$Constants$videoBgSources = _List_fromArray(
 	['/videos/epk-banner-fixed.mp4', '/videos/epk-banner-fixed-clid.mp4', '/videos/epk-banner-fixed.mp4', '/videos/epk-banner-fixed-clid.mp4']);
+var $author$project$Constants$videoMarkerIds = _List_fromArray(
+	['videoswitch-marker-1', 'videoswitch-marker-2', 'videoswitch-marker-3']);
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
 		{
@@ -5420,15 +5466,19 @@ var $author$project$Main$init = function (_v0) {
 			currentSongIndex: 0,
 			currentTime: 0,
 			currentVideo: '/videos/epk-banner-fixed.mp4',
+			debugMarkers: true,
 			duration: 0,
 			error: $elm$core$Maybe$Nothing,
 			isContactModalOpen: false,
 			isMenuOpen: false,
 			isPlaying: false,
+			markerPositions: $elm$core$Dict$empty,
 			musicVideos: $author$project$Main$musicVideos,
 			scrollY: 0,
 			selectedMusicVideoIndex: 0,
 			songs: $author$project$Main$songs,
+			videoMarkerIds: _List_fromArray(
+				['videoswitch-marker-1', 'videoswitch-marker-2', 'videoswitch-marker-3']),
 			videoMarkers: _List_Nil,
 			videoSources: $author$project$Constants$videoBgSources,
 			viewportH: 0
@@ -5436,14 +5486,8 @@ var $author$project$Main$init = function (_v0) {
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
 				[
-					A2(
-					$elm$core$Task$perform,
-					function (_v1) {
-						var viewport = _v1.viewport;
-						return $author$project$Types$ViewportResize(viewport.height);
-					},
-					$elm$browser$Browser$Dom$getViewport),
-					$author$project$Main$measureMarkersCmd
+					A2($elm$core$Task$attempt, $author$project$Types$GotViewport, $elm$browser$Browser$Dom$getViewport),
+					$author$project$Main$measureMarkersCmd($author$project$Constants$videoMarkerIds)
 				])));
 };
 var $author$project$Types$AudioError = function (a) {
@@ -5460,9 +5504,10 @@ var $author$project$Types$TimeUpdate = F2(
 	function (a, b) {
 		return {$: 'TimeUpdate', a: a, b: b};
 	});
-var $author$project$Types$VideoSwitch = function (a) {
-	return {$: 'VideoSwitch', a: a};
-};
+var $author$project$Types$ViewportResized = F2(
+	function (a, b) {
+		return {$: 'ViewportResized', a: a, b: b};
+	});
 var $elm$json$Json$Decode$string = _Json_decodeString;
 var $author$project$Main$audioError = _Platform_incomingPort('audioError', $elm$json$Json$Decode$string);
 var $elm$core$Platform$Sub$batch = _Platform_batch;
@@ -5483,8 +5528,6 @@ var $elm$browser$Browser$Events$State = F2(
 	function (subs, pids) {
 		return {pids: pids, subs: subs};
 	});
-var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
-var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $elm$browser$Browser$Events$init = $elm$core$Task$succeed(
 	A2($elm$browser$Browser$Events$State, _List_Nil, $elm$core$Dict$empty));
 var $elm$browser$Browser$Events$nodeToKey = function (node) {
@@ -5814,24 +5857,6 @@ var $elm$browser$Browser$Events$onEffects = F3(
 				$elm$core$Task$sequence(
 					A2($elm$core$List$map, $elm$core$Process$kill, deadPids))));
 	});
-var $elm$core$List$maybeCons = F3(
-	function (f, mx, xs) {
-		var _v0 = f(mx);
-		if (_v0.$ === 'Just') {
-			var x = _v0.a;
-			return A2($elm$core$List$cons, x, xs);
-		} else {
-			return xs;
-		}
-	});
-var $elm$core$List$filterMap = F2(
-	function (f, xs) {
-		return A3(
-			$elm$core$List$foldr,
-			$elm$core$List$maybeCons(f),
-			_List_Nil,
-			xs);
-	});
 var $elm$browser$Browser$Events$onSelfMsg = F3(
 	function (router, _v0, state) {
 		var key = _v0.key;
@@ -5909,31 +5934,24 @@ var $author$project$Main$timeUpdate = _Platform_incomingPort(
 				A2($elm$json$Json$Decode$index, 1, $elm$json$Json$Decode$float));
 		},
 		A2($elm$json$Json$Decode$index, 0, $elm$json$Json$Decode$float)));
-var $elm$json$Json$Decode$bool = _Json_decodeBool;
-var $author$project$Main$videoSwitch = _Platform_incomingPort('videoSwitch', $elm$json$Json$Decode$bool);
 var $author$project$Main$subscriptions = function (model) {
 	return $elm$core$Platform$Sub$batch(
 		_List_fromArray(
 			[
 				$author$project$Main$onScroll($author$project$Types$OnScroll),
-				$elm$browser$Browser$Events$onResize(
-				F2(
-					function (_v0, h) {
-						return $author$project$Types$ViewportResize(h);
-					})),
+				$elm$browser$Browser$Events$onResize($author$project$Types$ViewportResized),
 				$author$project$Main$timeUpdate(
-				function (_v1) {
-					var current = _v1.a;
-					var duration = _v1.b;
+				function (_v0) {
+					var current = _v0.a;
+					var duration = _v0.b;
 					return A2($author$project$Types$TimeUpdate, current, duration);
 				}),
 				$author$project$Main$songEnded(
-				function (_v2) {
+				function (_v1) {
 					return $author$project$Types$SongEnded;
 				}),
 				$author$project$Main$audioError($author$project$Types$AudioError),
-				model.isPlaying ? $author$project$Main$frequencyData($author$project$Types$FrequencyData) : $elm$core$Platform$Sub$none,
-				$author$project$Main$videoSwitch($author$project$Types$VideoSwitch)
+				model.isPlaying ? $author$project$Main$frequencyData($author$project$Types$FrequencyData) : $elm$core$Platform$Sub$none
 			]));
 };
 var $author$project$Types$ContactEditing = {$: 'ContactEditing'};
@@ -5942,6 +5960,10 @@ var $author$project$Types$ContactError = function (a) {
 };
 var $author$project$Types$ContactSending = {$: 'ContactSending'};
 var $author$project$Types$ContactSuccess = {$: 'ContactSuccess'};
+var $author$project$Types$GotMarkerPos = F2(
+	function (a, b) {
+		return {$: 'GotMarkerPos', a: a, b: b};
+	});
 var $author$project$Types$NextSong = {$: 'NextSong'};
 var $elm$core$Basics$clamp = F3(
 	function (low, high, number) {
@@ -5958,21 +5980,25 @@ var $elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $elm$core$List$sortBy = _List_sortBy;
 var $author$project$Utils$activeIndexFrom = F3(
 	function (bottomY, markers, videosLen) {
-		var passed = $elm$core$List$length(
+		var crossed = $elm$core$List$length(
 			A2(
 				$elm$core$List$filter,
 				function (_v0) {
-					var top = _v0.b;
-					return _Utils_cmp(top, bottomY) < 1;
+					var y = _v0.b;
+					return _Utils_cmp(y, bottomY) < 1;
 				},
-				markers));
-		return A3($elm$core$Basics$clamp, 0, videosLen - 1, passed);
+				A2($elm$core$List$sortBy, $elm$core$Tuple$second, markers)));
+		return A3($elm$core$Basics$clamp, 0, videosLen - 1, crossed);
 	});
 var $author$project$Constants$bandEmail = 'mortremofficial@gmail.com';
 var $elm$json$Json$Encode$string = _Json_wrap;
-var $author$project$Main$changeVideo = _Platform_outgoingPort('changeVideo', $elm$json$Json$Encode$string);
 var $author$project$Main$copyToClipboard = _Platform_outgoingPort('copyToClipboard', $elm$json$Json$Encode$string);
 var $elm$json$Json$Encode$float = _Json_wrap;
 var $elm$json$Json$Encode$list = F2(
@@ -6009,11 +6035,43 @@ var $elm$core$List$drop = F2(
 		}
 	});
 var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
+				switch (_v1.$) {
+					case 'LT':
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 'EQ':
+						return $elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
+		}
+	});
 var $elm$core$Debug$log = _Debug_log;
+var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $author$project$Update$OnScroll$handle = F2(
-	function (y, model) {
-		var bottom = A2($elm$core$Debug$log, 'activeIndexFrom -> bottom', y + model.viewportH);
+var $author$project$Update$OnScroll$handle = F3(
+	function (y, model, setActiveBgCmd) {
+		var bottom = y + model.viewportH;
 		var idx = A2(
 			$elm$core$Debug$log,
 			'activeIndexFrom → idx',
@@ -6022,11 +6080,12 @@ var $author$project$Update$OnScroll$handle = F2(
 				bottom,
 				model.videoMarkers,
 				$elm$core$List$length(model.videoSources)));
+		var swapCmd = (!_Utils_eq(idx, model.activeBgIndex)) ? setActiveBgCmd(idx) : $elm$core$Platform$Cmd$none;
 		return _Utils_Tuple2(
 			_Utils_update(
 				model,
-				{activeBgIndex: idx}),
-			$elm$core$Platform$Cmd$none);
+				{activeBgIndex: idx, scrollY: y}),
+			swapCmd);
 	});
 var $elm$core$Basics$not = _Basics_not;
 var $author$project$Update$PlayPause$handle = F4(
@@ -6062,10 +6121,19 @@ var $author$project$Main$httpErrorToString = function (err) {
 			return 'Could not read server response.';
 	}
 };
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
 var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
-var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$Main$pauseAudio = _Platform_outgoingPort('pauseAudio', $elm$json$Json$Encode$string);
 var $author$project$Main$playAudio = _Platform_outgoingPort(
 	'playAudio',
@@ -6149,37 +6217,6 @@ var $elm$core$Maybe$isJust = function (maybe) {
 		return false;
 	}
 };
-var $elm$core$Dict$get = F2(
-	function (targetKey, dict) {
-		get:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return $elm$core$Maybe$Nothing;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
-				switch (_v1.$) {
-					case 'LT':
-						var $temp$targetKey = targetKey,
-							$temp$dict = left;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-					case 'EQ':
-						return $elm$core$Maybe$Just(value);
-					default:
-						var $temp$targetKey = targetKey,
-							$temp$dict = right;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-				}
-			}
-		}
-	});
 var $elm$core$Dict$getMin = function (dict) {
 	getMin:
 	while (true) {
@@ -6787,6 +6824,7 @@ var $author$project$Types$Web3Resp = F2(
 	function (success, message) {
 		return {message: message, success: success};
 	});
+var $elm$json$Json$Decode$bool = _Json_decodeBool;
 var $author$project$Main$web3RespDecoder = A3(
 	$elm$json$Json$Decode$map2,
 	$author$project$Types$Web3Resp,
@@ -6818,10 +6856,6 @@ var $author$project$Main$scrollReel = _Platform_outgoingPort(
 				]));
 	});
 var $author$project$Main$scrollToId = _Platform_outgoingPort('scrollToId', $elm$json$Json$Encode$string);
-var $elm$core$Tuple$second = function (_v0) {
-	var y = _v0.b;
-	return y;
-};
 var $author$project$Main$seekAudio = _Platform_outgoingPort(
 	'seekAudio',
 	function ($) {
@@ -6836,9 +6870,29 @@ var $author$project$Main$seekAudio = _Platform_outgoingPort(
 					$elm$json$Json$Encode$float(b)
 				]));
 	});
+var $author$project$Main$setActiveBg = _Platform_outgoingPort('setActiveBg', $elm$json$Json$Encode$int);
 var $elm$json$Json$Encode$bool = _Json_wrap;
 var $author$project$Main$setBodyScroll = _Platform_outgoingPort('setBodyScroll', $elm$json$Json$Encode$bool);
-var $elm$core$List$sortBy = _List_sortBy;
+var $elm$core$Dict$sizeHelp = F2(
+	function (n, dict) {
+		sizeHelp:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return n;
+			} else {
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$n = A2($elm$core$Dict$sizeHelp, n + 1, right),
+					$temp$dict = left;
+				n = $temp$n;
+				dict = $temp$dict;
+				continue sizeHelp;
+			}
+		}
+	});
+var $elm$core$Dict$size = function (dict) {
+	return A2($elm$core$Dict$sizeHelp, 0, dict);
+};
 var $author$project$Main$updateWaveform = _Platform_outgoingPort('updateWaveform', $elm$json$Json$Encode$bool);
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
@@ -7014,37 +7068,96 @@ var $author$project$Main$update = F2(
 			switch (msg.$) {
 				case 'OnScroll':
 					var y = msg.a;
-					return A2($author$project$Update$OnScroll$handle, y, model);
-				case 'ViewportResize':
-					var h = msg.a;
-					var m = _Utils_update(
-						model,
-						{viewportH: h});
-					var bottom = model.scrollY + h;
-					var idx = A3(
-						$author$project$Utils$activeIndexFrom,
-						bottom,
-						m.videoMarkers,
-						$elm$core$List$length(m.videoSources));
+					return A3($author$project$Update$OnScroll$handle, y, model, $author$project$Main$setActiveBg);
+				case 'GotViewport':
+					if (msg.a.$ === 'Ok') {
+						var vp = msg.a.a;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{scrollY: vp.viewport.y, viewportH: vp.viewport.height}),
+							$elm$core$Platform$Cmd$none);
+					} else {
+						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+					}
+				case 'ViewportResized':
+					var newH = msg.b;
 					return _Utils_Tuple2(
 						_Utils_update(
-							m,
-							{activeBgIndex: idx}),
-						$author$project$Main$measureMarkersCmd);
+							model,
+							{viewportH: newH}),
+						$elm$core$Platform$Cmd$batch(
+							_List_fromArray(
+								[
+									A2($elm$core$Task$attempt, $author$project$Types$GotViewport, $elm$browser$Browser$Dom$getViewport),
+									$author$project$Main$measureMarkersCmd($author$project$Constants$videoMarkerIds)
+								])));
+				case 'RecalcMarkers':
+					return _Utils_Tuple2(
+						model,
+						$elm$core$Platform$Cmd$batch(
+							A2(
+								$elm$core$List$map,
+								function (id) {
+									return A2(
+										$elm$core$Task$attempt,
+										$author$project$Types$GotMarkerPos(id),
+										$elm$browser$Browser$Dom$getElement(id));
+								},
+								model.videoMarkerIds)));
+				case 'GotMarkerPos':
+					if (msg.b.$ === 'Ok') {
+						var id = msg.a;
+						var el = msg.b.a;
+						var top = el.element.y;
+						var positions1 = A3($elm$core$Dict$insert, id, top, model.markerPositions);
+						var markerPairs1 = A2(
+							$elm$core$List$sortBy,
+							function (_v1) {
+								var y = _v1.b;
+								return y;
+							},
+							A2(
+								$elm$core$List$filterMap,
+								function (mid) {
+									return A2(
+										$elm$core$Maybe$map,
+										function (y) {
+											return _Utils_Tuple2(mid, y);
+										},
+										A2($elm$core$Dict$get, mid, positions1));
+								},
+								model.videoMarkerIds));
+						var haveAll = _Utils_cmp(
+							$elm$core$Dict$size(positions1),
+							$elm$core$List$length(model.videoMarkerIds)) > -1;
+						var bottom = el.viewport.y + model.viewportH;
+						var idx = A3(
+							$author$project$Utils$activeIndexFrom,
+							bottom,
+							markerPairs1,
+							$elm$core$List$length(model.videoSources));
+						var swapCmd = (haveAll && ((model.viewportH > 0) && (!_Utils_eq(idx, model.activeBgIndex)))) ? $author$project$Main$setActiveBg(idx) : $elm$core$Platform$Cmd$none;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{activeBgIndex: idx, markerPositions: positions1, videoMarkers: markerPairs1}),
+							swapCmd);
+					} else {
+						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+					}
 				case 'MarkersMeasured':
 					var pairs = msg.a;
+					var vidsLen = $elm$core$List$length(model.videoSources);
 					var sorted = A2($elm$core$List$sortBy, $elm$core$Tuple$second, pairs);
 					var bottom = model.scrollY + model.viewportH;
-					var idx = A3(
-						$author$project$Utils$activeIndexFrom,
-						bottom,
-						sorted,
-						$elm$core$List$length(model.videoSources));
+					var idx = A3($author$project$Utils$activeIndexFrom, bottom, sorted, vidsLen);
+					var swapCmd = (!_Utils_eq(idx, model.activeBgIndex)) ? $author$project$Main$setActiveBg(idx) : $elm$core$Platform$Cmd$none;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{activeBgIndex: idx, videoMarkers: sorted}),
-						$elm$core$Platform$Cmd$none);
+						swapCmd);
 				case 'PlayPause':
 					return A4($author$project$Update$PlayPause$handle, currentSong, model, $author$project$Main$playAudio, $author$project$Main$pauseAudio);
 				case 'NextSong':
@@ -7173,15 +7286,6 @@ var $author$project$Main$update = F2(
 							model,
 							{barHeights: barHeights}),
 						$author$project$Main$drawWaveform(barHeights));
-				case 'VideoSwitch':
-					var isSecondary = msg.a;
-					var newVideo = isSecondary ? '/videos/epk-banner-fixed.mp4' : '/videos/epk-banner-fixed-clid.mp4';
-					var videoCmd = (!_Utils_eq(newVideo, model.currentVideo)) ? $author$project$Main$changeVideo(newVideo) : $elm$core$Platform$Cmd$none;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{currentVideo: newVideo}),
-						videoCmd);
 				case 'UpdateContactName':
 					var v = msg.a;
 					var c = model.contact;
@@ -8735,6 +8839,142 @@ var $author$project$Main$imageGallery = function (images) {
 				A2($elm$core$List$map, $author$project$Main$galleryImageComponent, images))
 			]));
 };
+var $author$project$Main$markerDebugOverlay = function (model) {
+	if (!model.debugMarkers) {
+		return $elm$html$Html$text('');
+	} else {
+		var toViewportY = function (yAbs) {
+			return yAbs - model.scrollY;
+		};
+		var lineFor = function (_v0) {
+			var idStr = _v0.a;
+			var yAbs = _v0.b;
+			var topPx = $elm$core$String$fromFloat(
+				toViewportY(yAbs)) + 'px';
+			var label = idStr + (' @ ' + $elm$core$String$fromFloat(yAbs));
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+						A2($elm$html$Html$Attributes$style, 'left', '0'),
+						A2($elm$html$Html$Attributes$style, 'right', '0'),
+						A2($elm$html$Html$Attributes$style, 'top', topPx),
+						A2($elm$html$Html$Attributes$style, 'height', '0')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'border-top', '2px solid rgba(255,0,0,0.7)'),
+								A2($elm$html$Html$Attributes$style, 'width', '100%')
+							]),
+						_List_Nil),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+								A2($elm$html$Html$Attributes$style, 'right', '8px'),
+								A2($elm$html$Html$Attributes$style, 'top', '-10px'),
+								A2($elm$html$Html$Attributes$style, 'padding', '2px 6px'),
+								A2($elm$html$Html$Attributes$style, 'font-size', '12px'),
+								A2($elm$html$Html$Attributes$style, 'line-height', '1'),
+								A2($elm$html$Html$Attributes$style, 'color', '#ffb3b3'),
+								A2($elm$html$Html$Attributes$style, 'background', 'rgba(0,0,0,0.6)'),
+								A2($elm$html$Html$Attributes$style, 'border', '1px solid rgba(255,0,0,0.5)'),
+								A2($elm$html$Html$Attributes$style, 'border-radius', '4px')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(label)
+							]))
+					]));
+		};
+		var header = A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+					A2($elm$html$Html$Attributes$style, 'left', '8px'),
+					A2($elm$html$Html$Attributes$style, 'top', '8px'),
+					A2($elm$html$Html$Attributes$style, 'padding', '4px 8px'),
+					A2($elm$html$Html$Attributes$style, 'font-size', '12px'),
+					A2($elm$html$Html$Attributes$style, 'color', '#eee'),
+					A2($elm$html$Html$Attributes$style, 'background', 'rgba(0,0,0,0.6)'),
+					A2($elm$html$Html$Attributes$style, 'border', '1px solid rgba(255,255,255,0.2)'),
+					A2($elm$html$Html$Attributes$style, 'border-radius', '4px')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text(
+					'activeBgIndex=' + ($elm$core$String$fromInt(model.activeBgIndex) + (' · markers=' + $elm$core$String$fromInt(
+						$elm$core$List$length(model.videoMarkers)))))
+				]));
+		var bottomLine = function () {
+			var topPx = $elm$core$String$fromFloat(model.viewportH) + 'px';
+			var label = 'bottom = scrollY(' + ($elm$core$String$fromFloat(model.scrollY) + (') + vh(' + ($elm$core$String$fromFloat(model.viewportH) + (') = ' + $elm$core$String$fromFloat(model.scrollY + model.viewportH)))));
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+						A2($elm$html$Html$Attributes$style, 'left', '0'),
+						A2($elm$html$Html$Attributes$style, 'right', '0'),
+						A2($elm$html$Html$Attributes$style, 'top', topPx),
+						A2($elm$html$Html$Attributes$style, 'height', '0')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'border-top', '2px dashed rgba(0,200,255,0.8)'),
+								A2($elm$html$Html$Attributes$style, 'width', '100%')
+							]),
+						_List_Nil),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+								A2($elm$html$Html$Attributes$style, 'right', '8px'),
+								A2($elm$html$Html$Attributes$style, 'top', '-40px'),
+								A2($elm$html$Html$Attributes$style, 'padding', '2px 6px'),
+								A2($elm$html$Html$Attributes$style, 'font-size', '12px'),
+								A2($elm$html$Html$Attributes$style, 'line-height', '1'),
+								A2($elm$html$Html$Attributes$style, 'color', '#cdefff'),
+								A2($elm$html$Html$Attributes$style, 'background', 'rgba(0,0,0,0.6)'),
+								A2($elm$html$Html$Attributes$style, 'border', '1px solid rgba(0,200,255,0.5)'),
+								A2($elm$html$Html$Attributes$style, 'border-radius', '4px')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(label)
+							]))
+					]));
+		}();
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'position', 'fixed'),
+					A2($elm$html$Html$Attributes$style, 'inset', '0'),
+					A2($elm$html$Html$Attributes$style, 'z-index', '999999'),
+					A2($elm$html$Html$Attributes$style, 'pointer-events', 'none')
+				]),
+			A2(
+				$elm$core$List$cons,
+				header,
+				A2(
+					$elm$core$List$cons,
+					bottomLine,
+					A2($elm$core$List$map, lineFor, model.videoMarkers))));
+	}
+};
 var $author$project$Types$ScrollTo = function (a) {
 	return {$: 'ScrollTo', a: a};
 };
@@ -9430,7 +9670,8 @@ var $author$project$Main$view = function (model) {
 					[
 						$author$project$Main$imageGallery($author$project$Main$galleryImages)
 					])),
-				$author$project$Main$footer(model)
+				$author$project$Main$footer(model),
+				$author$project$Main$markerDebugOverlay(model)
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(

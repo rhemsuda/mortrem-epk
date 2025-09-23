@@ -21,6 +21,9 @@ import Types exposing (..)
 import Update.OnScroll as OnScroll
 import Update.PlayPause as PlayPause
 
+import Dict exposing (Dict)
+import Task
+import Process
 import Time exposing (millisToPosix)
 
 -- PORTS
@@ -34,8 +37,9 @@ port audioError : (String -> msg) -> Sub msg
 port onScroll : (Float -> msg) -> Sub msg
 port frequencyData : (List Float -> msg) -> Sub msg
 port drawWaveform : List Float -> Cmd msg
-port changeVideo : String -> Cmd msg
-port videoSwitch : (Bool -> msg) -> Sub msg
+port setActiveBg : Int -> Cmd msg
+--port changeVideo : String -> Cmd msg
+--port videoSwitch : (Bool -> msg) -> Sub msg
 port scrollToId : String -> Cmd msg
 port setBodyScroll : Bool -> Cmd msg
 port scrollReel : (String, Int) -> Cmd msg
@@ -113,6 +117,12 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( { scrollY = 0
       , viewportH = 0
+      , videoMarkerIds =
+          [ "videoswitch-marker-1"
+          , "videoswitch-marker-2"
+          , "videoswitch-marker-3"
+          ]
+      , markerPositions = Dict.empty
       , videoSources = videoBgSources
       , videoMarkers = []
       , activeBgIndex = 0
@@ -130,11 +140,12 @@ init _ =
       , contact = { name = "", email = "", message = "", honeypot = "" }
       , contactStatus = ContactIdle
       , isContactModalOpen = False
+      , debugMarkers = True
       }
     , Cmd.batch
-        [ Task.perform (\{ viewport } -> ViewportResize viewport.height) Dom.getViewport
-        , measureMarkersCmd
-        ]
+          [ Task.attempt GotViewport Dom.getViewport  -- sync scroll and height now
+          , measureMarkersCmd videoMarkerIds    -- measure all markers atomically
+          ]
     )
 
 
@@ -142,7 +153,8 @@ init _ =
 view : Model -> Html Msg
 view model =
     div []
-        [ navbar model
+        [ --backgroundVideoLayer model
+        navbar model
         , mobileSidePanel model
         , heroBannerContent model.scrollY
         , navbarMarker
@@ -158,6 +170,7 @@ view model =
         , videoBanner "Gallery"
         , contentPanel model [ imageGallery galleryImages ]
         , footer model
+        , markerDebugOverlay model
         -- , contentPanel model [ myTestPanel model, imageGallery galleryImages ]
         --, imageGallery galleryImages
         ]
@@ -175,31 +188,123 @@ update msg model =
             String.contains "@" e && String.contains "." e && String.length e > 5
     in
     case msg of
-        OnScroll y -> OnScroll.handle y model
-        ViewportResize h ->
+        OnScroll y -> OnScroll.handle y model setActiveBg
+        GotViewport (Ok vp) ->
+            ( { model | viewportH = vp.viewport.height, scrollY = vp.viewport.y }
+            , Cmd.none
+            --, Task.perform (\_ -> RecalcMarkers) (Process.sleep 0)
+            )
+        GotViewport (Err _) ->
+            ( model, Cmd.none )
+        ViewportResized _ newH ->
+            ( { model | viewportH = toFloat newH }
+            , Cmd.batch
+                [ Task.attempt GotViewport Dom.getViewport
+                , measureMarkersCmd videoMarkerIds
+                --, Task.perform (\_ -> RecalcMarkers) (Process.sleep 16)
+                ]
+            )
+        RecalcMarkers ->
+            ( model
+            , Cmd.batch
+                (List.map
+                     (\id -> Task.attempt (GotMarkerPos id) (Dom.getElement id))
+                     model.videoMarkerIds
+                )
+            )
+        GotMarkerPos id (Ok el) ->
             let
-                m =
-                    { model | viewportH = h }
+                -- absolute document Y for the marker’s top
+                top : Float
+                top =
+                    el.element.y-- + el.viewport.y
 
+                positions1 : Dict String Float
+                positions1 =
+                    Dict.insert id top model.markerPositions
+
+                    -- Build (id, y) pairs for all known markers, sorted by y
+                markerPairs1 : List ( String, Float )
+                markerPairs1 =
+                    model.videoMarkerIds
+                        |> List.filterMap
+                           (\mid ->
+                                Dict.get mid positions1
+                           |> Maybe.map (\y -> ( mid, y ))
+                           )
+                        |> List.sortBy (\(_, y) -> y)
+
+                haveAll : Bool
+                haveAll =
+                    Dict.size positions1 >= List.length model.videoMarkerIds
+
+                bottom : Float
                 bottom =
-                    model.scrollY + h
+                    el.viewport.y + model.viewportH
 
+                idx : Int
                 idx =
-                    activeIndexFrom bottom m.videoMarkers (List.length m.videoSources)
+                    activeIndexFrom bottom markerPairs1 (List.length model.videoSources)
+
+                swapCmd : Cmd Msg
+                swapCmd =
+                    if haveAll && model.viewportH > 0 && idx /= model.activeBgIndex then
+                        setActiveBg idx
+                    else
+                        Cmd.none
             in
-            ( { m | activeBgIndex = idx }, measureMarkersCmd )
+                ( { model
+                      | markerPositions = positions1
+                      , videoMarkers = markerPairs1
+                      , activeBgIndex = idx
+                  }
+                , swapCmd
+                )
+        GotMarkerPos _ (Err _) ->
+            ( model, Cmd.none )
         MarkersMeasured pairs ->
             let
-                sorted =
-                    List.sortBy Tuple.second pairs
+                sorted = List.sortBy Tuple.second pairs
 
-                bottom =
-                    model.scrollY + model.viewportH
+                bottom = model.scrollY + model.viewportH
+                vidsLen = List.length model.videoSources
 
-                idx =
-                    activeIndexFrom bottom sorted (List.length model.videoSources)
+                idx = activeIndexFrom bottom sorted vidsLen
+
+                swapCmd =
+                    if idx /= model.activeBgIndex then
+                        setActiveBg idx
+                    else
+                        Cmd.none
             in
-            ( { model | videoMarkers = sorted, activeBgIndex = idx }, Cmd.none )
+                ( { model | videoMarkers = sorted, activeBgIndex = idx }
+                , swapCmd
+                )
+
+        -- ViewportResize h ->
+        --     let
+        --         m =
+        --             { model | viewportH = h }
+
+        --         bottom =
+        --             model.scrollY + h
+
+        --         idx =
+        --             activeIndexFrom bottom m.videoMarkers (List.length m.videoSources)
+        --     in
+        --     ( { m | activeBgIndex = idx }, measureMarkersCmd )
+        -- MarkersMeasured pairs ->
+        --     let
+        --         sorted =
+        --             List.sortBy Tuple.second pairs
+
+        --         bottom =
+        --             model.scrollY + model.viewportH
+
+        --         idx =
+        --             activeIndexFrom bottom sorted (List.length model.videoSources)
+        --     in
+        --     ( { model | videoMarkers = sorted, activeBgIndex = idx }, Cmd.none )
         PlayPause -> PlayPause.handle currentSong model playAudio pauseAudio
         NextSong -> startSong (model.currentSongIndex + 1) model
         PreviousSong -> startSong (model.currentSongIndex - 1) model
@@ -280,20 +385,20 @@ update msg model =
             ( { model | barHeights = barHeights }
             , drawWaveform barHeights
             )
-        VideoSwitch isSecondary ->
-            let
-                newVideo =
-                    if isSecondary then
-                        "/videos/epk-banner-fixed.mp4"
-                    else
-                        "/videos/epk-banner-fixed-clid.mp4"
-                videoCmd =
-                    if newVideo /= model.currentVideo then
-                        changeVideo newVideo
-                    else
-                        Cmd.none
-            in
-            ( { model | currentVideo = newVideo }, videoCmd )
+        -- VideoSwitch isSecondary ->
+        --     let
+        --         newVideo =
+        --             if isSecondary then
+        --                 "/videos/epk-banner-fixed.mp4"
+        --             else
+        --                 "/videos/epk-banner-fixed-clid.mp4"
+        --         videoCmd =
+        --             if newVideo /= model.currentVideo then
+        --                 changeVideo newVideo
+        --             else
+        --                 Cmd.none
+        --     in
+        --     ( { model | currentVideo = newVideo }, videoCmd )
         UpdateContactName v ->
             let
                 c = model.contact
@@ -362,47 +467,47 @@ update msg model =
             ( model, copyToClipboard bandEmail )
 
 
-measureMarkersCmd : Cmd Msg
-measureMarkersCmd =
-    let
-        one id =
-            Dom.getElement id
-                |> Task.map (\el -> ( id, el.element.y + el.viewport.y ))
-                |> Task.onError (\_ -> Task.succeed ( id, 9999999 )) -- if missing, push far down
-    in
-    videoMarkerIds
-        |> List.map one
-        |> Task.sequence
-        |> Task.perform MarkersMeasured
+-- measureMarkersCmd : Cmd Msg
+-- measureMarkersCmd =
+--     let
+--         one id =
+--             Dom.getElement id
+--                 |> Task.map (\el -> ( id, el.element.y + el.viewport.y ))
+--                 |> Task.onError (\_ -> Task.succeed ( id, 9999999 )) -- if missing, push far down
+--     in
+--     videoMarkerIds
+--         |> List.map one
+--         |> Task.sequence
+--         |> Task.perform MarkersMeasured
 
 
 
-backgroundVideoLayer : Model -> Html Msg
-backgroundVideoLayer model =
-    let
-        render i src =
-            Html.video
-                [ id ("bg-video-" ++ String.fromInt i)
-                , class
-                    (String.join " "
-                        [ "fixed inset-0 min-w-full h-screen object-cover"
-                        , if i == model.activeBgIndex then "opacity-100" else "opacity-0 pointer-events-none"
-                        , "transition-opacity duration-300"
-                        ]
-                    )
-                , Html.Attributes.autoplay True
-                , Html.Attributes.loop True
-                , Html.Attributes.attribute "muted" "true"
-                , Html.Attributes.attribute "playsinline" ""
-                , Html.Attributes.attribute "preload" "auto"
-                , Html.Attributes.src src
-                ]
-                [ text "Your browser does not support the video tag." ]
-    in
-    div [ class "fixed inset-0 z-[-1]" ]
-        (List.indexedMap render model.videoSources
-            ++ [ div [ class "absolute inset-0 bg-black/60" ] [] ]
-        )
+-- backgroundVideoLayer : Model -> Html Msg
+-- backgroundVideoLayer model =
+--     let
+--         render i src =
+--             Html.video
+--                 [ id ("bg-video-" ++ String.fromInt i)
+--                 , class
+--                     (String.join " "
+--                         [ "fixed inset-0 min-w-full h-screen object-cover"
+--                         , if i == model.activeBgIndex then "opacity-100" else "opacity-0 pointer-events-none"
+--                         , "transition-opacity duration-300"
+--                         ]
+--                     )
+--                 , Html.Attributes.autoplay True
+--                 , Html.Attributes.loop True
+--                 , Html.Attributes.attribute "muted" "true"
+--                 , Html.Attributes.attribute "playsinline" ""
+--                 , Html.Attributes.attribute "preload" "auto"
+--                 , Html.Attributes.src src
+--                 ]
+--                 [ text "Your browser does not support the video tag." ]
+--     in
+--     div [ class "fixed inset-0 z-[-1]" ]
+--         (List.indexedMap render model.videoSources
+--             ++ [ div [ class "absolute inset-0 bg-black/60" ] [] ]
+--         )
 
 
 miniPlayer : Model -> Html Msg
@@ -503,12 +608,13 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ onScroll OnScroll
-        , Browser.Events.onResize (\_ h -> ViewportResize (toFloat h))
+        , Browser.Events.onResize ViewportResized
+        --, Browser.Events.onResize (\_ h -> ViewportResize (toFloat h))
         , timeUpdate (\(current, duration) -> TimeUpdate current duration)
         , songEnded (\_ -> SongEnded)
         , audioError AudioError
         , if model.isPlaying then frequencyData FrequencyData else Sub.none
-        , videoSwitch VideoSwitch
+        --, videoSwitch VideoSwitch
         ]
 
 -- COMPONENTS
@@ -1290,7 +1396,136 @@ footer model =
           ]
     ]
 
+measureMarkersCmd : List String -> Cmd Msg
+measureMarkersCmd ids =
+    let
+        -- Measure one marker; on failure, drop it (do not fail the whole batch)
+        measureOne id =
+            Dom.getElement id
+                |> Task.map (\el -> Just ( id, el.element.y ))
+                |> Task.onError (\_ -> Task.succeed Nothing)
+    in
+    ids
+        |> List.map measureOne
+        |> Task.sequence
+        |> Task.map (List.filterMap identity)
+        |> Task.perform MarkersMeasured
 
+markerDebugOverlay : Model -> Html Msg
+markerDebugOverlay model =
+    if not model.debugMarkers then
+        text ""
+    else
+        let
+            -- convert absolute doc Y → viewport Y (so we can place a fixed element)
+            toViewportY yAbs =
+                yAbs - model.scrollY
+
+            -- one horizontal line with label at an absolute marker Y
+            lineFor : ( String, Float ) -> Html Msg
+            lineFor (idStr, yAbs) =
+                let
+                    topPx =
+                        String.fromFloat (toViewportY yAbs) ++ "px"
+
+                    label =
+                        idStr ++ " @ " ++ String.fromFloat yAbs
+                in
+                div
+                    [ style "position" "absolute"
+                    , style "left" "0"
+                    , style "right" "0"
+                    , style "top" topPx
+                    , style "height" "0"
+                    ]
+                    [ -- the line
+                      div
+                        [ style "border-top" "2px solid rgba(255,0,0,0.7)"
+                        , style "width" "100%"
+                        ]
+                        []
+                    , -- the tag
+                      div
+                        [ style "position" "absolute"
+                        , style "right" "8px"
+                        , style "top" "-10px"
+                        , style "padding" "2px 6px"
+                        , style "font-size" "12px"
+                        , style "line-height" "1"
+                        , style "color" "#ffb3b3"
+                        , style "background" "rgba(0,0,0,0.6)"
+                        , style "border" "1px solid rgba(255,0,0,0.5)"
+                        , style "border-radius" "4px"
+                        ]
+                        [ text label ]
+                    ]
+
+            -- bottom-of-viewport line (to visualize the trigger)
+            bottomLine : Html Msg
+            bottomLine =
+                let
+                    topPx = String.fromFloat model.viewportH ++ "px"
+                    label =
+                        "bottom = scrollY(" ++ String.fromFloat model.scrollY
+                            ++ ") + vh(" ++ String.fromFloat model.viewportH
+                            ++ ") = " ++ String.fromFloat (model.scrollY + model.viewportH)
+                in
+                div
+                    [ style "position" "absolute"
+                    , style "left" "0"
+                    , style "right" "0"
+                    , style "top" topPx
+                    , style "height" "0"
+                    ]
+                    [ div
+                        [ style "border-top" "2px dashed rgba(0,200,255,0.8)"
+                        , style "width" "100%"
+                        ]
+                        []
+                    , div
+                        [ style "position" "absolute"
+                        , style "right" "8px"
+                        , style "top" "-40px"
+                        , style "padding" "2px 6px"
+                        , style "font-size" "12px"
+                        , style "line-height" "1"
+                        , style "color" "#cdefff"
+                        , style "background" "rgba(0,0,0,0.6)"
+                        , style "border" "1px solid rgba(0,200,255,0.5)"
+                        , style "border-radius" "4px"
+                        ]
+                        [ text label ]
+                    ]
+
+            header : Html Msg
+            header =
+                div
+                    [ style "position" "absolute"
+                    , style "left" "8px"
+                    , style "top" "8px"
+                    , style "padding" "4px 8px"
+                    , style "font-size" "12px"
+                    , style "color" "#eee"
+                    , style "background" "rgba(0,0,0,0.6)"
+                    , style "border" "1px solid rgba(255,255,255,0.2)"
+                    , style "border-radius" "4px"
+                    ]
+                    [ text
+                        ("activeBgIndex="
+                            ++ String.fromInt model.activeBgIndex
+                            ++ " · markers="
+                            ++ String.fromInt (List.length model.videoMarkers)
+                        )
+                    ]
+        in
+        -- fixed overlay that does not capture pointer events
+        div
+            [ style "position" "fixed"
+            , style "inset" "0"
+            , style "z-index" "999999"
+            , style "pointer-events" "none"
+            ]
+            (header :: bottomLine :: List.map lineFor model.videoMarkers)
 
 
 -- BOOTSTRAP

@@ -119,37 +119,37 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // IntersectionObserver for video switch
-  const videoswitchMarker1 = document.getElementById('videoswitch-marker-1');
-  if (videoswitchMarker1) {
-    let prevIntersecting = false;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const currentIntersecting = entry.isIntersecting;
-        const rect = entry.boundingClientRect;
+  // const videoswitchMarker1 = document.getElementById('videoswitch-marker-1');
+  // if (videoswitchMarker1) {
+  //   let prevIntersecting = false;
+  //   const observer = new IntersectionObserver(
+  //     ([entry]) => {
+  //       const currentIntersecting = entry.isIntersecting;
+  //       const rect = entry.boundingClientRect;
 
-        if (!prevIntersecting && currentIntersecting) {
-          if (rect.bottom > window.innerHeight - 100) {
-            app.ports.videoSwitch.send(false);
-          }
-        } else if (prevIntersecting && !currentIntersecting) {
-          if (rect.top >= 0) {
-            app.ports.videoSwitch.send(true);
-          }
-        }
+  //       if (!prevIntersecting && currentIntersecting) {
+  //         if (rect.bottom > window.innerHeight - 100) {
+  //           app.ports.videoSwitch.send(false);
+  //         }
+  //       } else if (prevIntersecting && !currentIntersecting) {
+  //         if (rect.top >= 0) {
+  //           app.ports.videoSwitch.send(true);
+  //         }
+  //       }
 
-        prevIntersecting = currentIntersecting;
-        console.log('Marker visibility:', entry.isIntersecting);
-      },
-      {
-        root: null,
-        threshold: 0,
-        rootMargin: '0px'
-      }
-    );
-    observer.observe(videoswitchMarker1);
-  } else {
-    console.error('videoswitch-marker-1 element not found');
-  }
+  //       prevIntersecting = currentIntersecting;
+  //       console.log('Marker visibility:', entry.isIntersecting);
+  //     },
+  //     {
+  //       root: null,
+  //       threshold: 0,
+  //       rootMargin: '0px'
+  //     }
+  //   );
+  //   observer.observe(videoswitchMarker1);
+  // } else {
+  //   console.error('videoswitch-marker-1 element not found');
+  // }
 
   // IntersectionObserver for navbar
   const navbarMarker = document.getElementById('navbar-marker');
@@ -236,95 +236,95 @@ document.addEventListener('DOMContentLoaded', () => {
   // Example page order:
   // [Video Banner 1] [Content 1] [#videoswitch-marker-1] [Video Banner 2] [Content 2] [#videoswitch-marker-2] [Video Banner 3]
 
-  // 1) Declare your video chain top→bottom
-  const VIDEO_CHAIN = ['#bg-hero', '#bg-discography', '#bg-metrics', '#bg-gallery']; // add/remove as needed
+  // // 1) Declare your video chain top→bottom
+  // const VIDEO_CHAIN = ['#bg-hero', '#bg-discography', '#bg-metrics', '#bg-gallery']; // add/remove as needed
 
-  // 2) Declare your marker ids in order they appear top→bottom (one less than videos)
-  const MARKER_IDS  = ['#videoswitch-marker-1', '#videoswitch-marker-2', '#videoswitch-marker-3']; // add/remove to match
+  // // 2) Declare your marker ids in order they appear top→bottom (one less than videos)
+  // const MARKER_IDS  = ['#videoswitch-marker-1', '#videoswitch-marker-2', '#videoswitch-marker-3']; // add/remove to match
 
-  // Cache videos (ignore missing so you can stage gradually)
-  const videoEls = VIDEO_CHAIN.map(sel => document.querySelector(sel)).filter(Boolean);
+  // // Cache videos (ignore missing so you can stage gradually)
+  // const videoEls = VIDEO_CHAIN.map(sel => document.querySelector(sel)).filter(Boolean);
 
-  // Ensure each video has opacity transition in markup:
-  // class="absolute inset-0 w-full h-screen object-cover opacity-0 pointer-events-none transition-opacity duration-300"
-  function prewarm(v) {
-    if (!v) return;
-    v.muted = true; v.loop = true; v.playsInline = true;
-    try { v.playbackRate = 0.9; } catch (_) {}
-    v.play().catch(() => {}); // ignore autoplay rejections (muted should pass)
-  }
-  videoEls.forEach(prewarm);
+  // // Ensure each video has opacity transition in markup:
+  // // class="absolute inset-0 w-full h-screen object-cover opacity-0 pointer-events-none transition-opacity duration-300"
+  // function prewarm(v) {
+  //   if (!v) return;
+  //   v.muted = true; v.loop = true; v.playsInline = true;
+  //   try { v.playbackRate = 0.9; } catch (_) {}
+  //   v.play().catch(() => {}); // ignore autoplay rejections (muted should pass)
+  // }
+  // videoEls.forEach(prewarm);
 
-  let activeIndex = null;
-  function showIndex(i) {
-    if (i === activeIndex || !videoEls[i]) return;
-    const next = videoEls[i];
-    const prev = activeIndex != null ? videoEls[activeIndex] : null;
+  // let activeIndex = null;
+  // function showIndex(i) {
+  //   if (i === activeIndex || !videoEls[i]) return;
+  //   const next = videoEls[i];
+  //   const prev = activeIndex != null ? videoEls[activeIndex] : null;
 
-    // Turn ON new first → no gray flash
-    next.classList.remove('opacity-0', 'pointer-events-none');
-    next.classList.add('opacity-100');
-    next.play?.().catch(() => {});
+  //   // Turn ON new first → no gray flash
+  //   next.classList.remove('opacity-0', 'pointer-events-none');
+  //   next.classList.add('opacity-100');
+  //   next.play?.().catch(() => {});
 
-    // Hide old on next paint
-    if (prev && prev !== next) {
-      requestAnimationFrame(() => {
-        prev.classList.add('opacity-0', 'pointer-events-none');
-        prev.classList.remove('opacity-100');
-      });
-    }
-    activeIndex = i;
-  }
+  //   // Hide old on next paint
+  //   if (prev && prev !== next) {
+  //     requestAnimationFrame(() => {
+  //       prev.classList.add('opacity-0', 'pointer-events-none');
+  //       prev.classList.remove('opacity-100');
+  //     });
+  //   }
+  //   activeIndex = i;
+  // }
 
-  // Compute initial video for current scroll position.
-  // Logic: count how many markers the bottom-of-viewport has passed.
-  function pickInitialIndex() {
-    let passed = -1;
-    for (let k = 0; k < MARKER_IDS.length; k++) {
-      const el = document.querySelector(MARKER_IDS[k]);
-      if (!el) continue;
-      const top = el.getBoundingClientRect().top;
-      if (top <= window.innerHeight) passed = k; // bottom has crossed this marker
-    }
-    // before first marker → index 0; after Nth marker → index N
-    return Math.min(passed + 1, VIDEO_CHAIN.length - 1);
-  }
+  // // Compute initial video for current scroll position.
+  // // Logic: count how many markers the bottom-of-viewport has passed.
+  // function pickInitialIndex() {
+  //   let passed = -1;
+  //   for (let k = 0; k < MARKER_IDS.length; k++) {
+  //     const el = document.querySelector(MARKER_IDS[k]);
+  //     if (!el) continue;
+  //     const top = el.getBoundingClientRect().top;
+  //     if (top <= window.innerHeight) passed = k; // bottom has crossed this marker
+  //   }
+  //   // before first marker → index 0; after Nth marker → index N
+  //   return Math.min(passed + 1, VIDEO_CHAIN.length - 1);
+  // }
 
-  // Set initial state on load (handles reload at deep scroll)
-  showIndex(pickInitialIndex());
+  // // Set initial state on load (handles reload at deep scroll)
+  // showIndex(pickInitialIndex());
 
-  // Direction-aware IntersectionObserver.
-  // We trigger exactly when the bottom-of-viewport hits a marker by moving the
-  // observer’s bottom edge up by 100% (rootMargin bottom = -100%).
-  const markers = MARKER_IDS
-        .map((sel, i) => {
-          const el = document.querySelector(sel);
-          // marker i sits between video i (above) and video i+1 (below)
-          return el ? { el, aboveIndex: i, belowIndex: i + 1 } : null;
-        })
-        .filter(Boolean);
+  // // Direction-aware IntersectionObserver.
+  // // We trigger exactly when the bottom-of-viewport hits a marker by moving the
+  // // observer’s bottom edge up by 100% (rootMargin bottom = -100%).
+  // const markers = MARKER_IDS
+  //       .map((sel, i) => {
+  //         const el = document.querySelector(sel);
+  //         // marker i sits between video i (above) and video i+1 (below)
+  //         return el ? { el, aboveIndex: i, belowIndex: i + 1 } : null;
+  //       })
+  //       .filter(Boolean);
 
-  let lastScrollY = window.scrollY || 0;
+  // let lastScrollY = window.scrollY || 0;
 
-  const io = new IntersectionObserver((entries) => {
-    const nowY = window.scrollY || 0;
-    const scrollingDown = nowY > lastScrollY;
-    lastScrollY = nowY;
+  // const io = new IntersectionObserver((entries) => {
+  //   const nowY = window.scrollY || 0;
+  //   const scrollingDown = nowY > lastScrollY;
+  //   lastScrollY = nowY;
 
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue; // we care about the instant of crossing
-      const m = markers.find(x => x.el === entry.target);
-      if (!m) continue;
-      showIndex(scrollingDown ? m.belowIndex : m.aboveIndex);
-    }
-  }, { root: null, threshold: 0, rootMargin: '0px 0px -100% 0px' });
+  //   for (const entry of entries) {
+  //     if (!entry.isIntersecting) continue; // we care about the instant of crossing
+  //     const m = markers.find(x => x.el === entry.target);
+  //     if (!m) continue;
+  //     showIndex(scrollingDown ? m.belowIndex : m.aboveIndex);
+  //   }
+  // }, { root: null, threshold: 0, rootMargin: '0px 0px -100% 0px' });
 
-  markers.forEach(m => io.observe(m.el));
+  // markers.forEach(m => io.observe(m.el));
 
-  // Keep it correct on resize (re-evaluate which video should show)
-  window.addEventListener('resize', () => {
-    showIndex(pickInitialIndex());
-  });
+  // // Keep it correct on resize (re-evaluate which video should show)
+  // window.addEventListener('resize', () => {
+  //   showIndex(pickInitialIndex());
+  // });
 
 
 
@@ -382,6 +382,37 @@ document.addEventListener('DOMContentLoaded', () => {
   //     swapTo(use);
   //   });
   // }
+
+
+  // Send the initial scroll position once so Elm can pick correct background on load
+  requestAnimationFrame(() => {
+    if (app.ports.onScroll) {
+      app.ports.onScroll.send(window.scrollY || 0);
+    }
+  });
+
+  // Toggle which static <video> is visible (no playback code here)
+  if (app.ports.setActiveBg) {
+    app.ports.setActiveBg.subscribe((idx) => {
+      const vids = document.querySelectorAll('#bg-video-stack .bg-video');
+      console.log('setActiveBg with vids:', vids);
+      // Turn ON the new one first…
+      const next = vids[idx];
+      if (!next) return;
+      next.classList.remove('opacity-0');
+      next.classList.add('opacity-100');
+
+      // …then hide the others on the next paint (prevents any gray flash)
+      requestAnimationFrame(() => {
+        vids.forEach((v, i) => {
+          if (i !== idx) {
+            v.classList.add('opacity-0');
+            v.classList.remove('opacity-100');
+          }
+        });
+      });
+    });
+  }
 
   // END SEPARATE THESE INTO APP SUBSCRIPTION FILES
 
