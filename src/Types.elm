@@ -93,7 +93,7 @@ type alias Model =
     , isContactModalOpen : Bool
     , viewportH : Float
     , videoMarkerIds : List String
-    , markerPositions : Dict String Float
+    -- , markerPositions : Dict String Float
     -- , viewportH : Float
      , videoSources : List String
      , videoMarkers : List ( String, Float )
@@ -131,8 +131,8 @@ type Msg
     | CopyBandEmail
     | ViewportResized Int Int
     | GotViewport (Result Dom.Error Dom.Viewport)
-    | RecalcMarkers
-    | GotMarkerPos String (Result Dom.Error Dom.Element)
+    -- | RecalcMarkers
+    -- | GotMarkerPos String (Result Dom.Error Dom.Element)
     | MarkersMeasured (List ( String, Float ))
 
     --| ViewportResize Float

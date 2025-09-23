@@ -8,10 +8,9 @@ import Browser.Dom as Dom
 import Browser.Events
 import Task
 
-import Html exposing (Html, div, span, h1, h2, h3, p, text, img, i, audio, canvas, button, span, table, thead, tbody, tr, th, td, a, input, small, textarea, li, ul, hr)
+import Html exposing (Html, div, span, h1, h2, h3, p, text, img, i, audio, canvas, button, table, thead, tbody, tr, th, td, a, input, small, textarea, li, ul, hr)
 import Html.Attributes exposing (class, style, src, alt, id, href, target, width, height, preload, title, attribute)
 import Html.Events exposing (on, onClick, onInput, onSubmit)
-import Json.Decode as Decode
 import DateTime exposing (fromPosix)
 
 import Constants exposing (..)
@@ -20,10 +19,8 @@ import Types exposing (..)
 
 import Update.OnScroll as OnScroll
 import Update.PlayPause as PlayPause
-
 import Dict exposing (Dict)
-import Task
-import Process
+
 import Time exposing (millisToPosix)
 
 -- PORTS
@@ -49,10 +46,6 @@ port copyToClipboard : String -> Cmd msg
 barsCount : Int
 barsCount = 10
 
-
-titleText : String -> Html Msg
-titleText msg =
-    div [ class "text-white font-serif text-5xl text-center pb-8" ] [ text msg ]
 
 -- MODEL
 songs : List Song
@@ -170,9 +163,6 @@ view model =
         , videoBanner "Gallery"
         , contentPanel model [ imageGallery galleryImages ]
         , footer model
-        , markerDebugOverlay model
-        -- , contentPanel model [ myTestPanel model, imageGallery galleryImages ]
-        --, imageGallery galleryImages
         ]
 
 
@@ -192,7 +182,6 @@ update msg model =
         GotViewport (Ok vp) ->
             ( { model | viewportH = vp.viewport.height, scrollY = vp.viewport.y }
             , Cmd.none
-            --, Task.perform (\_ -> RecalcMarkers) (Process.sleep 0)
             )
         GotViewport (Err _) ->
             ( model, Cmd.none )
@@ -204,64 +193,6 @@ update msg model =
                 --, Task.perform (\_ -> RecalcMarkers) (Process.sleep 16)
                 ]
             )
-        RecalcMarkers ->
-            ( model
-            , Cmd.batch
-                (List.map
-                     (\id -> Task.attempt (GotMarkerPos id) (Dom.getElement id))
-                     model.videoMarkerIds
-                )
-            )
-        GotMarkerPos id (Ok el) ->
-            let
-                -- absolute document Y for the marker’s top
-                top : Float
-                top =
-                    el.element.y-- + el.viewport.y
-
-                positions1 : Dict String Float
-                positions1 =
-                    Dict.insert id top model.markerPositions
-
-                    -- Build (id, y) pairs for all known markers, sorted by y
-                markerPairs1 : List ( String, Float )
-                markerPairs1 =
-                    model.videoMarkerIds
-                        |> List.filterMap
-                           (\mid ->
-                                Dict.get mid positions1
-                           |> Maybe.map (\y -> ( mid, y ))
-                           )
-                        |> List.sortBy (\(_, y) -> y)
-
-                haveAll : Bool
-                haveAll =
-                    Dict.size positions1 >= List.length model.videoMarkerIds
-
-                bottom : Float
-                bottom =
-                    el.viewport.y + model.viewportH
-
-                idx : Int
-                idx =
-                    activeIndexFrom bottom markerPairs1 (List.length model.videoSources)
-
-                swapCmd : Cmd Msg
-                swapCmd =
-                    if haveAll && model.viewportH > 0 && idx /= model.activeBgIndex then
-                        setActiveBg idx
-                    else
-                        Cmd.none
-            in
-                ( { model
-                      | markerPositions = positions1
-                      , videoMarkers = markerPairs1
-                      , activeBgIndex = idx
-                  }
-                , swapCmd
-                )
-        GotMarkerPos _ (Err _) ->
-            ( model, Cmd.none )
         MarkersMeasured pairs ->
             let
                 sorted = List.sortBy Tuple.second pairs
@@ -663,31 +594,6 @@ videoBanner title =
         ]
 
 
-heroBannerContent2 : Float -> Html Msg
-heroBannerContent2 scrollY =
-    let
-        scale =
-            Basics.clamp 0 1 (scrollY / 10000)
-        -- scale =
-        --     max 0 (1 - scrollY / 300)
-    in
-    div
-        [ class "h-screen flex items-center justify-center text-white relative"
-        , style "z-index" "10" -- Lower z-index for hero banner
-        ]
-        [ div [ class "relative z-20 flex items-center justify-center h-full" ]
-              [ img
-                    [ src "images/Mortrem-logo-white-transparent.png"
-                    , alt "Mortrem Logo"
-                    , class "w-[60%] transition-transform duration-100"
-                    , style "transform" ("scale(" ++ String.fromFloat scale ++ ")")
-                    ]
-                    []
-              ]
-        , bottomUpBlackGradientSpan
-        ]
-
-
 startSong : Int -> Model -> ( Model, Cmd Msg )
 startSong idx model =
     let
@@ -1008,14 +914,6 @@ musicVideosPanel model =
         ]
 
 
-transparentGapPanel : Html Msg
-transparentGapPanel =
-    div [ class "h-screen w-full"
-        , style "background" "transparent"
-        ]
-        []
-
-
 navbar : Model -> Html Msg
 navbar model =
     div [ id "navbar"
@@ -1173,21 +1071,6 @@ onClickSeek =
             decodeOffsetX
             decodeWidth
 
--- Custom Event for Seeking
-onClickSeek2 : Html.Attribute Msg
-onClickSeek2 =
-    let
-        decodeOffsetX =
-            Decode.field "offsetX" Decode.float
-        decodeTargetWidth =
-            Decode.at [ "target", "offsetWidth" ] Decode.float
-    in
-    on "click" <|
-        Decode.map2
-            (\offsetX targetWidth -> SeekProgress (offsetX / targetWidth))
-            decodeOffsetX
-            decodeTargetWidth
-
 
 youtubeEmbedUrl : String -> String
 youtubeEmbedUrl ytId =
@@ -1201,18 +1084,6 @@ youtubeThumb mv =
         mv.thumbnail
     else
         "https://img.youtube.com/vi/" ++ mv.youtubeId ++ "/hqdefault.jpg"
-
-
-update0 : Model -> (Model, Cmd Msg)
-update0 m = ( m, Cmd.none )
-
-editContact : (ContactForm -> ContactForm) -> Model -> Model
-editContact f m =
-    { m | contact = f m.contact }
-
-touchEditing : Model -> Model
-touchEditing m =
-    { m | contactStatus = ContactEditing }
 
 
 web3RespDecoder : Decoder Web3Resp
@@ -1410,122 +1281,6 @@ measureMarkersCmd ids =
         |> Task.sequence
         |> Task.map (List.filterMap identity)
         |> Task.perform MarkersMeasured
-
-markerDebugOverlay : Model -> Html Msg
-markerDebugOverlay model =
-    if not model.debugMarkers then
-        text ""
-    else
-        let
-            -- convert absolute doc Y → viewport Y (so we can place a fixed element)
-            toViewportY yAbs =
-                yAbs - model.scrollY
-
-            -- one horizontal line with label at an absolute marker Y
-            lineFor : ( String, Float ) -> Html Msg
-            lineFor (idStr, yAbs) =
-                let
-                    topPx =
-                        String.fromFloat (toViewportY yAbs) ++ "px"
-
-                    label =
-                        idStr ++ " @ " ++ String.fromFloat yAbs
-                in
-                div
-                    [ style "position" "absolute"
-                    , style "left" "0"
-                    , style "right" "0"
-                    , style "top" topPx
-                    , style "height" "0"
-                    ]
-                    [ -- the line
-                      div
-                        [ style "border-top" "2px solid rgba(255,0,0,0.7)"
-                        , style "width" "100%"
-                        ]
-                        []
-                    , -- the tag
-                      div
-                        [ style "position" "absolute"
-                        , style "right" "8px"
-                        , style "top" "-10px"
-                        , style "padding" "2px 6px"
-                        , style "font-size" "12px"
-                        , style "line-height" "1"
-                        , style "color" "#ffb3b3"
-                        , style "background" "rgba(0,0,0,0.6)"
-                        , style "border" "1px solid rgba(255,0,0,0.5)"
-                        , style "border-radius" "4px"
-                        ]
-                        [ text label ]
-                    ]
-
-            -- bottom-of-viewport line (to visualize the trigger)
-            bottomLine : Html Msg
-            bottomLine =
-                let
-                    topPx = String.fromFloat model.viewportH ++ "px"
-                    label =
-                        "bottom = scrollY(" ++ String.fromFloat model.scrollY
-                            ++ ") + vh(" ++ String.fromFloat model.viewportH
-                            ++ ") = " ++ String.fromFloat (model.scrollY + model.viewportH)
-                in
-                div
-                    [ style "position" "absolute"
-                    , style "left" "0"
-                    , style "right" "0"
-                    , style "top" topPx
-                    , style "height" "0"
-                    ]
-                    [ div
-                        [ style "border-top" "2px dashed rgba(0,200,255,0.8)"
-                        , style "width" "100%"
-                        ]
-                        []
-                    , div
-                        [ style "position" "absolute"
-                        , style "right" "8px"
-                        , style "top" "-40px"
-                        , style "padding" "2px 6px"
-                        , style "font-size" "12px"
-                        , style "line-height" "1"
-                        , style "color" "#cdefff"
-                        , style "background" "rgba(0,0,0,0.6)"
-                        , style "border" "1px solid rgba(0,200,255,0.5)"
-                        , style "border-radius" "4px"
-                        ]
-                        [ text label ]
-                    ]
-
-            header : Html Msg
-            header =
-                div
-                    [ style "position" "absolute"
-                    , style "left" "8px"
-                    , style "top" "8px"
-                    , style "padding" "4px 8px"
-                    , style "font-size" "12px"
-                    , style "color" "#eee"
-                    , style "background" "rgba(0,0,0,0.6)"
-                    , style "border" "1px solid rgba(255,255,255,0.2)"
-                    , style "border-radius" "4px"
-                    ]
-                    [ text
-                        ("activeBgIndex="
-                            ++ String.fromInt model.activeBgIndex
-                            ++ " · markers="
-                            ++ String.fromInt (List.length model.videoMarkers)
-                        )
-                    ]
-        in
-        -- fixed overlay that does not capture pointer events
-        div
-            [ style "position" "fixed"
-            , style "inset" "0"
-            , style "z-index" "999999"
-            , style "pointer-events" "none"
-            ]
-            (header :: bottomLine :: List.map lineFor model.videoMarkers)
 
 
 -- BOOTSTRAP
