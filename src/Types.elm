@@ -2,6 +2,8 @@ module Types exposing (..)
 
 import Http
 import Browser.Dom as Dom
+import Set exposing (Set)
+import Time exposing (Zone)
 import DateTime exposing (DateTime)
 import Dict exposing (Dict)
 
@@ -90,12 +92,16 @@ type alias Model =
     , contact : ContactForm
     , contactStatus : ContactStatus
     , isContactModalOpen : Bool
+    , viewportW : Float
     , viewportH : Float
     , videoMarkerIds : List String
     , videoSources : List String
     , videoMarkers : List ( String, Float )
     , activeBgIndex : Int
     , debugMarkers : Bool
+    , zone : Zone
+    , visiblePerfCount : Int
+    , expandedPerf : Set Int
     }
 
 type Msg
@@ -127,3 +133,6 @@ type Msg
     | ViewportResized Int Int
     | GotViewport (Result Dom.Error Dom.Viewport)
     | MarkersMeasured (List ( String, Float ))
+    | TogglePerformance Int
+    | LoadMorePerformances
+    | GotZone Time.Zone

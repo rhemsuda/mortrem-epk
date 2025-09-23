@@ -14,14 +14,17 @@ import Html.Events exposing (on, onClick, onInput, onSubmit)
 import DateTime exposing (fromPosix)
 
 import Constants exposing (..)
-import Utils exposing (activeIndexFrom)
+import Utils exposing (..)
 import Types exposing (..)
 
 import Update.OnScroll as OnScroll
 import Update.PlayPause as PlayPause
-import Dict exposing (Dict)
 
-import Time exposing (millisToPosix)
+import Set exposing (Set)
+import Dict exposing (Dict)
+import DateTime exposing (DateTime, fromPosix, toPosix)
+
+import Time exposing (millisToPosix, Zone, Month(..), here, toYear, toMonth, toDay, toHour, toMinute)
 
 -- PORTS
 port playAudio : (String, String) -> Cmd msg
@@ -109,6 +112,7 @@ performances =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { scrollY = 0
+      , viewportW = 0
       , viewportH = 0
       , videoMarkerIds = Constants.videoMarkerIds
       --, markerPositions = Dict.empty
@@ -129,10 +133,14 @@ init _ =
       , contactStatus = ContactIdle
       , isContactModalOpen = False
       , debugMarkers = True
+      , visiblePerfCount = 10
+      , expandedPerf = Set.empty
+      , zone = Time.utc
       }
     , Cmd.batch
           [ Task.attempt GotViewport Dom.getViewport  -- sync scroll and height now
           , measureMarkersCmd videoMarkerIds    -- measure all markers atomically
+          , Task.perform GotZone Time.here
           ]
     )
 
@@ -175,17 +183,27 @@ update msg model =
     case msg of
         OnScroll y -> OnScroll.handle y model setActiveBg
         GotViewport (Ok vp) ->
-            ( { model | viewportH = vp.viewport.height, scrollY = vp.viewport.y }
+            let
+                w = vp.viewport.width
+                h = vp.viewport.height
+                y = vp.viewport.y
+
+                initCount =
+                    if model.visiblePerfCount == 10 && w < Constants.mobileThreshold then
+                        5
+                    else
+                        model.visiblePerfCount
+            in
+            ( { model | viewportW = w, viewportH = h, scrollY = y, visiblePerfCount = initCount }
             , Cmd.none
             )
         GotViewport (Err _) ->
             ( model, Cmd.none )
-        ViewportResized _ newH ->
-            ( { model | viewportH = toFloat newH }
+        ViewportResized newW newH ->
+            ( { model | viewportW = toFloat newW, viewportH = toFloat newH }
             , Cmd.batch
                 [ Task.attempt GotViewport Dom.getViewport
                 , measureMarkersCmd videoMarkerIds
-                --, Task.perform (\_ -> RecalcMarkers) (Process.sleep 16)
                 ]
             )
         MarkersMeasured pairs ->
@@ -206,31 +224,6 @@ update msg model =
                 ( { model | videoMarkers = sorted, activeBgIndex = idx }
                 , swapCmd
                 )
-
-        -- ViewportResize h ->
-        --     let
-        --         m =
-        --             { model | viewportH = h }
-
-        --         bottom =
-        --             model.scrollY + h
-
-        --         idx =
-        --             activeIndexFrom bottom m.videoMarkers (List.length m.videoSources)
-        --     in
-        --     ( { m | activeBgIndex = idx }, measureMarkersCmd )
-        -- MarkersMeasured pairs ->
-        --     let
-        --         sorted =
-        --             List.sortBy Tuple.second pairs
-
-        --         bottom =
-        --             model.scrollY + model.viewportH
-
-        --         idx =
-        --             activeIndexFrom bottom sorted (List.length model.videoSources)
-        --     in
-        --     ( { model | videoMarkers = sorted, activeBgIndex = idx }, Cmd.none )
         PlayPause -> PlayPause.handle currentSong model playAudio pauseAudio
         NextSong -> startSong (model.currentSongIndex + 1) model
         PreviousSong -> startSong (model.currentSongIndex - 1) model
@@ -311,20 +304,6 @@ update msg model =
             ( { model | barHeights = barHeights }
             , drawWaveform barHeights
             )
-        -- VideoSwitch isSecondary ->
-        --     let
-        --         newVideo =
-        --             if isSecondary then
-        --                 "/videos/epk-banner-fixed.mp4"
-        --             else
-        --                 "/videos/epk-banner-fixed-clid.mp4"
-        --         videoCmd =
-        --             if newVideo /= model.currentVideo then
-        --                 changeVideo newVideo
-        --             else
-        --                 Cmd.none
-        --     in
-        --     ( { model | currentVideo = newVideo }, videoCmd )
         UpdateContactName v ->
             let
                 c = model.contact
@@ -392,48 +371,25 @@ update msg model =
         CopyBandEmail ->
             ( model, copyToClipboard bandEmail )
 
+        GotZone z ->
+            ( { model | zone = z }, Cmd.none )
 
--- measureMarkersCmd : Cmd Msg
--- measureMarkersCmd =
---     let
---         one id =
---             Dom.getElement id
---                 |> Task.map (\el -> ( id, el.element.y + el.viewport.y ))
---                 |> Task.onError (\_ -> Task.succeed ( id, 9999999 )) -- if missing, push far down
---     in
---     videoMarkerIds
---         |> List.map one
---         |> Task.sequence
---         |> Task.perform MarkersMeasured
+        TogglePerformance i ->
+            let
+                exp =
+                    if Set.member i model.expandedPerf then
+                        Set.remove i model.expandedPerf
+                    else
+                        Set.insert i model.expandedPerf
+            in
+            ( { model | expandedPerf = exp }, Cmd.none )
 
+        LoadMorePerformances ->
+            let
+                step = if model.viewportW < Constants.mobileThreshold then 5 else 10
+            in
+            ( { model | visiblePerfCount = model.visiblePerfCount + step }, Cmd.none )
 
-
--- backgroundVideoLayer : Model -> Html Msg
--- backgroundVideoLayer model =
---     let
---         render i src =
---             Html.video
---                 [ id ("bg-video-" ++ String.fromInt i)
---                 , class
---                     (String.join " "
---                         [ "fixed inset-0 min-w-full h-screen object-cover"
---                         , if i == model.activeBgIndex then "opacity-100" else "opacity-0 pointer-events-none"
---                         , "transition-opacity duration-300"
---                         ]
---                     )
---                 , Html.Attributes.autoplay True
---                 , Html.Attributes.loop True
---                 , Html.Attributes.attribute "muted" "true"
---                 , Html.Attributes.attribute "playsinline" ""
---                 , Html.Attributes.attribute "preload" "auto"
---                 , Html.Attributes.src src
---                 ]
---                 [ text "Your browser does not support the video tag." ]
---     in
---     div [ class "fixed inset-0 z-[-1]" ]
---         (List.indexedMap render model.videoSources
---             ++ [ div [ class "absolute inset-0 bg-black/60" ] [] ]
---         )
 
 
 miniPlayer : Model -> Html Msg
@@ -1004,7 +960,226 @@ bioPanel model =
 
 
 performanceHistoryPanel : Model -> Html Msg
-performanceHistoryPanel model = div [] [text "Performance History"]
+performanceHistoryPanel model =
+    let
+        items = visiblePerformances model
+        totalAvailable =
+            performances |> List.filter (\p -> not p.hide) |> List.length
+
+        canLoadMore = model.visiblePerfCount < totalAvailable
+
+        card : Int -> Performance -> Html Msg
+        card idx perf =
+            let
+                isOpen = Set.member idx model.expandedPerf
+
+                dateStr = formatDateLocal model.zone perf.datetime
+                timeStr = formatTimeLocalHHMM model.zone perf.datetime
+
+                venueTitle =
+                    perf.venue.name
+                        ++ " — "
+                        ++ perf.venue.city
+                        ++ " • cap "
+                        ++ String.fromInt perf.venue.capacity
+                        ++ " • "
+                        ++ String.fromInt perf.venue.distanceFromHomeKm
+                        ++ " km"
+
+                pill cls txt =
+                    span [ class ("px-2 py-0.5 rounded-full text-xs " ++ cls) ] [ text txt ]
+            in
+            div
+                [ class
+                    (String.join " "
+                        [ "rounded-2xl bg-slate-900/60 ring-1 ring-white/10 text-white"
+                        , "shadow-xl overflow-hidden mb-4 md:mb-3"
+                        ]
+                    )
+                ]
+                [ -- clickable header
+                  div
+                    [ class
+                        (String.join " "
+                            [ "w-full flex items-center gap-4 px-4 py-3 cursor-pointer select-none"
+                            , "hover:bg-white/5"
+                            ]
+                        )
+                    , onClick (TogglePerformance idx)
+                    ]
+                    [ -- date/time
+                      div [ class "min-w-[5rem]" ]
+                        [ div [ class "text-sm text-white/80" ] [ text dateStr ]
+                        , div [ class "text-xs text-white/60" ] [ text timeStr ]
+                        ]
+                    , -- venue + lineup
+                      div [ class "flex-1" ]
+                        [ div [ class "font-medium flex items-center gap-2" ]
+                            [ span [ Html.Attributes.title venueTitle ]
+                                [ text perf.venue.name ]
+                            , pill "ml-3 bg-white/10 text-white/80" <|
+                                case perf.position of
+                                    Open -> "Open"
+                                    Support -> "Support"
+                                    Headline -> "Headline"
+                            ]
+                        , div [ class "mt-1 text-xs text-white/60" ]
+                            [ text (perf.venue.city) ]
+                        ]
+                    , -- caret
+                      i
+                        [ class
+                            (String.join " "
+                                [ "fa-solid"
+                                , if isOpen then "fa-chevron-up" else "fa-chevron-down"
+                                , "text-white/70"
+                                ]
+                            )
+                        ] []
+                    ]
+
+                , -- compact stats row
+                  div [ class "px-4 pb-3" ]
+                    [ div [ class "flex flex-wrap gap-2 text-xs text-white/80" ]
+                        [ pill "bg-sky-500/15 text-sky-200 ring-1 ring-sky-500/20"
+                            ("Total Draw: " ++ String.fromInt perf.totalDraw)
+                        , pill "bg-sky-500/15 text-sky-200 ring-1 ring-sky-500/20"
+                            ("Our Draw: " ++ String.fromInt perf.ourDraw)
+                        , pill (pillClassForAmount (ourRevenue perf))
+                            ("Tickets: " ++ formatCurrency (ourRevenue perf))
+                        , pill (pillClassForAmount perf.merchSales)
+                            ("Merch: " ++ formatCurrency perf.merchSales)
+                        ]
+                    ]
+
+                , -- expandable details
+                  div
+                    [ class
+                        (String.join " "
+                            [ "transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden"
+                            , if isOpen then "opacity-100 max-h-[800px]" else "opacity-0 max-h-0"
+                            ]
+                        )
+                    ]
+                    [ div [ class "px-4 pb-4 pt-1 text-sm text-white/85 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2" ]
+                        [ row "Date" dateStr
+                        , row "Time" timeStr
+                        , row "Venue" (perf.venue.name ++ " (" ++ perf.venue.city ++ ")")
+                        , row "Distance From Home" (String.fromInt perf.venue.distanceFromHomeKm ++ " km")
+                        , row "Total Draw" (String.fromInt perf.totalDraw)
+                        , row "Venue Capacity" (String.fromInt perf.venue.capacity)
+                        , row "Our Draw" (String.fromInt perf.ourDraw)
+                        , row "Lineup Position"
+                            (case perf.position of
+                                Open -> "Open"
+                                Support -> "Support"
+                                Headline -> "Headline"
+                            )
+                        , row "Show Revenue" (formatCurrency (showRevenue perf))
+                        , row "Our Revenue" (formatCurrency (ourRevenue perf))
+                        , row "Set Length" (String.fromInt perf.durationMinutes ++ " min")
+                        , row "Merch Sales" (formatCurrency perf.merchSales)
+                        ]
+                    ]
+                ]
+        -- small helper for detail rows
+        row : String -> String -> Html Msg
+        row label value =
+            div [ class "flex items-baseline gap-3" ]
+                [ div [ class "w-40 text-white/60" ] [ text label ]
+                , div [ class "flex-1 font-medium" ] [ text value ]
+                ]
+    in
+    div [ id "performance-history", class "pt-8 md:pt-16 lg:px-16 xl:px-32" ]
+        [ h1 [ class "text-lg md:text-xl text-white font-bold mb-4 md:mb-6" ] [ text "Performance History" ]
+
+        , -- list of cards
+          div [] (items |> List.indexedMap card)
+
+        , -- Load more
+          if canLoadMore then
+              let
+                  step = if model.viewportW < 768 then 5 else 10
+              in
+              div [ class "mt-6 flex justify-center" ]
+                [ button
+                    [ class "px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white ring-1 ring-white/15"
+                    , onClick LoadMorePerformances
+                    ]
+                    [ text ("Load " ++ String.fromInt step ++ " more") ]
+                ]
+          else
+              text ""
+        ]
+
+pillClassForAmount : Float -> String
+pillClassForAmount amt =
+    if amt > 0 then
+        "bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-500/20"
+    else if amt < 0 then
+        "bg-red-500/15 text-red-200 ring-1 ring-red-500/20"
+    else
+        "bg-white/10 text-white/80 ring-1 ring-white/10"
+
+-- Helpers
+
+formatMoney : Float -> String
+formatMoney amount =
+    let
+        cents = round (amount * 100)
+        dollars = cents // 100
+        remCents = cents - dollars * 100
+        pad2 n = if n < 10 then "0" ++ String.fromInt n else String.fromInt n
+    in
+    "$" ++ String.fromInt dollars ++ "." ++ pad2 remCents
+
+
+lineupPositionToString : LineupPosition -> String
+lineupPositionToString pos =
+    case pos of
+        Open -> "Open"
+        Support -> "Support"
+        Headline -> "Headline"
+
+
+-- Minimal, dependency-free formatter while you're iterating.
+-- Swap this later for a nicer formatter if you like.
+formatDateTime : DateTime -> String
+formatDateTime dt =
+    Debug.toString dt
+
+
+-- Venue cell with hover info panel
+venueCell : Venue -> Html Msg
+venueCell v =
+    let
+        infoItem label value =
+            div [ class "flex justify-between gap-4" ]
+                [ span [ class "text-white/60" ] [ text label ]
+                , span [] [ text value ]
+                ]
+    in
+    span [ class "group relative inline-block" ]
+        [ -- visible label
+          span [ class "underline decoration-white/20 decoration-dotted underline-offset-2 cursor-help" ]
+            [ text v.name ]
+        , -- hover card
+          div
+            [ class
+                (String.join " "
+                    [ "pointer-events-none opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto"
+                    , "absolute left-1/2 -translate-x-1/2 mt-2 min-w-[16rem] max-w-[20rem]"
+                    , "rounded-lg bg-black/90 text-white p-3 text-xs"
+                    , "ring-1 ring-white/10 shadow-2xl z-20"
+                    ]
+                )
+            ]
+            [ div [ class "font-semibold mb-1" ] [ text v.name ]
+            , infoItem "City" v.city
+            , infoItem "Capacity" (String.fromInt v.capacity)
+            , infoItem "Distance" (String.fromInt v.distanceFromHomeKm ++ " km")
+            ]
+        ]
 
 statisticsPanel : Model -> Html Msg
 statisticsPanel model = div [] [text "Statistics"]
@@ -1271,6 +1446,15 @@ measureMarkersCmd ids =
         |> Task.sequence
         |> Task.map (List.filterMap identity)
         |> Task.perform MarkersMeasured
+
+
+visiblePerformances : Model -> List Performance
+visiblePerformances model =
+    performances
+        |> List.filter (\p -> not p.hide)
+        |> List.sortBy (\p -> -(DateTime.toPosix p.datetime |> Time.posixToMillis)) -- newest first
+        |> List.take model.visiblePerfCount
+
 
 
 -- BOOTSTRAP

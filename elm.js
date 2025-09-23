@@ -4373,6 +4373,52 @@ function _Browser_load(url)
 
 
 
+function _Time_now(millisToPosix)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		callback(_Scheduler_succeed(millisToPosix(Date.now())));
+	});
+}
+
+var _Time_setInterval = F2(function(interval, task)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		var id = setInterval(function() { _Scheduler_rawSpawn(task); }, interval);
+		return function() { clearInterval(id); };
+	});
+});
+
+function _Time_here()
+{
+	return _Scheduler_binding(function(callback)
+	{
+		callback(_Scheduler_succeed(
+			A2($elm$time$Time$customZone, -(new Date().getTimezoneOffset()), _List_Nil)
+		));
+	});
+}
+
+
+function _Time_getZoneName()
+{
+	return _Scheduler_binding(function(callback)
+	{
+		try
+		{
+			var name = $elm$time$Time$Name(Intl.DateTimeFormat().resolvedOptions().timeZone);
+		}
+		catch (e)
+		{
+			var name = $elm$time$Time$Offset(new Date().getTimezoneOffset());
+		}
+		callback(_Scheduler_succeed(name));
+	});
+}
+
+
+
 // SEND REQUEST
 
 var _Http_toTask = F3(function(router, toTask, request)
@@ -4545,7 +4591,44 @@ function _Http_track(router, xhr, tracker)
 			size: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
 		}))));
 	});
-}var $elm$core$Basics$EQ = {$: 'EQ'};
+}
+
+
+var _Bitwise_and = F2(function(a, b)
+{
+	return a & b;
+});
+
+var _Bitwise_or = F2(function(a, b)
+{
+	return a | b;
+});
+
+var _Bitwise_xor = F2(function(a, b)
+{
+	return a ^ b;
+});
+
+function _Bitwise_complement(a)
+{
+	return ~a;
+};
+
+var _Bitwise_shiftLeftBy = F2(function(offset, a)
+{
+	return a << offset;
+});
+
+var _Bitwise_shiftRightBy = F2(function(offset, a)
+{
+	return a >> offset;
+});
+
+var _Bitwise_shiftRightZfBy = F2(function(offset, a)
+{
+	return a >>> offset;
+});
+var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
 var $elm$core$List$cons = _List_cons;
@@ -5338,6 +5421,9 @@ var $author$project$Types$ContactIdle = {$: 'ContactIdle'};
 var $author$project$Types$GotViewport = function (a) {
 	return {$: 'GotViewport', a: a};
 };
+var $author$project$Types$GotZone = function (a) {
+	return {$: 'GotZone', a: a};
+};
 var $elm$core$Basics$composeL = F3(
 	function (g, f, x) {
 		return g(
@@ -5364,9 +5450,25 @@ var $elm$core$Task$attempt = F2(
 	});
 var $author$project$Main$barsCount = 10;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $elm$core$Set$Set_elm_builtin = function (a) {
+	return {$: 'Set_elm_builtin', a: a};
+};
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
+var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
 var $elm$browser$Browser$Dom$getViewport = _Browser_withWindow(_Browser_getViewport);
+var $elm$time$Time$Name = function (a) {
+	return {$: 'Name', a: a};
+};
+var $elm$time$Time$Offset = function (a) {
+	return {$: 'Offset', a: a};
+};
+var $elm$time$Time$Zone = F2(
+	function (a, b) {
+		return {$: 'Zone', a: a, b: b};
+	});
+var $elm$time$Time$customZone = $elm$time$Time$Zone;
+var $elm$time$Time$here = _Time_here(_Utils_Tuple0);
 var $author$project$Types$MarkersMeasured = function (a) {
 	return {$: 'MarkersMeasured', a: a};
 };
@@ -5452,6 +5554,7 @@ var $author$project$Main$songs = _List_fromArray(
 	},
 		{artwork: $elm$core$Maybe$Nothing, duration: 100, released: false, src: '/audio/mortrem-vanitybox.mp3', title: 'Vanity Box'}
 	]);
+var $elm$time$Time$utc = A2($elm$time$Time$Zone, 0, _List_Nil);
 var $author$project$Constants$videoBgSources = _List_fromArray(
 	['/videos/epk-banner-fixed.mp4', '/videos/epk-banner-fixed-clid.mp4', '/videos/epk-banner-fixed.mp4', '/videos/epk-banner-fixed-clid.mp4']);
 var $author$project$Constants$videoMarkerIds = _List_fromArray(
@@ -5465,29 +5568,31 @@ var $author$project$Main$init = function (_v0) {
 			contactStatus: $author$project$Types$ContactIdle,
 			currentSongIndex: 0,
 			currentTime: 0,
-			currentVideo: '/videos/epk-banner-fixed.mp4',
 			debugMarkers: true,
 			duration: 0,
 			error: $elm$core$Maybe$Nothing,
+			expandedPerf: $elm$core$Set$empty,
 			isContactModalOpen: false,
 			isMenuOpen: false,
 			isPlaying: false,
-			markerPositions: $elm$core$Dict$empty,
 			musicVideos: $author$project$Main$musicVideos,
 			scrollY: 0,
 			selectedMusicVideoIndex: 0,
 			songs: $author$project$Main$songs,
-			videoMarkerIds: _List_fromArray(
-				['videoswitch-marker-1', 'videoswitch-marker-2', 'videoswitch-marker-3']),
+			videoMarkerIds: $author$project$Constants$videoMarkerIds,
 			videoMarkers: _List_Nil,
 			videoSources: $author$project$Constants$videoBgSources,
-			viewportH: 0
+			viewportH: 0,
+			viewportW: 0,
+			visiblePerfCount: 10,
+			zone: $elm$time$Time$utc
 		},
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
 				[
 					A2($elm$core$Task$attempt, $author$project$Types$GotViewport, $elm$browser$Browser$Dom$getViewport),
-					$author$project$Main$measureMarkersCmd($author$project$Constants$videoMarkerIds)
+					$author$project$Main$measureMarkersCmd($author$project$Constants$videoMarkerIds),
+					A2($elm$core$Task$perform, $author$project$Types$GotZone, $elm$time$Time$here)
 				])));
 };
 var $author$project$Types$AudioError = function (a) {
@@ -5960,10 +6065,6 @@ var $author$project$Types$ContactError = function (a) {
 };
 var $author$project$Types$ContactSending = {$: 'ContactSending'};
 var $author$project$Types$ContactSuccess = {$: 'ContactSuccess'};
-var $author$project$Types$GotMarkerPos = F2(
-	function (a, b) {
-		return {$: 'GotMarkerPos', a: a, b: b};
-	});
 var $author$project$Types$NextSong = {$: 'NextSong'};
 var $elm$core$Basics$clamp = F3(
 	function (low, high, number) {
@@ -6035,51 +6136,16 @@ var $elm$core$List$drop = F2(
 		}
 	});
 var $elm$core$Basics$ge = _Utils_ge;
-var $elm$core$Dict$get = F2(
-	function (targetKey, dict) {
-		get:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return $elm$core$Maybe$Nothing;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
-				switch (_v1.$) {
-					case 'LT':
-						var $temp$targetKey = targetKey,
-							$temp$dict = left;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-					case 'EQ':
-						return $elm$core$Maybe$Just(value);
-					default:
-						var $temp$targetKey = targetKey,
-							$temp$dict = right;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-				}
-			}
-		}
-	});
-var $elm$core$Debug$log = _Debug_log;
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Update$OnScroll$handle = F3(
 	function (y, model, setActiveBgCmd) {
 		var bottom = y + model.viewportH;
-		var idx = A2(
-			$elm$core$Debug$log,
-			'activeIndexFrom → idx',
-			A3(
-				$author$project$Utils$activeIndexFrom,
-				bottom,
-				model.videoMarkers,
-				$elm$core$List$length(model.videoSources)));
+		var idx = A3(
+			$author$project$Utils$activeIndexFrom,
+			bottom,
+			model.videoMarkers,
+			$elm$core$List$length(model.videoSources));
 		var swapCmd = (!_Utils_eq(idx, model.activeBgIndex)) ? setActiveBgCmd(idx) : $elm$core$Platform$Cmd$none;
 		return _Utils_Tuple2(
 			_Utils_update(
@@ -6121,16 +6187,58 @@ var $author$project$Main$httpErrorToString = function (err) {
 			return 'Could not read server response.';
 	}
 };
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
+var $elm$core$Set$insert = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A3($elm$core$Dict$insert, key, _Utils_Tuple0, dict));
+	});
+var $elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
+				switch (_v1.$) {
+					case 'LT':
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 'EQ':
+						return $elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
 		}
 	});
+var $elm$core$Dict$member = F2(
+	function (key, dict) {
+		var _v0 = A2($elm$core$Dict$get, key, dict);
+		if (_v0.$ === 'Just') {
+			return true;
+		} else {
+			return false;
+		}
+	});
+var $elm$core$Set$member = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return A2($elm$core$Dict$member, key, dict);
+	});
+var $author$project$Constants$mobileThreshold = 768.0;
 var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
@@ -6840,6 +6948,12 @@ var $author$project$Main$postContact = function (c) {
 			url: $author$project$Constants$web3formsEndpoint
 		});
 };
+var $elm$core$Set$remove = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A2($elm$core$Dict$remove, key, dict));
+	});
 var $elm$json$Json$Encode$int = _Json_wrap;
 var $author$project$Main$scrollReel = _Platform_outgoingPort(
 	'scrollReel',
@@ -6873,26 +6987,6 @@ var $author$project$Main$seekAudio = _Platform_outgoingPort(
 var $author$project$Main$setActiveBg = _Platform_outgoingPort('setActiveBg', $elm$json$Json$Encode$int);
 var $elm$json$Json$Encode$bool = _Json_wrap;
 var $author$project$Main$setBodyScroll = _Platform_outgoingPort('setBodyScroll', $elm$json$Json$Encode$bool);
-var $elm$core$Dict$sizeHelp = F2(
-	function (n, dict) {
-		sizeHelp:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return n;
-			} else {
-				var left = dict.d;
-				var right = dict.e;
-				var $temp$n = A2($elm$core$Dict$sizeHelp, n + 1, right),
-					$temp$dict = left;
-				n = $temp$n;
-				dict = $temp$dict;
-				continue sizeHelp;
-			}
-		}
-	});
-var $elm$core$Dict$size = function (dict) {
-	return A2($elm$core$Dict$sizeHelp, 0, dict);
-};
 var $author$project$Main$updateWaveform = _Platform_outgoingPort('updateWaveform', $elm$json$Json$Encode$bool);
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
@@ -7072,80 +7166,31 @@ var $author$project$Main$update = F2(
 				case 'GotViewport':
 					if (msg.a.$ === 'Ok') {
 						var vp = msg.a.a;
+						var y = vp.viewport.y;
+						var w = vp.viewport.width;
+						var initCount = ((model.visiblePerfCount === 10) && (_Utils_cmp(w, $author$project$Constants$mobileThreshold) < 0)) ? 5 : model.visiblePerfCount;
+						var h = vp.viewport.height;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{scrollY: vp.viewport.y, viewportH: vp.viewport.height}),
+								{scrollY: y, viewportH: h, viewportW: w, visiblePerfCount: initCount}),
 							$elm$core$Platform$Cmd$none);
 					} else {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					}
 				case 'ViewportResized':
+					var newW = msg.a;
 					var newH = msg.b;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{viewportH: newH}),
+							{viewportH: newH, viewportW: newW}),
 						$elm$core$Platform$Cmd$batch(
 							_List_fromArray(
 								[
 									A2($elm$core$Task$attempt, $author$project$Types$GotViewport, $elm$browser$Browser$Dom$getViewport),
 									$author$project$Main$measureMarkersCmd($author$project$Constants$videoMarkerIds)
 								])));
-				case 'RecalcMarkers':
-					return _Utils_Tuple2(
-						model,
-						$elm$core$Platform$Cmd$batch(
-							A2(
-								$elm$core$List$map,
-								function (id) {
-									return A2(
-										$elm$core$Task$attempt,
-										$author$project$Types$GotMarkerPos(id),
-										$elm$browser$Browser$Dom$getElement(id));
-								},
-								model.videoMarkerIds)));
-				case 'GotMarkerPos':
-					if (msg.b.$ === 'Ok') {
-						var id = msg.a;
-						var el = msg.b.a;
-						var top = el.element.y;
-						var positions1 = A3($elm$core$Dict$insert, id, top, model.markerPositions);
-						var markerPairs1 = A2(
-							$elm$core$List$sortBy,
-							function (_v1) {
-								var y = _v1.b;
-								return y;
-							},
-							A2(
-								$elm$core$List$filterMap,
-								function (mid) {
-									return A2(
-										$elm$core$Maybe$map,
-										function (y) {
-											return _Utils_Tuple2(mid, y);
-										},
-										A2($elm$core$Dict$get, mid, positions1));
-								},
-								model.videoMarkerIds));
-						var haveAll = _Utils_cmp(
-							$elm$core$Dict$size(positions1),
-							$elm$core$List$length(model.videoMarkerIds)) > -1;
-						var bottom = el.viewport.y + model.viewportH;
-						var idx = A3(
-							$author$project$Utils$activeIndexFrom,
-							bottom,
-							markerPairs1,
-							$elm$core$List$length(model.videoSources));
-						var swapCmd = (haveAll && ((model.viewportH > 0) && (!_Utils_eq(idx, model.activeBgIndex)))) ? $author$project$Main$setActiveBg(idx) : $elm$core$Platform$Cmd$none;
-						return _Utils_Tuple2(
-							_Utils_update(
-								model,
-								{activeBgIndex: idx, markerPositions: positions1, videoMarkers: markerPairs1}),
-							swapCmd);
-					} else {
-						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-					}
 				case 'MarkersMeasured':
 					var pairs = msg.a;
 					var vidsLen = $elm$core$List$length(model.videoSources);
@@ -7382,10 +7427,32 @@ var $author$project$Main$update = F2(
 							model,
 							{contactStatus: $author$project$Types$ContactIdle}),
 						$elm$core$Platform$Cmd$none);
-				default:
+				case 'CopyBandEmail':
 					return _Utils_Tuple2(
 						model,
 						$author$project$Main$copyToClipboard($author$project$Constants$bandEmail));
+				case 'GotZone':
+					var z = msg.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{zone: z}),
+						$elm$core$Platform$Cmd$none);
+				case 'TogglePerformance':
+					var i = msg.a;
+					var exp = A2($elm$core$Set$member, i, model.expandedPerf) ? A2($elm$core$Set$remove, i, model.expandedPerf) : A2($elm$core$Set$insert, i, model.expandedPerf);
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{expandedPerf: exp}),
+						$elm$core$Platform$Cmd$none);
+				default:
+					var step = (_Utils_cmp(model.viewportW, $author$project$Constants$mobileThreshold) < 0) ? 5 : 10;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{visiblePerfCount: model.visiblePerfCount + step}),
+						$elm$core$Platform$Cmd$none);
 			}
 		}
 	});
@@ -8839,142 +8906,6 @@ var $author$project$Main$imageGallery = function (images) {
 				A2($elm$core$List$map, $author$project$Main$galleryImageComponent, images))
 			]));
 };
-var $author$project$Main$markerDebugOverlay = function (model) {
-	if (!model.debugMarkers) {
-		return $elm$html$Html$text('');
-	} else {
-		var toViewportY = function (yAbs) {
-			return yAbs - model.scrollY;
-		};
-		var lineFor = function (_v0) {
-			var idStr = _v0.a;
-			var yAbs = _v0.b;
-			var topPx = $elm$core$String$fromFloat(
-				toViewportY(yAbs)) + 'px';
-			var label = idStr + (' @ ' + $elm$core$String$fromFloat(yAbs));
-			return A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
-						A2($elm$html$Html$Attributes$style, 'left', '0'),
-						A2($elm$html$Html$Attributes$style, 'right', '0'),
-						A2($elm$html$Html$Attributes$style, 'top', topPx),
-						A2($elm$html$Html$Attributes$style, 'height', '0')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								A2($elm$html$Html$Attributes$style, 'border-top', '2px solid rgba(255,0,0,0.7)'),
-								A2($elm$html$Html$Attributes$style, 'width', '100%')
-							]),
-						_List_Nil),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
-								A2($elm$html$Html$Attributes$style, 'right', '8px'),
-								A2($elm$html$Html$Attributes$style, 'top', '-10px'),
-								A2($elm$html$Html$Attributes$style, 'padding', '2px 6px'),
-								A2($elm$html$Html$Attributes$style, 'font-size', '12px'),
-								A2($elm$html$Html$Attributes$style, 'line-height', '1'),
-								A2($elm$html$Html$Attributes$style, 'color', '#ffb3b3'),
-								A2($elm$html$Html$Attributes$style, 'background', 'rgba(0,0,0,0.6)'),
-								A2($elm$html$Html$Attributes$style, 'border', '1px solid rgba(255,0,0,0.5)'),
-								A2($elm$html$Html$Attributes$style, 'border-radius', '4px')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text(label)
-							]))
-					]));
-		};
-		var header = A2(
-			$elm$html$Html$div,
-			_List_fromArray(
-				[
-					A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
-					A2($elm$html$Html$Attributes$style, 'left', '8px'),
-					A2($elm$html$Html$Attributes$style, 'top', '8px'),
-					A2($elm$html$Html$Attributes$style, 'padding', '4px 8px'),
-					A2($elm$html$Html$Attributes$style, 'font-size', '12px'),
-					A2($elm$html$Html$Attributes$style, 'color', '#eee'),
-					A2($elm$html$Html$Attributes$style, 'background', 'rgba(0,0,0,0.6)'),
-					A2($elm$html$Html$Attributes$style, 'border', '1px solid rgba(255,255,255,0.2)'),
-					A2($elm$html$Html$Attributes$style, 'border-radius', '4px')
-				]),
-			_List_fromArray(
-				[
-					$elm$html$Html$text(
-					'activeBgIndex=' + ($elm$core$String$fromInt(model.activeBgIndex) + (' · markers=' + $elm$core$String$fromInt(
-						$elm$core$List$length(model.videoMarkers)))))
-				]));
-		var bottomLine = function () {
-			var topPx = $elm$core$String$fromFloat(model.viewportH) + 'px';
-			var label = 'bottom = scrollY(' + ($elm$core$String$fromFloat(model.scrollY) + (') + vh(' + ($elm$core$String$fromFloat(model.viewportH) + (') = ' + $elm$core$String$fromFloat(model.scrollY + model.viewportH)))));
-			return A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
-						A2($elm$html$Html$Attributes$style, 'left', '0'),
-						A2($elm$html$Html$Attributes$style, 'right', '0'),
-						A2($elm$html$Html$Attributes$style, 'top', topPx),
-						A2($elm$html$Html$Attributes$style, 'height', '0')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								A2($elm$html$Html$Attributes$style, 'border-top', '2px dashed rgba(0,200,255,0.8)'),
-								A2($elm$html$Html$Attributes$style, 'width', '100%')
-							]),
-						_List_Nil),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
-								A2($elm$html$Html$Attributes$style, 'right', '8px'),
-								A2($elm$html$Html$Attributes$style, 'top', '-40px'),
-								A2($elm$html$Html$Attributes$style, 'padding', '2px 6px'),
-								A2($elm$html$Html$Attributes$style, 'font-size', '12px'),
-								A2($elm$html$Html$Attributes$style, 'line-height', '1'),
-								A2($elm$html$Html$Attributes$style, 'color', '#cdefff'),
-								A2($elm$html$Html$Attributes$style, 'background', 'rgba(0,0,0,0.6)'),
-								A2($elm$html$Html$Attributes$style, 'border', '1px solid rgba(0,200,255,0.5)'),
-								A2($elm$html$Html$Attributes$style, 'border-radius', '4px')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text(label)
-							]))
-					]));
-		}();
-		return A2(
-			$elm$html$Html$div,
-			_List_fromArray(
-				[
-					A2($elm$html$Html$Attributes$style, 'position', 'fixed'),
-					A2($elm$html$Html$Attributes$style, 'inset', '0'),
-					A2($elm$html$Html$Attributes$style, 'z-index', '999999'),
-					A2($elm$html$Html$Attributes$style, 'pointer-events', 'none')
-				]),
-			A2(
-				$elm$core$List$cons,
-				header,
-				A2(
-					$elm$core$List$cons,
-					bottomLine,
-					A2($elm$core$List$map, lineFor, model.videoMarkers))));
-	}
-};
 var $author$project$Types$ScrollTo = function (a) {
 	return {$: 'ScrollTo', a: a};
 };
@@ -9230,7 +9161,6 @@ var $author$project$Main$youtubeThumb = function (mv) {
 };
 var $author$project$Main$musicVideosPanel = function (model) {
 	var videos = model.musicVideos;
-	var total = $elm$core$List$length(videos);
 	var currentVideo = A2(
 		$elm$core$Maybe$withDefault,
 		{thumbnail: '', title: '', youtubeId: ''},
@@ -9473,13 +9403,1241 @@ var $author$project$Main$navbarMarker = A2(
 			$elm$html$Html$Attributes$class('h-[1px] bg-black block')
 		]),
 	_List_Nil);
-var $author$project$Main$performanceHistoryPanel = function (model) {
-	return A2(
-		$elm$html$Html$div,
-		_List_Nil,
+var $author$project$Types$LoadMorePerformances = {$: 'LoadMorePerformances'};
+var $author$project$Types$TogglePerformance = function (a) {
+	return {$: 'TogglePerformance', a: a};
+};
+var $elm$core$Basics$abs = function (n) {
+	return (n < 0) ? (-n) : n;
+};
+var $author$project$Utils$formatCurrency = function (x) {
+	var cents = $elm$core$Basics$round(x * 100);
+	var dollars = (cents / 100) | 0;
+	var remC = $elm$core$Basics$abs(cents - (dollars * 100));
+	var c2 = (remC < 10) ? ('0' + $elm$core$String$fromInt(remC)) : $elm$core$String$fromInt(remC);
+	return '$' + ($elm$core$String$fromInt(dollars) + ('.' + c2));
+};
+var $author$project$Utils$monthAbbrev = function (m) {
+	switch (m.$) {
+		case 'Jan':
+			return 'Jan';
+		case 'Feb':
+			return 'Feb';
+		case 'Mar':
+			return 'Mar';
+		case 'Apr':
+			return 'Apr';
+		case 'May':
+			return 'May';
+		case 'Jun':
+			return 'Jun';
+		case 'Jul':
+			return 'Jul';
+		case 'Aug':
+			return 'Aug';
+		case 'Sep':
+			return 'Sep';
+		case 'Oct':
+			return 'Oct';
+		case 'Nov':
+			return 'Nov';
+		default:
+			return 'Dec';
+	}
+};
+var $elm$time$Time$flooredDiv = F2(
+	function (numerator, denominator) {
+		return $elm$core$Basics$floor(numerator / denominator);
+	});
+var $elm$time$Time$posixToMillis = function (_v0) {
+	var millis = _v0.a;
+	return millis;
+};
+var $elm$time$Time$toAdjustedMinutesHelp = F3(
+	function (defaultOffset, posixMinutes, eras) {
+		toAdjustedMinutesHelp:
+		while (true) {
+			if (!eras.b) {
+				return posixMinutes + defaultOffset;
+			} else {
+				var era = eras.a;
+				var olderEras = eras.b;
+				if (_Utils_cmp(era.start, posixMinutes) < 0) {
+					return posixMinutes + era.offset;
+				} else {
+					var $temp$defaultOffset = defaultOffset,
+						$temp$posixMinutes = posixMinutes,
+						$temp$eras = olderEras;
+					defaultOffset = $temp$defaultOffset;
+					posixMinutes = $temp$posixMinutes;
+					eras = $temp$eras;
+					continue toAdjustedMinutesHelp;
+				}
+			}
+		}
+	});
+var $elm$time$Time$toAdjustedMinutes = F2(
+	function (_v0, time) {
+		var defaultOffset = _v0.a;
+		var eras = _v0.b;
+		return A3(
+			$elm$time$Time$toAdjustedMinutesHelp,
+			defaultOffset,
+			A2(
+				$elm$time$Time$flooredDiv,
+				$elm$time$Time$posixToMillis(time),
+				60000),
+			eras);
+	});
+var $elm$time$Time$toCivil = function (minutes) {
+	var rawDay = A2($elm$time$Time$flooredDiv, minutes, 60 * 24) + 719468;
+	var era = (((rawDay >= 0) ? rawDay : (rawDay - 146096)) / 146097) | 0;
+	var dayOfEra = rawDay - (era * 146097);
+	var yearOfEra = ((((dayOfEra - ((dayOfEra / 1460) | 0)) + ((dayOfEra / 36524) | 0)) - ((dayOfEra / 146096) | 0)) / 365) | 0;
+	var dayOfYear = dayOfEra - (((365 * yearOfEra) + ((yearOfEra / 4) | 0)) - ((yearOfEra / 100) | 0));
+	var mp = (((5 * dayOfYear) + 2) / 153) | 0;
+	var month = mp + ((mp < 10) ? 3 : (-9));
+	var year = yearOfEra + (era * 400);
+	return {
+		day: (dayOfYear - ((((153 * mp) + 2) / 5) | 0)) + 1,
+		month: month,
+		year: year + ((month <= 2) ? 1 : 0)
+	};
+};
+var $elm$time$Time$toDay = F2(
+	function (zone, time) {
+		return $elm$time$Time$toCivil(
+			A2($elm$time$Time$toAdjustedMinutes, zone, time)).day;
+	});
+var $elm$time$Time$Apr = {$: 'Apr'};
+var $elm$time$Time$Aug = {$: 'Aug'};
+var $elm$time$Time$Dec = {$: 'Dec'};
+var $elm$time$Time$Feb = {$: 'Feb'};
+var $elm$time$Time$Jan = {$: 'Jan'};
+var $elm$time$Time$Jul = {$: 'Jul'};
+var $elm$time$Time$Jun = {$: 'Jun'};
+var $elm$time$Time$Mar = {$: 'Mar'};
+var $elm$time$Time$May = {$: 'May'};
+var $elm$time$Time$Nov = {$: 'Nov'};
+var $elm$time$Time$Oct = {$: 'Oct'};
+var $elm$time$Time$Sep = {$: 'Sep'};
+var $elm$time$Time$toMonth = F2(
+	function (zone, time) {
+		var _v0 = $elm$time$Time$toCivil(
+			A2($elm$time$Time$toAdjustedMinutes, zone, time)).month;
+		switch (_v0) {
+			case 1:
+				return $elm$time$Time$Jan;
+			case 2:
+				return $elm$time$Time$Feb;
+			case 3:
+				return $elm$time$Time$Mar;
+			case 4:
+				return $elm$time$Time$Apr;
+			case 5:
+				return $elm$time$Time$May;
+			case 6:
+				return $elm$time$Time$Jun;
+			case 7:
+				return $elm$time$Time$Jul;
+			case 8:
+				return $elm$time$Time$Aug;
+			case 9:
+				return $elm$time$Time$Sep;
+			case 10:
+				return $elm$time$Time$Oct;
+			case 11:
+				return $elm$time$Time$Nov;
+			default:
+				return $elm$time$Time$Dec;
+		}
+	});
+var $elm$time$Time$Posix = function (a) {
+	return {$: 'Posix', a: a};
+};
+var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$isLeapYear = function (_v0) {
+	var _int = _v0.a;
+	return (!A2($elm$core$Basics$modBy, 4, _int)) && ((!A2($elm$core$Basics$modBy, 400, _int)) || (!(!A2($elm$core$Basics$modBy, 100, _int))));
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisInADay = ((1000 * 60) * 60) * 24;
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisInYear = function (year) {
+	return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$isLeapYear(year) ? ($PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisInADay * 366) : ($PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisInADay * 365);
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Year = function (a) {
+	return {$: 'Year', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$yearFromInt = function (year) {
+	return (year > 0) ? $elm$core$Maybe$Just(
+		$PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Year(year)) : $elm$core$Maybe$Nothing;
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisSinceEpoch = function (_v0) {
+	var year = _v0.a;
+	var getTotalMillis = A2(
+		$elm$core$Basics$composeL,
+		A2(
+			$elm$core$Basics$composeL,
+			$elm$core$List$sum,
+			$elm$core$List$map($PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisInYear)),
+		$elm$core$List$filterMap($PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$yearFromInt));
+	var epochYear = 1970;
+	return (year >= 1970) ? getTotalMillis(
+		A2($elm$core$List$range, epochYear, year - 1)) : (-getTotalMillis(
+		A2($elm$core$List$range, year, epochYear - 1)));
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$dayToInt = function (_v0) {
+	var day = _v0.a;
+	return day;
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisSinceStartOfTheMonth = function (day) {
+	return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisInADay * ($PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$dayToInt(day) - 1);
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$monthToInt = function (month) {
+	switch (month.$) {
+		case 'Jan':
+			return 1;
+		case 'Feb':
+			return 2;
+		case 'Mar':
+			return 3;
+		case 'Apr':
+			return 4;
+		case 'May':
+			return 5;
+		case 'Jun':
+			return 6;
+		case 'Jul':
+			return 7;
+		case 'Aug':
+			return 8;
+		case 'Sep':
+			return 9;
+		case 'Oct':
+			return 10;
+		case 'Nov':
+			return 11;
+		default:
+			return 12;
+	}
+};
+var $elm$core$Array$fromListHelp = F3(
+	function (list, nodeList, nodeListSize) {
+		fromListHelp:
+		while (true) {
+			var _v0 = A2($elm$core$Elm$JsArray$initializeFromList, $elm$core$Array$branchFactor, list);
+			var jsArray = _v0.a;
+			var remainingItems = _v0.b;
+			if (_Utils_cmp(
+				$elm$core$Elm$JsArray$length(jsArray),
+				$elm$core$Array$branchFactor) < 0) {
+				return A2(
+					$elm$core$Array$builderToArray,
+					true,
+					{nodeList: nodeList, nodeListSize: nodeListSize, tail: jsArray});
+			} else {
+				var $temp$list = remainingItems,
+					$temp$nodeList = A2(
+					$elm$core$List$cons,
+					$elm$core$Array$Leaf(jsArray),
+					nodeList),
+					$temp$nodeListSize = nodeListSize + 1;
+				list = $temp$list;
+				nodeList = $temp$nodeList;
+				nodeListSize = $temp$nodeListSize;
+				continue fromListHelp;
+			}
+		}
+	});
+var $elm$core$Array$fromList = function (list) {
+	if (!list.b) {
+		return $elm$core$Array$empty;
+	} else {
+		return A3($elm$core$Array$fromListHelp, list, _List_Nil, 0);
+	}
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$months = $elm$core$Array$fromList(
+	_List_fromArray(
+		[$elm$time$Time$Jan, $elm$time$Time$Feb, $elm$time$Time$Mar, $elm$time$Time$Apr, $elm$time$Time$May, $elm$time$Time$Jun, $elm$time$Time$Jul, $elm$time$Time$Aug, $elm$time$Time$Sep, $elm$time$Time$Oct, $elm$time$Time$Nov, $elm$time$Time$Dec]));
+var $elm$core$Elm$JsArray$appendN = _JsArray_appendN;
+var $elm$core$Elm$JsArray$slice = _JsArray_slice;
+var $elm$core$Array$appendHelpBuilder = F2(
+	function (tail, builder) {
+		var tailLen = $elm$core$Elm$JsArray$length(tail);
+		var notAppended = ($elm$core$Array$branchFactor - $elm$core$Elm$JsArray$length(builder.tail)) - tailLen;
+		var appended = A3($elm$core$Elm$JsArray$appendN, $elm$core$Array$branchFactor, builder.tail, tail);
+		return (notAppended < 0) ? {
+			nodeList: A2(
+				$elm$core$List$cons,
+				$elm$core$Array$Leaf(appended),
+				builder.nodeList),
+			nodeListSize: builder.nodeListSize + 1,
+			tail: A3($elm$core$Elm$JsArray$slice, notAppended, tailLen, tail)
+		} : ((!notAppended) ? {
+			nodeList: A2(
+				$elm$core$List$cons,
+				$elm$core$Array$Leaf(appended),
+				builder.nodeList),
+			nodeListSize: builder.nodeListSize + 1,
+			tail: $elm$core$Elm$JsArray$empty
+		} : {nodeList: builder.nodeList, nodeListSize: builder.nodeListSize, tail: appended});
+	});
+var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var $elm$core$Array$tailIndex = function (len) {
+	return (len >>> 5) << 5;
+};
+var $elm$core$Array$sliceLeft = F2(
+	function (from, array) {
+		var len = array.a;
+		var tree = array.c;
+		var tail = array.d;
+		if (!from) {
+			return array;
+		} else {
+			if (_Utils_cmp(
+				from,
+				$elm$core$Array$tailIndex(len)) > -1) {
+				return A4(
+					$elm$core$Array$Array_elm_builtin,
+					len - from,
+					$elm$core$Array$shiftStep,
+					$elm$core$Elm$JsArray$empty,
+					A3(
+						$elm$core$Elm$JsArray$slice,
+						from - $elm$core$Array$tailIndex(len),
+						$elm$core$Elm$JsArray$length(tail),
+						tail));
+			} else {
+				var skipNodes = (from / $elm$core$Array$branchFactor) | 0;
+				var helper = F2(
+					function (node, acc) {
+						if (node.$ === 'SubTree') {
+							var subTree = node.a;
+							return A3($elm$core$Elm$JsArray$foldr, helper, acc, subTree);
+						} else {
+							var leaf = node.a;
+							return A2($elm$core$List$cons, leaf, acc);
+						}
+					});
+				var leafNodes = A3(
+					$elm$core$Elm$JsArray$foldr,
+					helper,
+					_List_fromArray(
+						[tail]),
+					tree);
+				var nodesToInsert = A2($elm$core$List$drop, skipNodes, leafNodes);
+				if (!nodesToInsert.b) {
+					return $elm$core$Array$empty;
+				} else {
+					var head = nodesToInsert.a;
+					var rest = nodesToInsert.b;
+					var firstSlice = from - (skipNodes * $elm$core$Array$branchFactor);
+					var initialBuilder = {
+						nodeList: _List_Nil,
+						nodeListSize: 0,
+						tail: A3(
+							$elm$core$Elm$JsArray$slice,
+							firstSlice,
+							$elm$core$Elm$JsArray$length(head),
+							head)
+					};
+					return A2(
+						$elm$core$Array$builderToArray,
+						true,
+						A3($elm$core$List$foldl, $elm$core$Array$appendHelpBuilder, initialBuilder, rest));
+				}
+			}
+		}
+	});
+var $elm$core$Bitwise$and = _Bitwise_and;
+var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
+var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
+var $elm$core$Array$fetchNewTail = F4(
+	function (shift, end, treeEnd, tree) {
+		fetchNewTail:
+		while (true) {
+			var pos = $elm$core$Array$bitMask & (treeEnd >>> shift);
+			var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (_v0.$ === 'SubTree') {
+				var sub = _v0.a;
+				var $temp$shift = shift - $elm$core$Array$shiftStep,
+					$temp$end = end,
+					$temp$treeEnd = treeEnd,
+					$temp$tree = sub;
+				shift = $temp$shift;
+				end = $temp$end;
+				treeEnd = $temp$treeEnd;
+				tree = $temp$tree;
+				continue fetchNewTail;
+			} else {
+				var values = _v0.a;
+				return A3($elm$core$Elm$JsArray$slice, 0, $elm$core$Array$bitMask & end, values);
+			}
+		}
+	});
+var $elm$core$Array$hoistTree = F3(
+	function (oldShift, newShift, tree) {
+		hoistTree:
+		while (true) {
+			if ((_Utils_cmp(oldShift, newShift) < 1) || (!$elm$core$Elm$JsArray$length(tree))) {
+				return tree;
+			} else {
+				var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, 0, tree);
+				if (_v0.$ === 'SubTree') {
+					var sub = _v0.a;
+					var $temp$oldShift = oldShift - $elm$core$Array$shiftStep,
+						$temp$newShift = newShift,
+						$temp$tree = sub;
+					oldShift = $temp$oldShift;
+					newShift = $temp$newShift;
+					tree = $temp$tree;
+					continue hoistTree;
+				} else {
+					return tree;
+				}
+			}
+		}
+	});
+var $elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
+var $elm$core$Array$sliceTree = F3(
+	function (shift, endIdx, tree) {
+		var lastPos = $elm$core$Array$bitMask & (endIdx >>> shift);
+		var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, lastPos, tree);
+		if (_v0.$ === 'SubTree') {
+			var sub = _v0.a;
+			var newSub = A3($elm$core$Array$sliceTree, shift - $elm$core$Array$shiftStep, endIdx, sub);
+			return (!$elm$core$Elm$JsArray$length(newSub)) ? A3($elm$core$Elm$JsArray$slice, 0, lastPos, tree) : A3(
+				$elm$core$Elm$JsArray$unsafeSet,
+				lastPos,
+				$elm$core$Array$SubTree(newSub),
+				A3($elm$core$Elm$JsArray$slice, 0, lastPos + 1, tree));
+		} else {
+			return A3($elm$core$Elm$JsArray$slice, 0, lastPos, tree);
+		}
+	});
+var $elm$core$Array$sliceRight = F2(
+	function (end, array) {
+		var len = array.a;
+		var startShift = array.b;
+		var tree = array.c;
+		var tail = array.d;
+		if (_Utils_eq(end, len)) {
+			return array;
+		} else {
+			if (_Utils_cmp(
+				end,
+				$elm$core$Array$tailIndex(len)) > -1) {
+				return A4(
+					$elm$core$Array$Array_elm_builtin,
+					end,
+					startShift,
+					tree,
+					A3($elm$core$Elm$JsArray$slice, 0, $elm$core$Array$bitMask & end, tail));
+			} else {
+				var endIdx = $elm$core$Array$tailIndex(end);
+				var depth = $elm$core$Basics$floor(
+					A2(
+						$elm$core$Basics$logBase,
+						$elm$core$Array$branchFactor,
+						A2($elm$core$Basics$max, 1, endIdx - 1)));
+				var newShift = A2($elm$core$Basics$max, 5, depth * $elm$core$Array$shiftStep);
+				return A4(
+					$elm$core$Array$Array_elm_builtin,
+					end,
+					newShift,
+					A3(
+						$elm$core$Array$hoistTree,
+						startShift,
+						newShift,
+						A3($elm$core$Array$sliceTree, startShift, endIdx, tree)),
+					A4($elm$core$Array$fetchNewTail, startShift, end, endIdx, tree));
+			}
+		}
+	});
+var $elm$core$Array$translateIndex = F2(
+	function (index, _v0) {
+		var len = _v0.a;
+		var posIndex = (index < 0) ? (len + index) : index;
+		return (posIndex < 0) ? 0 : ((_Utils_cmp(posIndex, len) > 0) ? len : posIndex);
+	});
+var $elm$core$Array$slice = F3(
+	function (from, to, array) {
+		var correctTo = A2($elm$core$Array$translateIndex, to, array);
+		var correctFrom = A2($elm$core$Array$translateIndex, from, array);
+		return (_Utils_cmp(correctFrom, correctTo) > 0) ? $elm$core$Array$empty : A2(
+			$elm$core$Array$sliceLeft,
+			correctFrom,
+			A2($elm$core$Array$sliceRight, correctTo, array));
+	});
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$getPrecedingMonths = function (month) {
+	return $elm$core$Array$toList(
+		A3(
+			$elm$core$Array$slice,
+			0,
+			$PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$monthToInt(month) - 1,
+			$PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$months));
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day = function (a) {
+	return {$: 'Day', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$lastDayOf = F2(
+	function (year, month) {
+		switch (month.$) {
+			case 'Jan':
+				return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(31);
+			case 'Feb':
+				return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$isLeapYear(year) ? $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(29) : $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(28);
+			case 'Mar':
+				return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(31);
+			case 'Apr':
+				return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(30);
+			case 'May':
+				return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(31);
+			case 'Jun':
+				return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(30);
+			case 'Jul':
+				return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(31);
+			case 'Aug':
+				return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(31);
+			case 'Sep':
+				return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(30);
+			case 'Oct':
+				return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(31);
+			case 'Nov':
+				return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(30);
+			default:
+				return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(31);
+		}
+	});
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisSinceStartOfTheYear = F2(
+	function (year, month) {
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (m, res) {
+					return res + ($PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisInADay * $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$dayToInt(
+						A2($PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$lastDayOf, year, m)));
+				}),
+			0,
+			$PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$getPrecedingMonths(month));
+	});
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$toMillis = function (_v0) {
+	var year = _v0.a.year;
+	var month = _v0.a.month;
+	var day = _v0.a.day;
+	return ($PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisSinceEpoch(year) + A2($PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisSinceStartOfTheYear, year, month)) + $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisSinceStartOfTheMonth(day);
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$toMillis = $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$toMillis;
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$hoursToInt = function (_v0) {
+	var hours = _v0.a;
+	return hours;
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$millisecondsToInt = function (_v0) {
+	var milliseconds = _v0.a;
+	return milliseconds;
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$minutesToInt = function (_v0) {
+	var minutes = _v0.a;
+	return minutes;
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$secondsToInt = function (_v0) {
+	var seconds = _v0.a;
+	return seconds;
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$toMillis = function (_v0) {
+	var hours = _v0.a.hours;
+	var minutes = _v0.a.minutes;
+	var seconds = _v0.a.seconds;
+	var milliseconds = _v0.a.milliseconds;
+	return $elm$core$List$sum(
 		_List_fromArray(
 			[
-				$elm$html$Html$text('Performance History')
+				$PanagiotisGeorgiadis$elm_datetime$Clock$Internal$hoursToInt(hours) * 3600000,
+				$PanagiotisGeorgiadis$elm_datetime$Clock$Internal$minutesToInt(minutes) * 60000,
+				$PanagiotisGeorgiadis$elm_datetime$Clock$Internal$secondsToInt(seconds) * 1000,
+				$PanagiotisGeorgiadis$elm_datetime$Clock$Internal$millisecondsToInt(milliseconds)
+			]));
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$toMillis = $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$toMillis;
+var $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$toMillis = function (_v0) {
+	var date = _v0.a.date;
+	var time = _v0.a.time;
+	return $PanagiotisGeorgiadis$elm_datetime$Calendar$toMillis(date) + $PanagiotisGeorgiadis$elm_datetime$Clock$toMillis(time);
+};
+var $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$toPosix = A2($elm$core$Basics$composeL, $elm$time$Time$millisToPosix, $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$toMillis);
+var $PanagiotisGeorgiadis$elm_datetime$DateTime$toPosix = $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$toPosix;
+var $elm$time$Time$toYear = F2(
+	function (zone, time) {
+		return $elm$time$Time$toCivil(
+			A2($elm$time$Time$toAdjustedMinutes, zone, time)).year;
+	});
+var $author$project$Utils$formatDateLocal = F2(
+	function (zone, dt) {
+		var p = $PanagiotisGeorgiadis$elm_datetime$DateTime$toPosix(dt);
+		return $author$project$Utils$monthAbbrev(
+			A2($elm$time$Time$toMonth, zone, p)) + (' ' + ($elm$core$String$fromInt(
+			A2($elm$time$Time$toDay, zone, p)) + (', ' + $elm$core$String$fromInt(
+			A2($elm$time$Time$toYear, zone, p)))));
+	});
+var $author$project$Utils$pad2 = function (n) {
+	return (n < 10) ? ('0' + $elm$core$String$fromInt(n)) : $elm$core$String$fromInt(n);
+};
+var $elm$time$Time$toHour = F2(
+	function (zone, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			24,
+			A2(
+				$elm$time$Time$flooredDiv,
+				A2($elm$time$Time$toAdjustedMinutes, zone, time),
+				60));
+	});
+var $elm$time$Time$toMinute = F2(
+	function (zone, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			60,
+			A2($elm$time$Time$toAdjustedMinutes, zone, time));
+	});
+var $author$project$Utils$formatTimeLocalHHMM = F2(
+	function (zone, dt) {
+		var p = $PanagiotisGeorgiadis$elm_datetime$DateTime$toPosix(dt);
+		return $author$project$Utils$pad2(
+			A2($elm$time$Time$toHour, zone, p)) + (':' + $author$project$Utils$pad2(
+			A2($elm$time$Time$toMinute, zone, p)));
+	});
+var $author$project$Utils$ourRevenue = function (perf) {
+	return perf.ourDraw * perf.ticketPrice;
+};
+var $author$project$Types$Headline = {$: 'Headline'};
+var $author$project$Types$Open = {$: 'Open'};
+var $author$project$Types$Support = {$: 'Support'};
+var $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$DateTime = function (a) {
+	return {$: 'DateTime', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Date = function (a) {
+	return {$: 'Date', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$fromPosix = function (posix) {
+	return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Date(
+		{
+			day: $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(
+				A2($elm$time$Time$toDay, $elm$time$Time$utc, posix)),
+			month: A2($elm$time$Time$toMonth, $elm$time$Time$utc, posix),
+			year: $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Year(
+				A2($elm$time$Time$toYear, $elm$time$Time$utc, posix))
+		});
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Hour = function (a) {
+	return {$: 'Hour', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Millisecond = function (a) {
+	return {$: 'Millisecond', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Minute = function (a) {
+	return {$: 'Minute', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Second = function (a) {
+	return {$: 'Second', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Time = function (a) {
+	return {$: 'Time', a: a};
+};
+var $elm$time$Time$toMillis = F2(
+	function (_v0, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			1000,
+			$elm$time$Time$posixToMillis(time));
+	});
+var $elm$time$Time$toSecond = F2(
+	function (_v0, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			60,
+			A2(
+				$elm$time$Time$flooredDiv,
+				$elm$time$Time$posixToMillis(time),
+				1000));
+	});
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$fromPosix = function (posix) {
+	return $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Time(
+		{
+			hours: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Hour(
+				A2($elm$time$Time$toHour, $elm$time$Time$utc, posix)),
+			milliseconds: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Millisecond(
+				A2($elm$time$Time$toMillis, $elm$time$Time$utc, posix)),
+			minutes: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Minute(
+				A2($elm$time$Time$toMinute, $elm$time$Time$utc, posix)),
+			seconds: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Second(
+				A2($elm$time$Time$toSecond, $elm$time$Time$utc, posix))
+		});
+};
+var $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$fromPosix = function (timePosix) {
+	return $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$DateTime(
+		{
+			date: $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$fromPosix(timePosix),
+			time: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$fromPosix(timePosix)
+		});
+};
+var $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix = $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$fromPosix;
+var $author$project$Constants$venue_absinthe = {capacity: 150, city: 'Hamilton', distanceFromHomeKm: 68, name: 'Club Absinthe'};
+var $author$project$Constants$venue_duffysTavern = {capacity: 200, city: 'Toronto', distanceFromHomeKm: 110, name: 'Duffy\'s Tavern'};
+var $author$project$Constants$venue_hardLuck = {capacity: 200, city: 'Toronto', distanceFromHomeKm: 113, name: 'Hard Luck'};
+var $author$project$Constants$venue_jimmyJazz = {capacity: 180, city: 'Guelph', distanceFromHomeKm: 27, name: 'Jimmy Jazz'};
+var $author$project$Constants$venue_leesPalace = {capacity: 450, city: 'Toronto', distanceFromHomeKm: 113, name: 'Lee\'s Palace'};
+var $author$project$Constants$venue_redPapaya = {capacity: 200, city: 'Guelph', distanceFromHomeKm: 28, name: 'Red Papaya'};
+var $author$project$Constants$venue_sneakyDees = {capacity: 220, city: 'Toronto', distanceFromHomeKm: 114, name: 'Sneaky Dees'};
+var $author$project$Constants$venue_tailOfTheJunction = {capacity: 120, city: 'Toronto', distanceFromHomeKm: 94, name: 'Tail of the Junction'};
+var $author$project$Constants$venue_theCasbah = {capacity: 160, city: 'Hamilton', distanceFromHomeKm: 65, name: 'The Casbah'};
+var $author$project$Constants$venue_theUnion = {capacity: 200, city: 'Kitchener', distanceFromHomeKm: 9, name: 'The Union'};
+var $author$project$Main$performances = _List_fromArray(
+	[
+		{
+		datetime: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1727315100000)),
+		durationMinutes: 30,
+		hide: false,
+		merchSales: 400.0,
+		newFollowers: 3,
+		organicDraw: 0,
+		ourDraw: 18,
+		position: $author$project$Types$Support,
+		ticketPrice: 15.0,
+		totalDraw: 31,
+		venue: $author$project$Constants$venue_theCasbah
+	},
+		{
+		datetime: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1731121200000)),
+		durationMinutes: 30,
+		hide: false,
+		merchSales: 10.0,
+		newFollowers: 1,
+		organicDraw: 0,
+		ourDraw: 11,
+		position: $author$project$Types$Headline,
+		ticketPrice: 15.0,
+		totalDraw: 18,
+		venue: $author$project$Constants$venue_tailOfTheJunction
+	},
+		{
+		datetime: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1735357500000)),
+		durationMinutes: 40,
+		hide: false,
+		merchSales: 40.0,
+		newFollowers: 8,
+		organicDraw: 0,
+		ourDraw: 14,
+		position: $author$project$Types$Support,
+		ticketPrice: 0.0,
+		totalDraw: 43,
+		venue: $author$project$Constants$venue_jimmyJazz
+	},
+		{
+		datetime: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1739062800000)),
+		durationMinutes: 30,
+		hide: false,
+		merchSales: 0.0,
+		newFollowers: 3,
+		organicDraw: 0,
+		ourDraw: 13,
+		position: $author$project$Types$Headline,
+		ticketPrice: 15.0,
+		totalDraw: 26,
+		venue: $author$project$Constants$venue_theUnion
+	},
+		{
+		datetime: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1739062800000)),
+		durationMinutes: 30,
+		hide: false,
+		merchSales: 0.0,
+		newFollowers: 6,
+		organicDraw: 0,
+		ourDraw: 19,
+		position: $author$project$Types$Support,
+		ticketPrice: 20.0,
+		totalDraw: 47,
+		venue: $author$project$Constants$venue_leesPalace
+	},
+		{
+		datetime: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1739062800000)),
+		durationMinutes: 30,
+		hide: false,
+		merchSales: 0.0,
+		newFollowers: 2,
+		organicDraw: 0,
+		ourDraw: 16,
+		position: $author$project$Types$Open,
+		ticketPrice: 15.0,
+		totalDraw: 33,
+		venue: $author$project$Constants$venue_theUnion
+	},
+		{
+		datetime: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1739062800000)),
+		durationMinutes: 45,
+		hide: false,
+		merchSales: 0.0,
+		newFollowers: 12,
+		organicDraw: 3,
+		ourDraw: 17,
+		position: $author$project$Types$Headline,
+		ticketPrice: 20.0,
+		totalDraw: 67,
+		venue: $author$project$Constants$venue_sneakyDees
+	},
+		{
+		datetime: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1739062800000)),
+		durationMinutes: 40,
+		hide: false,
+		merchSales: 0.0,
+		newFollowers: 4,
+		organicDraw: 1,
+		ourDraw: 13,
+		position: $author$project$Types$Headline,
+		ticketPrice: 20.0,
+		totalDraw: 42,
+		venue: $author$project$Constants$venue_absinthe
+	},
+		{
+		datetime: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1739062800000)),
+		durationMinutes: 30,
+		hide: false,
+		merchSales: 0.0,
+		newFollowers: 8,
+		organicDraw: 1,
+		ourDraw: 6,
+		position: $author$project$Types$Support,
+		ticketPrice: 20.0,
+		totalDraw: 18,
+		venue: $author$project$Constants$venue_duffysTavern
+	},
+		{
+		datetime: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1739062800000)),
+		durationMinutes: 30,
+		hide: false,
+		merchSales: 90.0,
+		newFollowers: 6,
+		organicDraw: 0,
+		ourDraw: 10,
+		position: $author$project$Types$Open,
+		ticketPrice: 20.0,
+		totalDraw: 38,
+		venue: $author$project$Constants$venue_redPapaya
+	},
+		{
+		datetime: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1739062800000)),
+		durationMinutes: 30,
+		hide: false,
+		merchSales: 30.0,
+		newFollowers: 3,
+		organicDraw: 0,
+		ourDraw: 7,
+		position: $author$project$Types$Support,
+		ticketPrice: 20.0,
+		totalDraw: 23,
+		venue: $author$project$Constants$venue_hardLuck
+	},
+		{
+		datetime: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1739062800000)),
+		durationMinutes: 45,
+		hide: false,
+		merchSales: 30.0,
+		newFollowers: 5,
+		organicDraw: 2,
+		ourDraw: 9,
+		position: $author$project$Types$Headline,
+		ticketPrice: 20.0,
+		totalDraw: 16,
+		venue: $author$project$Constants$venue_sneakyDees
+	}
+	]);
+var $author$project$Main$pillClassForAmount = function (amt) {
+	return (amt > 0) ? 'bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-500/20' : ((amt < 0) ? 'bg-red-500/15 text-red-200 ring-1 ring-red-500/20' : 'bg-white/10 text-white/80 ring-1 ring-white/10');
+};
+var $author$project$Utils$showRevenue = function (perf) {
+	return perf.totalDraw * perf.ticketPrice;
+};
+var $author$project$Main$visiblePerformances = function (model) {
+	return A2(
+		$elm$core$List$take,
+		model.visiblePerfCount,
+		A2(
+			$elm$core$List$sortBy,
+			function (p) {
+				return -$elm$time$Time$posixToMillis(
+					$PanagiotisGeorgiadis$elm_datetime$DateTime$toPosix(p.datetime));
+			},
+			A2(
+				$elm$core$List$filter,
+				function (p) {
+					return !p.hide;
+				},
+				$author$project$Main$performances)));
+};
+var $author$project$Main$performanceHistoryPanel = function (model) {
+	var totalAvailable = $elm$core$List$length(
+		A2(
+			$elm$core$List$filter,
+			function (p) {
+				return !p.hide;
+			},
+			$author$project$Main$performances));
+	var row = F2(
+		function (label, value) {
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('flex items-baseline gap-3')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('w-40 text-white/60')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(label)
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('flex-1 font-medium')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(value)
+							]))
+					]));
+		});
+	var items = $author$project$Main$visiblePerformances(model);
+	var card = F2(
+		function (idx, perf) {
+			var venueTitle = perf.venue.name + (' — ' + (perf.venue.city + (' • cap ' + ($elm$core$String$fromInt(perf.venue.capacity) + (' • ' + ($elm$core$String$fromInt(perf.venue.distanceFromHomeKm) + ' km'))))));
+			var timeStr = A2($author$project$Utils$formatTimeLocalHHMM, model.zone, perf.datetime);
+			var pill = F2(
+				function (cls, txt) {
+					return A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('px-2 py-0.5 rounded-full text-xs ' + cls)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(txt)
+							]));
+				});
+			var isOpen = A2($elm$core$Set$member, idx, model.expandedPerf);
+			var dateStr = A2($author$project$Utils$formatDateLocal, model.zone, perf.datetime);
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class(
+						A2(
+							$elm$core$String$join,
+							' ',
+							_List_fromArray(
+								['rounded-2xl bg-slate-900/60 ring-1 ring-white/10 text-white', 'shadow-xl overflow-hidden mb-4 md:mb-3'])))
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(
+								A2(
+									$elm$core$String$join,
+									' ',
+									_List_fromArray(
+										['w-full flex items-center gap-4 px-4 py-3 cursor-pointer select-none', 'hover:bg-white/5']))),
+								$elm$html$Html$Events$onClick(
+								$author$project$Types$TogglePerformance(idx))
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('min-w-[5rem]')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$div,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('text-sm text-white/80')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text(dateStr)
+											])),
+										A2(
+										$elm$html$Html$div,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('text-xs text-white/60')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text(timeStr)
+											]))
+									])),
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('flex-1')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$div,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('font-medium flex items-center gap-2')
+											]),
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$span,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$title(venueTitle)
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text(perf.venue.name)
+													])),
+												A2(
+												pill,
+												'ml-3 bg-white/10 text-white/80',
+												function () {
+													var _v0 = perf.position;
+													switch (_v0.$) {
+														case 'Open':
+															return 'Open';
+														case 'Support':
+															return 'Support';
+														default:
+															return 'Headline';
+													}
+												}())
+											])),
+										A2(
+										$elm$html$Html$div,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('mt-1 text-xs text-white/60')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text(perf.venue.city)
+											]))
+									])),
+								A2(
+								$elm$html$Html$i,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class(
+										A2(
+											$elm$core$String$join,
+											' ',
+											_List_fromArray(
+												[
+													'fa-solid',
+													isOpen ? 'fa-chevron-up' : 'fa-chevron-down',
+													'text-white/70'
+												])))
+									]),
+								_List_Nil)
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('px-4 pb-3')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('flex flex-wrap gap-2 text-xs text-white/80')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										pill,
+										'bg-sky-500/15 text-sky-200 ring-1 ring-sky-500/20',
+										'Total Draw: ' + $elm$core$String$fromInt(perf.totalDraw)),
+										A2(
+										pill,
+										'bg-sky-500/15 text-sky-200 ring-1 ring-sky-500/20',
+										'Our Draw: ' + $elm$core$String$fromInt(perf.ourDraw)),
+										A2(
+										pill,
+										$author$project$Main$pillClassForAmount(
+											$author$project$Utils$ourRevenue(perf)),
+										'Tickets: ' + $author$project$Utils$formatCurrency(
+											$author$project$Utils$ourRevenue(perf))),
+										A2(
+										pill,
+										$author$project$Main$pillClassForAmount(perf.merchSales),
+										'Merch: ' + $author$project$Utils$formatCurrency(perf.merchSales))
+									]))
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(
+								A2(
+									$elm$core$String$join,
+									' ',
+									_List_fromArray(
+										[
+											'transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden',
+											isOpen ? 'opacity-100 max-h-[800px]' : 'opacity-0 max-h-0'
+										])))
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('px-4 pb-4 pt-1 text-sm text-white/85 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2')
+									]),
+								_List_fromArray(
+									[
+										A2(row, 'Date', dateStr),
+										A2(row, 'Time', timeStr),
+										A2(row, 'Venue', perf.venue.name + (' (' + (perf.venue.city + ')'))),
+										A2(
+										row,
+										'Distance From Home',
+										$elm$core$String$fromInt(perf.venue.distanceFromHomeKm) + ' km'),
+										A2(
+										row,
+										'Total Draw',
+										$elm$core$String$fromInt(perf.totalDraw)),
+										A2(
+										row,
+										'Venue Capacity',
+										$elm$core$String$fromInt(perf.venue.capacity)),
+										A2(
+										row,
+										'Our Draw',
+										$elm$core$String$fromInt(perf.ourDraw)),
+										A2(
+										row,
+										'Lineup Position',
+										function () {
+											var _v1 = perf.position;
+											switch (_v1.$) {
+												case 'Open':
+													return 'Open';
+												case 'Support':
+													return 'Support';
+												default:
+													return 'Headline';
+											}
+										}()),
+										A2(
+										row,
+										'Show Revenue',
+										$author$project$Utils$formatCurrency(
+											$author$project$Utils$showRevenue(perf))),
+										A2(
+										row,
+										'Our Revenue',
+										$author$project$Utils$formatCurrency(
+											$author$project$Utils$ourRevenue(perf))),
+										A2(
+										row,
+										'Set Length',
+										$elm$core$String$fromInt(perf.durationMinutes) + ' min'),
+										A2(
+										row,
+										'Merch Sales',
+										$author$project$Utils$formatCurrency(perf.merchSales))
+									]))
+							]))
+					]));
+		});
+	var canLoadMore = _Utils_cmp(model.visiblePerfCount, totalAvailable) < 0;
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$id('performance-history'),
+				$elm$html$Html$Attributes$class('pt-8 md:pt-16 lg:px-16 xl:px-32')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$h1,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('text-lg md:text-xl text-white font-bold mb-4 md:mb-6')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Performance History')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				A2($elm$core$List$indexedMap, card, items)),
+				function () {
+				if (canLoadMore) {
+					var step = (model.viewportW < 768) ? 5 : 10;
+					return A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('mt-6 flex justify-center')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white ring-1 ring-white/15'),
+										$elm$html$Html$Events$onClick($author$project$Types$LoadMorePerformances)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(
+										'Load ' + ($elm$core$String$fromInt(step) + ' more'))
+									]))
+							]));
+				} else {
+					return $elm$html$Html$text('');
+				}
+			}()
 			]));
 };
 var $author$project$Main$statisticsPanel = function (model) {
@@ -9604,7 +10762,7 @@ var $author$project$Main$videoSwitchMarker1 = A2(
 	_List_fromArray(
 		[
 			$elm$html$Html$Attributes$id('videoswitch-marker-1'),
-			$elm$html$Html$Attributes$class('h-[1px] bg-red-700 block')
+			$elm$html$Html$Attributes$class('h-[0px] bg-black block')
 		]),
 	_List_Nil);
 var $author$project$Main$videoSwitchMarker2 = A2(
@@ -9612,7 +10770,7 @@ var $author$project$Main$videoSwitchMarker2 = A2(
 	_List_fromArray(
 		[
 			$elm$html$Html$Attributes$id('videoswitch-marker-2'),
-			$elm$html$Html$Attributes$class('h-[1px] bg-red-700 block')
+			$elm$html$Html$Attributes$class('h-[0px] bg-black block')
 		]),
 	_List_Nil);
 var $author$project$Main$videoSwitchMarker3 = A2(
@@ -9620,7 +10778,7 @@ var $author$project$Main$videoSwitchMarker3 = A2(
 	_List_fromArray(
 		[
 			$elm$html$Html$Attributes$id('videoswitch-marker-3'),
-			$elm$html$Html$Attributes$class('h-[1px] bg-red-700 block')
+			$elm$html$Html$Attributes$class('h-[1px] bg-black block')
 		]),
 	_List_Nil);
 var $author$project$Main$view = function (model) {
@@ -9670,8 +10828,7 @@ var $author$project$Main$view = function (model) {
 					[
 						$author$project$Main$imageGallery($author$project$Main$galleryImages)
 					])),
-				$author$project$Main$footer(model),
-				$author$project$Main$markerDebugOverlay(model)
+				$author$project$Main$footer(model)
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(

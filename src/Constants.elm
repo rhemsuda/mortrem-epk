@@ -58,3 +58,6 @@ videoMarkerIds =
     , "videoswitch-marker-2"
     , "videoswitch-marker-3"
     ]
+
+mobileThreshold : Float
+mobileThreshold = 768.0
