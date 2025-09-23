@@ -386,7 +386,7 @@ update msg model =
 
         LoadMorePerformances ->
             let
-                step = if model.viewportW < Constants.mobileThreshold then 5 else 10
+                step = if model.viewportW < Constants.mobileThreshold then 3 else 5
             in
             ( { model | visiblePerfCount = model.visiblePerfCount + step }, Cmd.none )
 
@@ -1099,7 +1099,7 @@ performanceHistoryPanel model =
         , -- Load more
           if canLoadMore then
               let
-                  step = if model.viewportW < 768 then 5 else 10
+                  step = if model.viewportW < 768 then 3 else 5
               in
               div [ class "mt-6 flex justify-center" ]
                 [ button
