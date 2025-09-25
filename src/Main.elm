@@ -183,7 +183,7 @@ view model =
         , heroBannerContent model.scrollY
         , navbarMarker
 
-        , contentPanel model [ bioPanel model, videoSwitchMarker1 ]
+        , contentPanel model [ socialMediaLinks, bioPanel model, videoSwitchMarker1 ]
 
         , videoBanner "Music & Videos" -- TODO: This video should be candid closeup video of the band working on writing
 
@@ -535,6 +535,22 @@ subscriptions model =
         , if model.isPlaying then frequencyData FrequencyData else Sub.none
         --, videoSwitch VideoSwitch
         ]
+
+
+socialMediaLinks : Html Msg
+socialMediaLinks =
+    div []
+        [ h3 [ class "uppercase text-sm tracking-wider text-white/70 mb-3" ] [ text "Follow us" ]
+        ,  div [ class "flex items-center gap-4 text-2xl" ]
+            [ a [ href "https://open.spotify.com/artist/1z9AQTlfG5SjjDtKf1r2Mt", target "_blank", class "hover:text-white/70" ] [ i [ class "fa-brands fa-spotify" ] [] ]
+            , a [ href "https://music.apple.com/ca/artist/mortrem/1723532370", target "_blank", class "hover:text-white/70" ] [ i [ class "fa-brands fa-apple" ] [] ]
+            , a [ href "https://www.youtube.com/channel/UCLaZTiER4UOVGzsCV50tbfA", target "_blank", class "hover:text-white/70" ] [ i [ class "fa-brands fa-youtube" ] [] ]
+            , a [ href "https://instagram.com/mortremband", target "_blank", class "hover:text-white/70" ] [ i [ class "fa-brands fa-instagram" ] [] ]
+            , a [ href "https://tiktok.com/@mortremband", target "_blank", class "hover:text-white/70" ] [ i [ class "fa-brands fa-tiktok" ] [] ]
+            ]
+        , hr [ class "my-6 border-white/10" ] []
+        ]
+
 
 -- COMPONENTS
 bottomUpBlackGradientSpan : Html Msg
