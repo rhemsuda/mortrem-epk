@@ -10,7 +10,7 @@ import Task
 
 import Html exposing (Html, div, span, h1, h2, h3, p, text, img, i, audio, canvas, button, table, thead, tbody, tr, th, td, a, input, small, textarea, li, ul, hr)
 import Html.Attributes exposing (class, style, src, alt, id, href, target, width, height, preload, title, attribute)
-import Html.Events exposing (on, onClick, onInput, onSubmit)
+import Html.Events exposing (on, onClick, onInput, onSubmit, stopPropagationOn)
 import DateTime exposing (fromPosix)
 
 import Constants exposing (..)
@@ -23,6 +23,8 @@ import Update.PlayPause as PlayPause
 import Set exposing (Set)
 import Dict exposing (Dict)
 import DateTime exposing (DateTime, fromPosix, toPosix)
+
+import Statistics exposing (..)
 
 import Time exposing (millisToPosix, Zone, Month(..), here, toYear, toMonth, toDay, toHour, toMinute)
 
@@ -108,6 +110,28 @@ performances =
     , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_sneakyDees, totalDraw = 16, ourDraw = 9, organicDraw = 2, newFollowers = 5, merchSales = 30.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, hide = False }
     ]
 
+testimonials : List Testimonial
+testimonials =
+    [ { id = 1
+      , media = LbYoutube { title = "Inside the Mind of Mortrem: Exclusive Chat on Their Origin and What's Next on the Podcouch!", youtubeId = "4EzaFS2c0l4", thumbnail = "" }
+      , quote = "These guys ripped an absolutely  insane set! Each song is totally different, the timing changes and break downs are mind blowing! They are super talented musicians that are very dedicated to their band! We had a wicked time with them and  we suggest that you get out to their next show and experience it your self! Give them a follow, stream their music and don't miss out!"
+      , author = "Shane & Ben @ Rye Field Studios"
+      , quotedAt = fromPosix (Time.millisToPosix 1735190400000)
+      }
+    , { id = 2
+      , media = LbImage { src = "/images/testimonials/whiskey-pit.jpg", alt = "Joe in the crowd" }
+      , quote = "Professional and punctual. Easy to work with and they deliver."
+      , author = "Shelly – The Casbah"
+      , quotedAt = fromPosix (Time.millisToPosix 1727481600000) -- 2024-09-28
+      }
+    , { id = 3
+      , media = LbImage { src = "/images/testimonials/whiskey-pit.jpg", alt = "Joe in the crowd" }
+      , quote = "Crowd loved them. We want them back."
+      , author = "AJ – Sneaky Dee’s"
+      , quotedAt = fromPosix (Time.millisToPosix 1731196800000) -- 2024-11-10
+      }
+    ]
+
 
 init : () -> ( Model, Cmd Msg )
 init _ =
@@ -133,14 +157,18 @@ init _ =
       , contactStatus = ContactIdle
       , isContactModalOpen = False
       , debugMarkers = True
-      , visiblePerfCount = 10
+      , visiblePerfCount = 5
       , expandedPerf = Set.empty
       , zone = Time.utc
+      , now = Time.millisToPosix 0
+      , testimonials = testimonials
+      , lightbox = Nothing
       }
     , Cmd.batch
           [ Task.attempt GotViewport Dom.getViewport  -- sync scroll and height now
           , measureMarkersCmd videoMarkerIds    -- measure all markers atomically
           , Task.perform GotZone Time.here
+          , Task.perform GotNow Time.now
           ]
     )
 
@@ -160,9 +188,9 @@ view model =
         , videoBanner "Music & Videos" -- TODO: This video should be candid closeup video of the band working on writing
 
         --, discographySection model
-        , contentPanel model [ discographyPanel model, musicVideosPanel model, streamingServicesPanel, videoSwitchMarker2 ]
+        , contentPanel model [ discographyPanel model, musicVideosPanel model, videoSwitchMarker2 ]
         , videoBanner "Performance Metrics"
-        , contentPanel model [ performanceHistoryPanel model, statisticsPanel model, videoSwitchMarker3 ]
+        , contentPanel model [ performanceHistoryPanel model, statisticsPanel model, testimonialsPanel model, videoSwitchMarker3 ]
         , videoBanner "Gallery"
         , contentPanel model [ imageGallery galleryImages ]
         , footer model
@@ -182,6 +210,10 @@ update msg model =
     in
     case msg of
         OnScroll y -> OnScroll.handle y model setActiveBg
+        OpenLightbox media ->
+            ( { model | lightbox = Just media }, setBodyScroll True )
+        CloseLightbox ->
+            ( { model | lightbox = Nothing }, setBodyScroll False )
         GotViewport (Ok vp) ->
             let
                 w = vp.viewport.width
@@ -374,6 +406,9 @@ update msg model =
         GotZone z ->
             ( { model | zone = z }, Cmd.none )
 
+        GotNow p ->
+            ( { model | now = p }, Cmd.none )
+
         TogglePerformance i ->
             let
                 exp =
@@ -390,6 +425,8 @@ update msg model =
             in
             ( { model | visiblePerfCount = model.visiblePerfCount + step }, Cmd.none )
 
+        NoOp ->
+            ( model, Cmd.none )
 
 
 miniPlayer : Model -> Html Msg
@@ -540,7 +577,7 @@ videoBanner : String ->Html Msg
 videoBanner title =
     div
         [ class "h-screen flex items-center justify-center text-white relative", style "z-index" "10" ]
-        [ div [ class "relative z-20 flex items-center justify-center h-full font-serif text-8xl breathe" ] [ text title ]
+        [ div [ class "relative z-20 flex items-center justify-center h-full font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl breathe" ] [ text title ]
         , bottomUpBlackGradientSpan
         ]
 
@@ -602,7 +639,7 @@ discographyPanel model =
             -- If you later add dates, format them here; for now show a friendly status
             if currentSong.released then "Released" else "Unreleased"
     in
-    div [ id "discography", class "pt-16 md:pt-28 px-6 lg:px-16 md:max-w-5xl lg:max-w-8xl mx-auto text-white" ]
+    div [ id "discography", class "pt-16 md:pt-28 lg:px-16 md:max-w-5xl lg:max-w-8xl mx-auto text-white" ]
         [ audio
             [ id "audioPlayer"
             , src currentSong.src
@@ -771,7 +808,7 @@ musicVideosPanel model =
                 |> Maybe.withDefault
                     { title = "", youtubeId = "", thumbnail = "" }
     in
-    div [ class "pt-8 md:pt-16 lg:px-16 xl:px-32" ]
+    div [ class "py-8 md:py-16 lg:px-16 xl:px-32" ]
         [ h1 [ class "text-lg md:text-xl text-white font-bold mb-4 md:mb-6" ] [ text "Videos" ]
 
         , -- EMBED PLAYER (16:9, rounded)
@@ -905,7 +942,8 @@ mobileSidePanel model =
             , div [ class "space-y-2" ]
                 [ h2 [ class "text-sm uppercase tracking-wider opacity-80" ] [ text "Quick Links" ]
                 , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "bio") ] [ text "Who We Are" ]
-                , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "discography") ] [ text "Discography" ]
+                , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "discography") ] [ text "Music & Videos" ]
+                , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "performance-history") ] [ text "Performance Metrics" ]
                 , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "gallery") ] [ text "Gallery" ]
                 ]
             ]
@@ -931,7 +969,7 @@ videoSwitchMarker3 =
 
 contentPanel : Model -> List (Html Msg) -> Html Msg
 contentPanel model children =
-    div [ class "bg-black w-full px-16 md:px-28" ]
+    div [ class "bg-black w-full px-8 sm:px-12 md:px-18 lg:px-26" ]
         [ div [ class "mx-auto max-w-[80rem]" ]
               children
         ]
@@ -1182,7 +1220,256 @@ venueCell v =
         ]
 
 statisticsPanel : Model -> Html Msg
-statisticsPanel model = div [] [text "Statistics"]
+statisticsPanel model =
+    let
+        -- Use the real performance list as our primary source
+        perfs =
+            performances |> List.filter (\p -> not p.hide)
+
+        -- MOCKED FEEDS (structured like the real sources you’ll wire later)
+        tracks : List TrackStat
+        tracks =
+            [ { streams = 1200, saves = 80, listeners = 430, repeatListeners = 100 }
+            , { streams = 2100, saves = 140, listeners = 680, repeatListeners = 180 }
+            , { streams = 1600, saves = 100, listeners = 520, repeatListeners = 140 }
+            , { streams = 5484, saves = 320, listeners = 1190, repeatListeners = 360 }
+            ]
+
+        socials : List SocialProfile
+        socials =
+            [ { platform = "Instagram", followers = 545 }
+            , { platform = "Spotify", followers = 113 }
+            , { platform = "YouTube", followers = 67 }
+            ]
+
+        engagement : List EngagementSample
+        engagement =
+            [ { interactions = 18, reach = 450 }
+            , { interactions = 22, reach = 520 }
+            , { interactions = 15, reach = 360 }
+            , { interactions = 28, reach = 640 }
+            , { interactions = 19, reach = 410 }
+            , { interactions = 25, reach = 580 }
+            , { interactions = 13, reach = 300 }
+            ]
+
+        growthSeries : List Int
+        growthSeries =
+            [ 520, 540, 535, 560, 588, 604, 612 ]
+
+        followerCard =
+            Statistics.followerGrowthCard
+                { zone = model.zone
+                , now = model.now
+                , quarters = 8
+                , seedFollowers = 0
+                , performances = performances
+                }
+    in
+    div [ id "statistics", class "pt-8 md:pt-16 lg:px-16 xl:px-32" ]
+        [ h1 [ class "text-xl md:text-2xl text-white font-bold mb-4 md:mb-6" ] [ text "Statistics" ]
+
+        , -- LIVE PERFORMANCE
+          h2 [ class "mt-2 mb-2 text-lg md:text-xl text-white/80 font-semibold" ] [ text "Live Performance" ]
+        , div [ class "grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4" ]
+            [ showsPlayedCard model.zone perfs
+            , averageDrawCard perfs
+            , audienceCaptureCard perfs
+            ]
+
+        , -- MERCH
+          h2 [ class "mt-6 mb-2 text-lg md:text-xl text-white/80 font-semibold" ] [ text "Merchandising" ]
+        , div [ class "grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4" ]
+            [ merchTotalSalesCard perfs
+            , merchAverageSalesCard perfs
+            , merchVsTicketCard perfs
+            ]
+
+        , -- STREAMING & DIGITAL
+          h2 [ class "mt-6 mb-2 text-lg md:text-xl text-white/80 font-semibold" ] [ text "Streaming & Digital" ]
+        , div [ class "grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4" ]
+            [ spotifyFollowersCard socials
+            , totalStreamsCard tracks
+            , averageSavesPerTrackCard tracks
+            , repeatListenRateCard tracks
+            ]
+
+        , -- SOCIAL & FAN GROWTH
+          h2 [ class "mt-6 mb-2 text-lg md:text-xl text-white/80 font-semibold" ] [ text "Social Media & Fan Growth" ]
+        , div [ class "grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4" ]
+            [ socialFollowerCountCard socials
+            , engagementRateCard engagement
+            , followerCard
+            ]
+        ]
+
+testimonialsPanel : Model -> Html Msg
+testimonialsPanel model =
+    let
+        cards =
+            model.testimonials |> List.map testimonialCard
+
+        track =
+            cards ++ cards  -- duplicate for seamless loop
+    in
+    div [ id "testimonials", class "py-8 md:py-16 lg:px-16 xl:px-32 text-white" ]
+        [ h1 [ class "text-lg md:text-xl font-bold mb-4 md:mb-6" ] [ text "Testimonials" ]
+
+        , -- inject the keyframes/class once
+          globalStyles
+
+        , div [ class "relative overflow-hidden" ]
+            [ -- edge fades (optional)
+              div [ class "pointer-events-none absolute inset-y-0 left-0 w-12 z-10", style "background" "linear-gradient(90deg, rgba(0,0,0,1), rgba(0,0,0,0))" ] []
+            , div [ class "pointer-events-none absolute inset-y-0 right-0 w-12 z-10", style "background" "linear-gradient(270deg, rgba(0,0,0,1), rgba(0,0,0,0))" ] []
+
+            , div
+                [ class
+                    (String.join " "
+                        [ "flex gap-4 items-stretch will-change-transform"
+                        , "min-w-max"              -- <- track won’t shrink
+                        , "animate-testimonials"   -- <- now defined
+                        ]
+                    )
+                ]
+                track
+            ]
+        , lightboxView model
+        ]
+
+globalStyles : Html msg
+globalStyles =
+    Html.node "style" []
+        [ text """
+@keyframes testimonials-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-testimonials { animation: testimonials-scroll 60s linear infinite; }
+.animate-testimonials:hover { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .animate-testimonials { animation: none; }
+}
+""" ]
+
+testimonialCard : Testimonial -> Html Msg
+testimonialCard t =
+    let
+        dateStr = formatDateLocal zone t.quotedAt   -- uses your Utils helpers
+        timeStr = formatTimeLocalHHMM zone t.quotedAt
+        zone = Time.utc  -- replaced at runtime when you lift this into Main with model.zone
+        thumbFor media =
+            case media of
+                LbImage i ->
+                    { url = i.src, alt = i.alt }
+                LbYoutube mv ->
+                    { url = youtubeThumb mv, alt = mv.title }
+        thumb = thumbFor t.media
+    in
+    div
+        [ class "flex-none w-72 sm:w-80 md:w-96 rounded-2xl bg-slate-900/60 ring-1 ring-white/10 shadow-xl overflow-hidden" ]
+        [ -- image button
+          button
+            [ class "block relative w-full h-24 sm:h-32 md:h-40 overflow-hidden"
+            , onClick (OpenLightbox t.media)
+            ]
+            [ img
+                [ src thumb.url
+                , alt thumb.alt
+                , class "absolute inset-0 w-full h-full object-cover transform hover:scale-[1.03] transition"
+                ]
+                []
+            ]
+        , -- body
+          div [ class "p-4 flex flex-col gap-2" ]
+            [ p [ class "text-sm leading-relaxed text-white/90" ] [ text ("“" ++ t.quote ++ "”") ]
+            , div [ class "flex items-center justify-between text-xs text-white/60" ]
+                [ span [] [ text t.author ]
+                , span [] [ text (dateStr ++ " · " ++ timeStr) ]
+                ]
+            ]
+        ]
+
+lightboxView : Model -> Html Msg
+lightboxView model =
+    case model.lightbox of
+        Nothing ->
+            text ""
+
+        Just media ->
+            let
+                stopClick : Html.Attribute Msg
+                stopClick =
+                    stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
+            in
+            div
+                [ class "fixed inset-0 z-[2000] bg-black/80 p-4"
+                , class "flex items-center justify-center"
+                , onClick CloseLightbox
+                ]
+                [ -- content
+                  case media of
+                    LbImage imgData ->
+                        img
+                            [ src imgData.src
+                            , alt imgData.alt
+                            , class "max-h-[85vh] max-w-[90vw] rounded-xl shadow-2xl"
+                            , stopClick
+                            ]
+                            []
+
+                    LbYoutube yt ->
+                        div [ class "w-[90vw] max-w-4xl aspect-video", stopClick ]
+                            [ Html.node "iframe"
+                                [ attribute "src" (youtubeEmbedUrl yt.youtubeId)
+                                , attribute "title" yt.title
+                                , class "w-full h-full rounded-xl"
+                                , attribute "frameborder" "0"
+                                , attribute "allow" "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                , attribute "allowfullscreen" ""
+                                , attribute "referrerpolicy" "strict-origin-when-cross-origin"
+                                ]
+                                []
+                            ]
+                , -- close button
+                  button
+                    [ class "absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 ring-1 ring-white/25 text-white text-2xl leading-none"
+                    , onClick CloseLightbox
+                    , stopClick
+                    ]
+                    [ text "×" ]
+                ]
+
+-- lightboxView : Model -> Html Msg
+-- lightboxView model =
+--     case model.lightbox of
+--         Nothing ->
+--             text ""
+
+--         Just t ->
+--             div
+--                 [ class "fixed inset-0 z-[1200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" ]
+--                 [ -- close button
+--                   button
+--                     [ class "absolute top-4 right-4 w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 text-white ring-1 ring-white/20 flex items-center justify-center"
+--                     , onClick CloseLightbox
+--                     , attribute "aria-label" "Close image"
+--                     ]
+--                     [ i [ class "fa-solid fa-xmark text-lg" ] [] ]
+--                 , -- image + caption
+--                   div [ class "max-w-5xl w-full" ]
+--                     [ div [ class "relative w-full aspect-video rounded-xl overflow-hidden ring-1 ring-white/20 bg-black" ]
+--                         [ img [ src t.image, alt "Testimonial", class "absolute inset-0 w-full h-full object-contain" ] [] ]
+--                     , div [ class "mt-3 text-sm text-white/80 flex items-center justify-between" ]
+--                         [ span [] [ text t.author ]
+--                         , let
+--                             dateStr = formatDateLocal model.zone t.when_
+--                             timeStr = formatTimeLocalHHMM model.zone t.when_
+--                           in
+--                           span [] [ text (dateStr ++ " · " ++ timeStr) ]
+--                         ]
+--                     ]
+--                 ]
 
 colrowspan : Int -> Int -> String
 colrowspan col row = "col-span-" ++ String.fromInt col ++ " " ++ "row-span-" ++ String.fromInt row
@@ -1190,16 +1477,31 @@ colrowspan col row = "col-span-" ++ String.fromInt col ++ " " ++ "row-span-" ++ 
 imageGalleryClasses : Int -> Int -> String
 imageGalleryClasses col row = colrowspan col row
 
+-- galleryImageComponent : GalleryImage -> Html Msg
+-- galleryImageComponent galleryImage =
+--     img [ src galleryImage.image.src
+--         , class (imageGalleryClasses galleryImage.colSpan galleryImage.rowSpan)
+--         ] []
+
 galleryImageComponent : GalleryImage -> Html Msg
-galleryImageComponent galleryImage =
-    img [ src galleryImage.image.src
-        , class (imageGalleryClasses galleryImage.colSpan galleryImage.rowSpan)
-        ] []
+galleryImageComponent g =
+    let
+        i = g.image
+        cs = g.colSpan
+        rs = g.rowSpan
+    in
+    img
+        [ src i.src
+        , alt i.alt
+        , class ("col-span-12 sm:col-span-" ++ String.fromInt cs ++ " row-span-12 sm:row-span-" ++ String.fromInt rs ++ " cursor-pointer object-cover transform hover:scale-[1.03] transition")
+        , onClick (OpenLightbox (LbImage { src = i.src, alt = i.alt }))
+        ]
+        []
 
 imageGallery : List GalleryImage -> Html Msg
 imageGallery images =
-    div [ id "gallery", class "w-full pt-26" ]
-        [ div [ class "grid grid-cols-12" ]
+    div [ id "gallery", class "w-full py-8 md:py-16 overflow-hidden" ]
+        [ div [ class "grid grid-cols-12 overflow-hidden" ]
             <| List.map galleryImageComponent images
         ]
 

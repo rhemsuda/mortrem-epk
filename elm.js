@@ -5418,6 +5418,9 @@ var $elm$core$Task$perform = F2(
 	});
 var $elm$browser$Browser$element = _Browser_element;
 var $author$project$Types$ContactIdle = {$: 'ContactIdle'};
+var $author$project$Types$GotNow = function (a) {
+	return {$: 'GotNow', a: a};
+};
 var $author$project$Types$GotViewport = function (a) {
 	return {$: 'GotViewport', a: a};
 };
@@ -5515,12 +5518,17 @@ var $author$project$Main$measureMarkersCmd = function (ids) {
 			$elm$core$Task$sequence(
 				A2($elm$core$List$map, measureOne, ids))));
 };
+var $elm$time$Time$Posix = function (a) {
+	return {$: 'Posix', a: a};
+};
+var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
 var $author$project$Main$musicVideos = _List_fromArray(
 	[
 		{thumbnail: '', title: 'WATCH: Mortrem\'s Epic Performance at the Whiskey Pit Will Leave You Speechless!', youtubeId: 'BBLWe1Go59E'},
 		{thumbnail: '', title: 'Mortrem - Nonfiction (Music Video)', youtubeId: 'pGWly6GZbs4'},
 		{thumbnail: '', title: 'Mortrem - Big Blue (Official Lyric Video)', youtubeId: 'tsgr0ryIGAY'}
 	]);
+var $elm$time$Time$now = _Time_now($elm$time$Time$millisToPosix);
 var $elm$core$List$repeatHelp = F3(
 	function (result, n, value) {
 		repeatHelp:
@@ -5554,7 +5562,252 @@ var $author$project$Main$songs = _List_fromArray(
 	},
 		{artwork: $elm$core$Maybe$Nothing, duration: 100, released: false, src: '/audio/mortrem-vanitybox.mp3', title: 'Vanity Box'}
 	]);
+var $author$project$Types$LbImage = function (a) {
+	return {$: 'LbImage', a: a};
+};
+var $author$project$Types$LbYoutube = function (a) {
+	return {$: 'LbYoutube', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$DateTime = function (a) {
+	return {$: 'DateTime', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Date = function (a) {
+	return {$: 'Date', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day = function (a) {
+	return {$: 'Day', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Year = function (a) {
+	return {$: 'Year', a: a};
+};
+var $elm$time$Time$flooredDiv = F2(
+	function (numerator, denominator) {
+		return $elm$core$Basics$floor(numerator / denominator);
+	});
+var $elm$time$Time$posixToMillis = function (_v0) {
+	var millis = _v0.a;
+	return millis;
+};
+var $elm$time$Time$toAdjustedMinutesHelp = F3(
+	function (defaultOffset, posixMinutes, eras) {
+		toAdjustedMinutesHelp:
+		while (true) {
+			if (!eras.b) {
+				return posixMinutes + defaultOffset;
+			} else {
+				var era = eras.a;
+				var olderEras = eras.b;
+				if (_Utils_cmp(era.start, posixMinutes) < 0) {
+					return posixMinutes + era.offset;
+				} else {
+					var $temp$defaultOffset = defaultOffset,
+						$temp$posixMinutes = posixMinutes,
+						$temp$eras = olderEras;
+					defaultOffset = $temp$defaultOffset;
+					posixMinutes = $temp$posixMinutes;
+					eras = $temp$eras;
+					continue toAdjustedMinutesHelp;
+				}
+			}
+		}
+	});
+var $elm$time$Time$toAdjustedMinutes = F2(
+	function (_v0, time) {
+		var defaultOffset = _v0.a;
+		var eras = _v0.b;
+		return A3(
+			$elm$time$Time$toAdjustedMinutesHelp,
+			defaultOffset,
+			A2(
+				$elm$time$Time$flooredDiv,
+				$elm$time$Time$posixToMillis(time),
+				60000),
+			eras);
+	});
+var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $elm$time$Time$toCivil = function (minutes) {
+	var rawDay = A2($elm$time$Time$flooredDiv, minutes, 60 * 24) + 719468;
+	var era = (((rawDay >= 0) ? rawDay : (rawDay - 146096)) / 146097) | 0;
+	var dayOfEra = rawDay - (era * 146097);
+	var yearOfEra = ((((dayOfEra - ((dayOfEra / 1460) | 0)) + ((dayOfEra / 36524) | 0)) - ((dayOfEra / 146096) | 0)) / 365) | 0;
+	var dayOfYear = dayOfEra - (((365 * yearOfEra) + ((yearOfEra / 4) | 0)) - ((yearOfEra / 100) | 0));
+	var mp = (((5 * dayOfYear) + 2) / 153) | 0;
+	var month = mp + ((mp < 10) ? 3 : (-9));
+	var year = yearOfEra + (era * 400);
+	return {
+		day: (dayOfYear - ((((153 * mp) + 2) / 5) | 0)) + 1,
+		month: month,
+		year: year + ((month <= 2) ? 1 : 0)
+	};
+};
+var $elm$time$Time$toDay = F2(
+	function (zone, time) {
+		return $elm$time$Time$toCivil(
+			A2($elm$time$Time$toAdjustedMinutes, zone, time)).day;
+	});
+var $elm$time$Time$Apr = {$: 'Apr'};
+var $elm$time$Time$Aug = {$: 'Aug'};
+var $elm$time$Time$Dec = {$: 'Dec'};
+var $elm$time$Time$Feb = {$: 'Feb'};
+var $elm$time$Time$Jan = {$: 'Jan'};
+var $elm$time$Time$Jul = {$: 'Jul'};
+var $elm$time$Time$Jun = {$: 'Jun'};
+var $elm$time$Time$Mar = {$: 'Mar'};
+var $elm$time$Time$May = {$: 'May'};
+var $elm$time$Time$Nov = {$: 'Nov'};
+var $elm$time$Time$Oct = {$: 'Oct'};
+var $elm$time$Time$Sep = {$: 'Sep'};
+var $elm$time$Time$toMonth = F2(
+	function (zone, time) {
+		var _v0 = $elm$time$Time$toCivil(
+			A2($elm$time$Time$toAdjustedMinutes, zone, time)).month;
+		switch (_v0) {
+			case 1:
+				return $elm$time$Time$Jan;
+			case 2:
+				return $elm$time$Time$Feb;
+			case 3:
+				return $elm$time$Time$Mar;
+			case 4:
+				return $elm$time$Time$Apr;
+			case 5:
+				return $elm$time$Time$May;
+			case 6:
+				return $elm$time$Time$Jun;
+			case 7:
+				return $elm$time$Time$Jul;
+			case 8:
+				return $elm$time$Time$Aug;
+			case 9:
+				return $elm$time$Time$Sep;
+			case 10:
+				return $elm$time$Time$Oct;
+			case 11:
+				return $elm$time$Time$Nov;
+			default:
+				return $elm$time$Time$Dec;
+		}
+	});
+var $elm$time$Time$toYear = F2(
+	function (zone, time) {
+		return $elm$time$Time$toCivil(
+			A2($elm$time$Time$toAdjustedMinutes, zone, time)).year;
+	});
 var $elm$time$Time$utc = A2($elm$time$Time$Zone, 0, _List_Nil);
+var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$fromPosix = function (posix) {
+	return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Date(
+		{
+			day: $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(
+				A2($elm$time$Time$toDay, $elm$time$Time$utc, posix)),
+			month: A2($elm$time$Time$toMonth, $elm$time$Time$utc, posix),
+			year: $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Year(
+				A2($elm$time$Time$toYear, $elm$time$Time$utc, posix))
+		});
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Hour = function (a) {
+	return {$: 'Hour', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Millisecond = function (a) {
+	return {$: 'Millisecond', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Minute = function (a) {
+	return {$: 'Minute', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Second = function (a) {
+	return {$: 'Second', a: a};
+};
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Time = function (a) {
+	return {$: 'Time', a: a};
+};
+var $elm$core$Basics$modBy = _Basics_modBy;
+var $elm$time$Time$toHour = F2(
+	function (zone, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			24,
+			A2(
+				$elm$time$Time$flooredDiv,
+				A2($elm$time$Time$toAdjustedMinutes, zone, time),
+				60));
+	});
+var $elm$time$Time$toMillis = F2(
+	function (_v0, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			1000,
+			$elm$time$Time$posixToMillis(time));
+	});
+var $elm$time$Time$toMinute = F2(
+	function (zone, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			60,
+			A2($elm$time$Time$toAdjustedMinutes, zone, time));
+	});
+var $elm$time$Time$toSecond = F2(
+	function (_v0, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			60,
+			A2(
+				$elm$time$Time$flooredDiv,
+				$elm$time$Time$posixToMillis(time),
+				1000));
+	});
+var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$fromPosix = function (posix) {
+	return $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Time(
+		{
+			hours: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Hour(
+				A2($elm$time$Time$toHour, $elm$time$Time$utc, posix)),
+			milliseconds: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Millisecond(
+				A2($elm$time$Time$toMillis, $elm$time$Time$utc, posix)),
+			minutes: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Minute(
+				A2($elm$time$Time$toMinute, $elm$time$Time$utc, posix)),
+			seconds: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Second(
+				A2($elm$time$Time$toSecond, $elm$time$Time$utc, posix))
+		});
+};
+var $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$fromPosix = function (timePosix) {
+	return $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$DateTime(
+		{
+			date: $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$fromPosix(timePosix),
+			time: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$fromPosix(timePosix)
+		});
+};
+var $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix = $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$fromPosix;
+var $author$project$Main$testimonials = _List_fromArray(
+	[
+		{
+		author: 'Shane & Ben @ Rye Field Studios',
+		id: 1,
+		media: $author$project$Types$LbYoutube(
+			{thumbnail: '', title: 'Inside the Mind of Mortrem: Exclusive Chat on Their Origin and What\'s Next on the Podcouch!', youtubeId: '4EzaFS2c0l4'}),
+		quote: 'These guys ripped an absolutely  insane set! Each song is totally different, the timing changes and break downs are mind blowing! They are super talented musicians that are very dedicated to their band! We had a wicked time with them and  we suggest that you get out to their next show and experience it your self! Give them a follow, stream their music and don\'t miss out!',
+		quotedAt: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1735190400000))
+	},
+		{
+		author: 'Shelly – The Casbah',
+		id: 2,
+		media: $author$project$Types$LbImage(
+			{alt: 'Joe in the crowd', src: '/images/testimonials/whiskey-pit.jpg'}),
+		quote: 'Professional and punctual. Easy to work with and they deliver.',
+		quotedAt: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1727481600000))
+	},
+		{
+		author: 'AJ – Sneaky Dee’s',
+		id: 3,
+		media: $author$project$Types$LbImage(
+			{alt: 'Joe in the crowd', src: '/images/testimonials/whiskey-pit.jpg'}),
+		quote: 'Crowd loved them. We want them back.',
+		quotedAt: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
+			$elm$time$Time$millisToPosix(1731196800000))
+	}
+	]);
 var $author$project$Constants$videoBgSources = _List_fromArray(
 	['/videos/epk-banner-fixed.mp4', '/videos/epk-banner-fixed-clid.mp4', '/videos/epk-banner-fixed.mp4', '/videos/epk-banner-fixed-clid.mp4']);
 var $author$project$Constants$videoMarkerIds = _List_fromArray(
@@ -5575,16 +5828,19 @@ var $author$project$Main$init = function (_v0) {
 			isContactModalOpen: false,
 			isMenuOpen: false,
 			isPlaying: false,
+			lightbox: $elm$core$Maybe$Nothing,
 			musicVideos: $author$project$Main$musicVideos,
+			now: $elm$time$Time$millisToPosix(0),
 			scrollY: 0,
 			selectedMusicVideoIndex: 0,
 			songs: $author$project$Main$songs,
+			testimonials: $author$project$Main$testimonials,
 			videoMarkerIds: $author$project$Constants$videoMarkerIds,
 			videoMarkers: _List_Nil,
 			videoSources: $author$project$Constants$videoBgSources,
 			viewportH: 0,
 			viewportW: 0,
-			visiblePerfCount: 10,
+			visiblePerfCount: 5,
 			zone: $elm$time$Time$utc
 		},
 		$elm$core$Platform$Cmd$batch(
@@ -5592,7 +5848,8 @@ var $author$project$Main$init = function (_v0) {
 				[
 					A2($elm$core$Task$attempt, $author$project$Types$GotViewport, $elm$browser$Browser$Dom$getViewport),
 					$author$project$Main$measureMarkersCmd($author$project$Constants$videoMarkerIds),
-					A2($elm$core$Task$perform, $author$project$Types$GotZone, $elm$time$Time$here)
+					A2($elm$core$Task$perform, $author$project$Types$GotZone, $elm$time$Time$here),
+					A2($elm$core$Task$perform, $author$project$Types$GotNow, $elm$time$Time$now)
 				])));
 };
 var $author$project$Types$AudioError = function (a) {
@@ -6135,7 +6392,6 @@ var $elm$core$List$drop = F2(
 			}
 		}
 	});
-var $elm$core$Basics$ge = _Utils_ge;
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Update$OnScroll$handle = F3(
@@ -6239,9 +6495,6 @@ var $elm$core$Set$member = F2(
 		return A2($elm$core$Dict$member, key, dict);
 	});
 var $author$project$Constants$mobileThreshold = 768.0;
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
 var $author$project$Main$pauseAudio = _Platform_outgoingPort('pauseAudio', $elm$json$Json$Encode$string);
 var $author$project$Main$playAudio = _Platform_outgoingPort(
 	'playAudio',
@@ -7163,6 +7416,21 @@ var $author$project$Main$update = F2(
 				case 'OnScroll':
 					var y = msg.a;
 					return A3($author$project$Update$OnScroll$handle, y, model, $author$project$Main$setActiveBg);
+				case 'OpenLightbox':
+					var media = msg.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								lightbox: $elm$core$Maybe$Just(media)
+							}),
+						$author$project$Main$setBodyScroll(true));
+				case 'CloseLightbox':
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{lightbox: $elm$core$Maybe$Nothing}),
+						$author$project$Main$setBodyScroll(false));
 				case 'GotViewport':
 					if (msg.a.$ === 'Ok') {
 						var vp = msg.a.a;
@@ -7438,6 +7706,13 @@ var $author$project$Main$update = F2(
 							model,
 							{zone: z}),
 						$elm$core$Platform$Cmd$none);
+				case 'GotNow':
+					var p = msg.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{now: p}),
+						$elm$core$Platform$Cmd$none);
 				case 'TogglePerformance':
 					var i = msg.a;
 					var exp = A2($elm$core$Set$member, i, model.expandedPerf) ? A2($elm$core$Set$remove, i, model.expandedPerf) : A2($elm$core$Set$insert, i, model.expandedPerf);
@@ -7446,13 +7721,15 @@ var $author$project$Main$update = F2(
 							model,
 							{expandedPerf: exp}),
 						$elm$core$Platform$Cmd$none);
-				default:
-					var step = (_Utils_cmp(model.viewportW, $author$project$Constants$mobileThreshold) < 0) ? 5 : 10;
+				case 'LoadMorePerformances':
+					var step = (_Utils_cmp(model.viewportW, $author$project$Constants$mobileThreshold) < 0) ? 3 : 5;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{visiblePerfCount: model.visiblePerfCount + step}),
 						$elm$core$Platform$Cmd$none);
+				default:
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			}
 		}
 	});
@@ -7618,7 +7895,7 @@ var $author$project$Main$contentPanel = F2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('bg-black w-full px-16 md:px-28')
+					$elm$html$Html$Attributes$class('bg-black w-full px-8 sm:px-12 md:px-18 lg:px-26')
 				]),
 			_List_fromArray(
 				[
@@ -7643,7 +7920,6 @@ var $elm$virtual_dom$VirtualDom$attribute = F2(
 var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
 var $elm$html$Html$audio = _VirtualDom_node('audio');
 var $elm$html$Html$button = _VirtualDom_node('button');
-var $elm$core$Basics$modBy = _Basics_modBy;
 var $elm$core$Basics$round = _Basics_round;
 var $author$project$Main$formatTime = function (secs) {
 	var total = $elm$core$Basics$round(secs);
@@ -7955,7 +8231,7 @@ var $author$project$Main$discographyPanel = function (model) {
 		_List_fromArray(
 			[
 				$elm$html$Html$Attributes$id('discography'),
-				$elm$html$Html$Attributes$class('pt-16 md:pt-28 px-6 lg:px-16 md:max-w-5xl lg:max-w-8xl mx-auto text-white')
+				$elm$html$Html$Attributes$class('pt-16 md:pt-28 lg:px-16 md:max-w-5xl lg:max-w-8xl mx-auto text-white')
 			]),
 		_List_fromArray(
 			[
@@ -8868,22 +9144,25 @@ var $author$project$Main$heroBannerContent = function (scrollY) {
 				$author$project$Main$bottomUpBlackGradientSpan
 			]));
 };
-var $author$project$Main$colrowspan = F2(
-	function (col, row) {
-		return 'col-span-' + ($elm$core$String$fromInt(col) + (' ' + ('row-span-' + $elm$core$String$fromInt(row))));
-	});
-var $author$project$Main$imageGalleryClasses = F2(
-	function (col, row) {
-		return A2($author$project$Main$colrowspan, col, row);
-	});
-var $author$project$Main$galleryImageComponent = function (galleryImage) {
+var $author$project$Types$OpenLightbox = function (a) {
+	return {$: 'OpenLightbox', a: a};
+};
+var $author$project$Main$galleryImageComponent = function (g) {
+	var rs = g.rowSpan;
+	var i = g.image;
+	var cs = g.colSpan;
 	return A2(
 		$elm$html$Html$img,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$src(galleryImage.image.src),
+				$elm$html$Html$Attributes$src(i.src),
+				$elm$html$Html$Attributes$alt(i.alt),
 				$elm$html$Html$Attributes$class(
-				A2($author$project$Main$imageGalleryClasses, galleryImage.colSpan, galleryImage.rowSpan))
+				'col-span-12 sm:col-span-' + ($elm$core$String$fromInt(cs) + (' row-span-12 sm:row-span-' + ($elm$core$String$fromInt(rs) + ' cursor-pointer object-cover transform hover:scale-[1.03] transition')))),
+				$elm$html$Html$Events$onClick(
+				$author$project$Types$OpenLightbox(
+					$author$project$Types$LbImage(
+						{alt: i.alt, src: i.src})))
 			]),
 		_List_Nil);
 };
@@ -8893,7 +9172,7 @@ var $author$project$Main$imageGallery = function (images) {
 		_List_fromArray(
 			[
 				$elm$html$Html$Attributes$id('gallery'),
-				$elm$html$Html$Attributes$class('w-full pt-26')
+				$elm$html$Html$Attributes$class('w-full py-8 md:py-16 overflow-hidden')
 			]),
 		_List_fromArray(
 			[
@@ -8901,7 +9180,7 @@ var $author$project$Main$imageGallery = function (images) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('grid grid-cols-12')
+						$elm$html$Html$Attributes$class('grid grid-cols-12 overflow-hidden')
 					]),
 				A2($elm$core$List$map, $author$project$Main$galleryImageComponent, images))
 			]));
@@ -9129,7 +9408,19 @@ var $author$project$Main$mobileSidePanel = function (model) {
 									]),
 								_List_fromArray(
 									[
-										$elm$html$Html$text('Discography')
+										$elm$html$Html$text('Music & Videos')
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('w-full text-left px-3 py-2 rounded hover:bg-white/10'),
+										$elm$html$Html$Events$onClick(
+										$author$project$Types$ScrollTo('performance-history'))
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Performance Metrics')
 									])),
 								A2(
 								$elm$html$Html$button,
@@ -9170,7 +9461,7 @@ var $author$project$Main$musicVideosPanel = function (model) {
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$class('pt-8 md:pt-16 lg:px-16 xl:px-32')
+				$elm$html$Html$Attributes$class('py-8 md:py-16 lg:px-16 xl:px-32')
 			]),
 		_List_fromArray(
 			[
@@ -9445,117 +9736,6 @@ var $author$project$Utils$monthAbbrev = function (m) {
 			return 'Dec';
 	}
 };
-var $elm$time$Time$flooredDiv = F2(
-	function (numerator, denominator) {
-		return $elm$core$Basics$floor(numerator / denominator);
-	});
-var $elm$time$Time$posixToMillis = function (_v0) {
-	var millis = _v0.a;
-	return millis;
-};
-var $elm$time$Time$toAdjustedMinutesHelp = F3(
-	function (defaultOffset, posixMinutes, eras) {
-		toAdjustedMinutesHelp:
-		while (true) {
-			if (!eras.b) {
-				return posixMinutes + defaultOffset;
-			} else {
-				var era = eras.a;
-				var olderEras = eras.b;
-				if (_Utils_cmp(era.start, posixMinutes) < 0) {
-					return posixMinutes + era.offset;
-				} else {
-					var $temp$defaultOffset = defaultOffset,
-						$temp$posixMinutes = posixMinutes,
-						$temp$eras = olderEras;
-					defaultOffset = $temp$defaultOffset;
-					posixMinutes = $temp$posixMinutes;
-					eras = $temp$eras;
-					continue toAdjustedMinutesHelp;
-				}
-			}
-		}
-	});
-var $elm$time$Time$toAdjustedMinutes = F2(
-	function (_v0, time) {
-		var defaultOffset = _v0.a;
-		var eras = _v0.b;
-		return A3(
-			$elm$time$Time$toAdjustedMinutesHelp,
-			defaultOffset,
-			A2(
-				$elm$time$Time$flooredDiv,
-				$elm$time$Time$posixToMillis(time),
-				60000),
-			eras);
-	});
-var $elm$time$Time$toCivil = function (minutes) {
-	var rawDay = A2($elm$time$Time$flooredDiv, minutes, 60 * 24) + 719468;
-	var era = (((rawDay >= 0) ? rawDay : (rawDay - 146096)) / 146097) | 0;
-	var dayOfEra = rawDay - (era * 146097);
-	var yearOfEra = ((((dayOfEra - ((dayOfEra / 1460) | 0)) + ((dayOfEra / 36524) | 0)) - ((dayOfEra / 146096) | 0)) / 365) | 0;
-	var dayOfYear = dayOfEra - (((365 * yearOfEra) + ((yearOfEra / 4) | 0)) - ((yearOfEra / 100) | 0));
-	var mp = (((5 * dayOfYear) + 2) / 153) | 0;
-	var month = mp + ((mp < 10) ? 3 : (-9));
-	var year = yearOfEra + (era * 400);
-	return {
-		day: (dayOfYear - ((((153 * mp) + 2) / 5) | 0)) + 1,
-		month: month,
-		year: year + ((month <= 2) ? 1 : 0)
-	};
-};
-var $elm$time$Time$toDay = F2(
-	function (zone, time) {
-		return $elm$time$Time$toCivil(
-			A2($elm$time$Time$toAdjustedMinutes, zone, time)).day;
-	});
-var $elm$time$Time$Apr = {$: 'Apr'};
-var $elm$time$Time$Aug = {$: 'Aug'};
-var $elm$time$Time$Dec = {$: 'Dec'};
-var $elm$time$Time$Feb = {$: 'Feb'};
-var $elm$time$Time$Jan = {$: 'Jan'};
-var $elm$time$Time$Jul = {$: 'Jul'};
-var $elm$time$Time$Jun = {$: 'Jun'};
-var $elm$time$Time$Mar = {$: 'Mar'};
-var $elm$time$Time$May = {$: 'May'};
-var $elm$time$Time$Nov = {$: 'Nov'};
-var $elm$time$Time$Oct = {$: 'Oct'};
-var $elm$time$Time$Sep = {$: 'Sep'};
-var $elm$time$Time$toMonth = F2(
-	function (zone, time) {
-		var _v0 = $elm$time$Time$toCivil(
-			A2($elm$time$Time$toAdjustedMinutes, zone, time)).month;
-		switch (_v0) {
-			case 1:
-				return $elm$time$Time$Jan;
-			case 2:
-				return $elm$time$Time$Feb;
-			case 3:
-				return $elm$time$Time$Mar;
-			case 4:
-				return $elm$time$Time$Apr;
-			case 5:
-				return $elm$time$Time$May;
-			case 6:
-				return $elm$time$Time$Jun;
-			case 7:
-				return $elm$time$Time$Jul;
-			case 8:
-				return $elm$time$Time$Aug;
-			case 9:
-				return $elm$time$Time$Sep;
-			case 10:
-				return $elm$time$Time$Oct;
-			case 11:
-				return $elm$time$Time$Nov;
-			default:
-				return $elm$time$Time$Dec;
-		}
-	});
-var $elm$time$Time$Posix = function (a) {
-	return {$: 'Posix', a: a};
-};
-var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
 var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$isLeapYear = function (_v0) {
 	var _int = _v0.a;
 	return (!A2($elm$core$Basics$modBy, 4, _int)) && ((!A2($elm$core$Basics$modBy, 400, _int)) || (!(!A2($elm$core$Basics$modBy, 100, _int))));
@@ -9563,9 +9743,6 @@ var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$isLeapYear = function (
 var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisInADay = ((1000 * 60) * 60) * 24;
 var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisInYear = function (year) {
 	return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$isLeapYear(year) ? ($PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisInADay * 366) : ($PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$millisInADay * 365);
-};
-var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Year = function (a) {
-	return {$: 'Year', a: a};
 };
 var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$yearFromInt = function (year) {
 	return (year > 0) ? $elm$core$Maybe$Just(
@@ -9877,9 +10054,6 @@ var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$getPrecedingMonths = fu
 			$PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$monthToInt(month) - 1,
 			$PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$months));
 };
-var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day = function (a) {
-	return {$: 'Day', a: a};
-};
 var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$lastDayOf = F2(
 	function (year, month) {
 		switch (month.$) {
@@ -9966,11 +10140,6 @@ var $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$toMillis = function (_v
 };
 var $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$toPosix = A2($elm$core$Basics$composeL, $elm$time$Time$millisToPosix, $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$toMillis);
 var $PanagiotisGeorgiadis$elm_datetime$DateTime$toPosix = $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$toPosix;
-var $elm$time$Time$toYear = F2(
-	function (zone, time) {
-		return $elm$time$Time$toCivil(
-			A2($elm$time$Time$toAdjustedMinutes, zone, time)).year;
-	});
 var $author$project$Utils$formatDateLocal = F2(
 	function (zone, dt) {
 		var p = $PanagiotisGeorgiadis$elm_datetime$DateTime$toPosix(dt);
@@ -9982,23 +10151,6 @@ var $author$project$Utils$formatDateLocal = F2(
 var $author$project$Utils$pad2 = function (n) {
 	return (n < 10) ? ('0' + $elm$core$String$fromInt(n)) : $elm$core$String$fromInt(n);
 };
-var $elm$time$Time$toHour = F2(
-	function (zone, time) {
-		return A2(
-			$elm$core$Basics$modBy,
-			24,
-			A2(
-				$elm$time$Time$flooredDiv,
-				A2($elm$time$Time$toAdjustedMinutes, zone, time),
-				60));
-	});
-var $elm$time$Time$toMinute = F2(
-	function (zone, time) {
-		return A2(
-			$elm$core$Basics$modBy,
-			60,
-			A2($elm$time$Time$toAdjustedMinutes, zone, time));
-	});
 var $author$project$Utils$formatTimeLocalHHMM = F2(
 	function (zone, dt) {
 		var p = $PanagiotisGeorgiadis$elm_datetime$DateTime$toPosix(dt);
@@ -10012,75 +10164,6 @@ var $author$project$Utils$ourRevenue = function (perf) {
 var $author$project$Types$Headline = {$: 'Headline'};
 var $author$project$Types$Open = {$: 'Open'};
 var $author$project$Types$Support = {$: 'Support'};
-var $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$DateTime = function (a) {
-	return {$: 'DateTime', a: a};
-};
-var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Date = function (a) {
-	return {$: 'Date', a: a};
-};
-var $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$fromPosix = function (posix) {
-	return $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Date(
-		{
-			day: $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Day(
-				A2($elm$time$Time$toDay, $elm$time$Time$utc, posix)),
-			month: A2($elm$time$Time$toMonth, $elm$time$Time$utc, posix),
-			year: $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$Year(
-				A2($elm$time$Time$toYear, $elm$time$Time$utc, posix))
-		});
-};
-var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Hour = function (a) {
-	return {$: 'Hour', a: a};
-};
-var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Millisecond = function (a) {
-	return {$: 'Millisecond', a: a};
-};
-var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Minute = function (a) {
-	return {$: 'Minute', a: a};
-};
-var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Second = function (a) {
-	return {$: 'Second', a: a};
-};
-var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Time = function (a) {
-	return {$: 'Time', a: a};
-};
-var $elm$time$Time$toMillis = F2(
-	function (_v0, time) {
-		return A2(
-			$elm$core$Basics$modBy,
-			1000,
-			$elm$time$Time$posixToMillis(time));
-	});
-var $elm$time$Time$toSecond = F2(
-	function (_v0, time) {
-		return A2(
-			$elm$core$Basics$modBy,
-			60,
-			A2(
-				$elm$time$Time$flooredDiv,
-				$elm$time$Time$posixToMillis(time),
-				1000));
-	});
-var $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$fromPosix = function (posix) {
-	return $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Time(
-		{
-			hours: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Hour(
-				A2($elm$time$Time$toHour, $elm$time$Time$utc, posix)),
-			milliseconds: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Millisecond(
-				A2($elm$time$Time$toMillis, $elm$time$Time$utc, posix)),
-			minutes: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Minute(
-				A2($elm$time$Time$toMinute, $elm$time$Time$utc, posix)),
-			seconds: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$Second(
-				A2($elm$time$Time$toSecond, $elm$time$Time$utc, posix))
-		});
-};
-var $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$fromPosix = function (timePosix) {
-	return $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$DateTime(
-		{
-			date: $PanagiotisGeorgiadis$elm_datetime$Calendar$Internal$fromPosix(timePosix),
-			time: $PanagiotisGeorgiadis$elm_datetime$Clock$Internal$fromPosix(timePosix)
-		});
-};
-var $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix = $PanagiotisGeorgiadis$elm_datetime$DateTime$Internal$fromPosix;
 var $author$project$Constants$venue_absinthe = {capacity: 150, city: 'Hamilton', distanceFromHomeKm: 68, name: 'Club Absinthe'};
 var $author$project$Constants$venue_duffysTavern = {capacity: 200, city: 'Toronto', distanceFromHomeKm: 110, name: 'Duffy\'s Tavern'};
 var $author$project$Constants$venue_hardLuck = {capacity: 200, city: 'Toronto', distanceFromHomeKm: 113, name: 'Hard Luck'};
@@ -10612,7 +10695,7 @@ var $author$project$Main$performanceHistoryPanel = function (model) {
 				A2($elm$core$List$indexedMap, card, items)),
 				function () {
 				if (canLoadMore) {
-					var step = (model.viewportW < 768) ? 5 : 10;
+					var step = (model.viewportW < 768) ? 3 : 5;
 					return A2(
 						$elm$html$Html$div,
 						_List_fromArray(
@@ -10640,100 +10723,1428 @@ var $author$project$Main$performanceHistoryPanel = function (model) {
 			}()
 			]));
 };
-var $author$project$Main$statisticsPanel = function (model) {
+var $author$project$Statistics$percent = function (x) {
+	return $elm$core$String$fromInt(
+		$elm$core$Basics$round(x * 100)) + '%';
+};
+var $author$project$Statistics$safeDiv = F2(
+	function (num, den) {
+		return (!den) ? 0 : (num / den);
+	});
+var $author$project$Statistics$statCard = function (args) {
+	var surfaceCls = A2(
+		$elm$core$String$join,
+		' ',
+		_List_fromArray(
+			['rounded-2xl bg-slate-900/60 ring-1 ring-white/10 shadow-xl', 'hover:ring-white/20 hover:shadow-2xl', 'transition p-4 flex flex-col w-full', 'min-h-[180px] overflow-hidden']));
 	return A2(
 		$elm$html$Html$div,
-		_List_Nil,
 		_List_fromArray(
 			[
-				$elm$html$Html$text('Statistics')
+				$elm$html$Html$Attributes$class('relative w-full overflow-visible')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class(surfaceCls)
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('mb-2 pr-8')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$span,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('text-md font-semibold tracking-wide text-white/80')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(args.title)
+									]))
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('flex-1 flex items-center')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$span,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('text-5xl font-semibold tracking-tight text-white')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(args.primary)
+									]))
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('pt-2 text-white/70')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$span,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('text-xl font-semibold text-white/80')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(args.secondaryMain)
+									])),
+								A2(
+								$elm$html$Html$span,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('ml-2 text-sm')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(args.secondarySuffix)
+									]))
+							]))
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('absolute right-3 top-3 z-30')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('relative group')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class(
+										A2(
+											$elm$core$String$join,
+											' ',
+											_List_fromArray(
+												['w-5 h-5 rounded-full flex items-center justify-center', 'text-[11px] font-bold bg-white/10 text-white/80', 'ring-1 ring-white/15 cursor-default']))),
+										$elm$html$Html$Attributes$title(args.title)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('i')
+									])),
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class(
+										A2(
+											$elm$core$String$join,
+											' ',
+											_List_fromArray(
+												['pointer-events-none opacity-0 translate-y-1', 'group-hover:opacity-100 group-hover:translate-y-0', 'absolute right-0 mt-2 min-w-[16rem] max-w-[20rem]', 'bg-black/90 text-white text-xs rounded-lg p-3', 'ring-1 ring-white/10 shadow-2xl transition'])))
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(args.info)
+									]))
+							]))
+					]))
 			]));
 };
-var $author$project$Main$streamingServicesPanel = A2(
-	$elm$html$Html$div,
-	_List_fromArray(
-		[
-			$elm$html$Html$Attributes$class('pt-8 md:pt-16 pb-8 md:pb-16 lg:px-16 xl:px-32')
-		]),
-	_List_fromArray(
-		[
+var $author$project$Statistics$audienceCaptureCard = function (perfs) {
+	var visible = A2(
+		$elm$core$List$filter,
+		function (p) {
+			return !p.hide;
+		},
+		perfs);
+	var totalNew = $elm$core$List$sum(
+		A2(
+			$elm$core$List$map,
+			function (p) {
+				return p.newFollowers;
+			},
+			visible));
+	var totalAudience = $elm$core$List$sum(
+		A2(
+			$elm$core$List$map,
+			function (p) {
+				return p.totalDraw;
+			},
+			visible));
+	var pct = $author$project$Statistics$percent(
+		A2($author$project$Statistics$safeDiv, totalNew, totalAudience));
+	var fansPerShow = $elm$core$String$fromInt(
+		$elm$core$Basics$round(
 			A2(
-			$elm$html$Html$h1,
+				$author$project$Statistics$safeDiv,
+				totalNew,
+				$elm$core$List$length(visible))));
+	return $author$project$Statistics$statCard(
+		{info: 'New followers captured per audience member across all shows.', primary: pct, secondaryMain: '~' + fansPerShow, secondarySuffix: 'new fans per show', title: 'Audience Capture'});
+};
+var $author$project$Statistics$avgFloat = function (xs) {
+	if (!xs.b) {
+		return 0;
+	} else {
+		return $elm$core$List$sum(xs) / $elm$core$List$length(xs);
+	}
+};
+var $elm$core$String$right = F2(
+	function (n, string) {
+		return (n < 1) ? '' : A3(
+			$elm$core$String$slice,
+			-n,
+			$elm$core$String$length(string),
+			string);
+	});
+var $author$project$Statistics$formatInt = function (n) {
+	var s = $elm$core$String$fromInt(n);
+	var go = F2(
+		function (acc, rest) {
+			go:
+			while (true) {
+				if ($elm$core$String$length(rest) <= 3) {
+					return A2($elm$core$List$cons, rest, acc);
+				} else {
+					var len = $elm$core$String$length(rest);
+					var $temp$acc = A2(
+						$elm$core$List$cons,
+						A2($elm$core$String$right, 3, rest),
+						acc),
+						$temp$rest = A2($elm$core$String$left, len - 3, rest);
+					acc = $temp$acc;
+					rest = $temp$rest;
+					continue go;
+				}
+			}
+		});
+	return A2(
+		$elm$core$String$join,
+		',',
+		A2(go, _List_Nil, s));
+};
+var $author$project$Statistics$averageDrawCard = function (perfs) {
+	var visible = A2(
+		$elm$core$List$filter,
+		function (p) {
+			return !p.hide;
+		},
+		perfs);
+	var avgDraw = $elm$core$String$fromInt(
+		$elm$core$Basics$round(
+			$author$project$Statistics$avgFloat(
+				A2(
+					$elm$core$List$map,
+					function (p) {
+						return p.totalDraw;
+					},
+					visible))));
+	return $author$project$Statistics$statCard(
+		{
+			info: 'Average total audience per show (includes your draw + organic walk-ins).',
+			primary: avgDraw,
+			secondaryMain: $author$project$Statistics$formatInt(
+				$elm$core$List$length(visible)),
+			secondarySuffix: 'shows included',
+			title: 'Average Draw'
+		});
+};
+var $author$project$Statistics$averageSavesPerTrackCard = function (tracks) {
+	var avgSaves = A2(
+		$author$project$Statistics$safeDiv,
+		$elm$core$List$sum(
+			A2(
+				$elm$core$List$map,
+				function (t) {
+					return t.saves;
+				},
+				tracks)),
+		$elm$core$List$length(tracks));
+	return $author$project$Statistics$statCard(
+		{
+			info: 'Average number of saves across all tracks.',
+			primary: $author$project$Statistics$formatInt(
+				$elm$core$Basics$round(avgSaves)),
+			secondaryMain: '+0%',
+			secondarySuffix: 'from last release',
+			title: 'Average Saves per Track'
+		});
+};
+var $author$project$Statistics$engagementRateCard = function (samples) {
+	var totalReach = $elm$core$List$sum(
+		A2(
+			$elm$core$List$map,
+			function ($) {
+				return $.reach;
+			},
+			samples));
+	var totalInteractions = $elm$core$List$sum(
+		A2(
+			$elm$core$List$map,
+			function ($) {
+				return $.interactions;
+			},
+			samples));
+	var rate = A2($author$project$Statistics$safeDiv, totalInteractions, totalReach);
+	var avgDailyInteractions = $elm$core$String$fromInt(
+		$elm$core$Basics$round(
+			A2(
+				$author$project$Statistics$safeDiv,
+				totalInteractions,
+				$elm$core$List$length(samples))));
+	return $author$project$Statistics$statCard(
+		{
+			info: 'Interactions divided by reach across recent posts.',
+			primary: $author$project$Statistics$percent(rate),
+			secondaryMain: avgDailyInteractions,
+			secondarySuffix: 'avg daily interactions',
+			title: 'Engagement Rate'
+		});
+};
+var $elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $author$project$Statistics$quarterGains = function (cumulVals) {
+	var diffs = function (xs) {
+		if (xs.b && xs.b.b) {
+			var a = xs.a;
+			var _v1 = xs.b;
+			var b = _v1.a;
+			var rest = _v1.b;
+			return A2(
+				$elm$core$List$cons,
+				b - a,
+				diffs(
+					A2($elm$core$List$cons, b, rest)));
+		} else {
+			return _List_Nil;
+		}
+	};
+	return diffs(cumulVals);
+};
+var $author$project$Statistics$cumulative = F2(
+	function (seed, gains) {
+		var step = F2(
+			function (g, _v0) {
+				var acc = _v0.a;
+				var out = _v0.b;
+				var nxt = acc + g;
+				return _Utils_Tuple2(
+					nxt,
+					A2($elm$core$List$cons, nxt, out));
+			});
+		return $elm$core$List$reverse(
+			A3(
+				$elm$core$List$foldl,
+				step,
+				_Utils_Tuple2(seed, _List_Nil),
+				gains).b);
+	});
+var $author$project$Statistics$quarterOf = function (m) {
+	switch (m.$) {
+		case 'Jan':
+			return 1;
+		case 'Feb':
+			return 1;
+		case 'Mar':
+			return 1;
+		case 'Apr':
+			return 2;
+		case 'May':
+			return 2;
+		case 'Jun':
+			return 2;
+		case 'Jul':
+			return 3;
+		case 'Aug':
+			return 3;
+		case 'Sep':
+			return 3;
+		case 'Oct':
+			return 4;
+		case 'Nov':
+			return 4;
+		default:
+			return 4;
+	}
+};
+var $author$project$Statistics$inQuarter = F3(
+	function (zone, dt, _v0) {
+		var y = _v0.a;
+		var q = _v0.b;
+		var p = $PanagiotisGeorgiadis$elm_datetime$DateTime$toPosix(dt);
+		return _Utils_eq(
+			A2($elm$time$Time$toYear, zone, p),
+			y) && _Utils_eq(
+			$author$project$Statistics$quarterOf(
+				A2($elm$time$Time$toMonth, zone, p)),
+			q);
+	});
+var $author$project$Statistics$lastNQuarters = F3(
+	function (zone, now, n) {
+		var go = F3(
+			function (k, _v0, acc) {
+				go:
+				while (true) {
+					var y = _v0.a;
+					var q = _v0.b;
+					if (!k) {
+						return $elm$core$List$reverse(acc);
+					} else {
+						var _v1 = (q === 1) ? _Utils_Tuple2(y - 1, 4) : _Utils_Tuple2(y, q - 1);
+						var y2 = _v1.a;
+						var q2 = _v1.b;
+						var $temp$k = k - 1,
+							$temp$_v0 = _Utils_Tuple2(y2, q2),
+							$temp$acc = A2(
+							$elm$core$List$cons,
+							_Utils_Tuple2(y2, q2),
+							acc);
+						k = $temp$k;
+						_v0 = $temp$_v0;
+						acc = $temp$acc;
+						continue go;
+					}
+				}
+			});
+		var curY = A2($elm$time$Time$toYear, zone, now);
+		var curQ = $author$project$Statistics$quarterOf(
+			A2($elm$time$Time$toMonth, zone, now));
+		var base = A3(
+			go,
+			n - 1,
+			_Utils_Tuple2(curY, curQ),
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('text-lg md:text-xl text-white font-bold')
+					_Utils_Tuple2(curY, curQ)
+				]));
+		return base;
+	});
+var $elm$core$Tuple$pair = F2(
+	function (a, b) {
+		return _Utils_Tuple2(a, b);
+	});
+var $author$project$Statistics$quarterLabel = F2(
+	function (year, q) {
+		return 'Q' + ($elm$core$String$fromInt(q) + (' ' + $elm$core$String$fromInt(
+			A2($elm$core$Basics$modBy, 100, year))));
+	});
+var $author$project$Statistics$quarterlyFollowerSeries = F5(
+	function (zone, now, quarters, seed, performances) {
+		var gainsByBin = function (_v1) {
+			var y = _v1.a;
+			var q = _v1.b;
+			return $elm$core$List$sum(
+				A2(
+					$elm$core$List$map,
+					function ($) {
+						return $.newFollowers;
+					},
+					A2(
+						$elm$core$List$filter,
+						function (p) {
+							return A3(
+								$author$project$Statistics$inQuarter,
+								zone,
+								p.datetime,
+								_Utils_Tuple2(y, q));
+						},
+						performances)));
+		};
+		var bins = A3($author$project$Statistics$lastNQuarters, zone, now, quarters);
+		var gains = A2($elm$core$List$map, gainsByBin, bins);
+		var cumul = A2($author$project$Statistics$cumulative, seed, gains);
+		var labels = A2(
+			$elm$core$List$map,
+			function (_v0) {
+				var y = _v0.a;
+				var q = _v0.b;
+				return A2($author$project$Statistics$quarterLabel, y, q);
+			},
+			bins);
+		return A3($elm$core$List$map2, $elm$core$Tuple$pair, labels, cumul);
+	});
+var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
+var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
+var $elm$svg$Svg$Attributes$class = _VirtualDom_attribute('class');
+var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
+var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
+var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
+var $elm$svg$Svg$g = $elm$svg$Svg$trustedNode('g');
+var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
+var $elm$core$List$maximum = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(
+			A3($elm$core$List$foldl, $elm$core$Basics$max, x, xs));
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$core$Basics$min = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) < 0) ? x : y;
+	});
+var $elm$core$List$minimum = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(
+			A3($elm$core$List$foldl, $elm$core$Basics$min, x, xs));
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$svg$Svg$Attributes$points = _VirtualDom_attribute('points');
+var $elm$svg$Svg$polyline = $elm$svg$Svg$trustedNode('polyline');
+var $elm$svg$Svg$Attributes$preserveAspectRatio = _VirtualDom_attribute('preserveAspectRatio');
+var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
+var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
+var $elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
+var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
+var $elm$svg$Svg$title = $elm$svg$Svg$trustedNode('title');
+var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
+var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
+var $author$project$Statistics$sparkline = F2(
+	function (dims, series) {
+		var w = dims.w;
+		var values = A2($elm$core$List$map, $elm$core$Tuple$second, series);
+		var p = dims.pad;
+		var xs = function () {
+			var n = A2(
+				$elm$core$Basics$max,
+				1,
+				$elm$core$List$length(series) - 1);
+			var step = (w - (2 * p)) / n;
+			return A2(
+				$elm$core$List$indexedMap,
+				F2(
+					function (i, _v5) {
+						return p + (step * i);
+					}),
+				series);
+		}();
+		var h = dims.h;
+		var _v0 = function () {
+			if (!values.b) {
+				return _Utils_Tuple2(0, 1);
+			} else {
+				var lo = A2(
+					$elm$core$Maybe$withDefault,
+					0,
+					$elm$core$List$minimum(values));
+				var hi = A2(
+					$elm$core$Maybe$withDefault,
+					lo,
+					$elm$core$List$maximum(values));
+				return _Utils_eq(hi, lo) ? _Utils_Tuple2(lo - 1, hi + 1) : _Utils_Tuple2(lo, hi);
+			}
+		}();
+		var minV = _v0.a;
+		var maxV = _v0.b;
+		var scaleY = function (v) {
+			var t = (v - minV) / (maxV - minV);
+			return p + ((h - (2 * p)) * (1 - t));
+		};
+		var ys = A2($elm$core$List$map, scaleY, values);
+		var points = A3($elm$core$List$map2, $elm$core$Tuple$pair, xs, ys);
+		var polyStr = A2(
+			$elm$core$String$join,
+			' ',
+			A2(
+				$elm$core$List$map,
+				function (_v4) {
+					var x = _v4.a;
+					var y = _v4.b;
+					return $elm$core$String$fromFloat(x) + (',' + $elm$core$String$fromFloat(y));
+				},
+				points));
+		return A2(
+			$elm$svg$Svg$svg,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$viewBox(
+					'0 0 ' + ($elm$core$String$fromFloat(w) + (' ' + $elm$core$String$fromFloat(h)))),
+					$elm$svg$Svg$Attributes$preserveAspectRatio('xMidYMid meet'),
+					$elm$svg$Svg$Attributes$width('100%'),
+					$elm$svg$Svg$Attributes$height('100%'),
+					$elm$svg$Svg$Attributes$class('w-full h-24')
 				]),
 			_List_fromArray(
 				[
-					$elm$html$Html$text('Streaming Links')
-				])),
+					A2(
+					$elm$svg$Svg$polyline,
+					_List_fromArray(
+						[
+							$elm$svg$Svg$Attributes$points(polyStr),
+							$elm$svg$Svg$Attributes$fill('none'),
+							$elm$svg$Svg$Attributes$stroke('currentColor'),
+							A2($elm$html$Html$Attributes$attribute, 'vector-effect', 'non-scaling-stroke'),
+							$elm$svg$Svg$Attributes$strokeWidth('2'),
+							$elm$svg$Svg$Attributes$class('text-sky-300')
+						]),
+					_List_Nil),
+					A2(
+					$elm$svg$Svg$g,
+					_List_Nil,
+					A3(
+						$elm$core$List$map2,
+						F2(
+							function (_v2, _v3) {
+								var lbl = _v2.a;
+								var v = _v2.b;
+								var x = _v3.a;
+								var y = _v3.b;
+								return A2(
+									$elm$svg$Svg$g,
+									_List_Nil,
+									_List_fromArray(
+										[
+											A2(
+											$elm$svg$Svg$title,
+											_List_Nil,
+											_List_fromArray(
+												[
+													$elm$html$Html$text(
+													lbl + (' — ' + ($elm$core$String$fromInt(v) + ' followers')))
+												])),
+											A2(
+											$elm$svg$Svg$circle,
+											_List_fromArray(
+												[
+													$elm$svg$Svg$Attributes$cx(
+													$elm$core$String$fromFloat(x)),
+													$elm$svg$Svg$Attributes$cy(
+													$elm$core$String$fromFloat(y)),
+													$elm$svg$Svg$Attributes$r('10'),
+													$elm$svg$Svg$Attributes$fill('transparent')
+												]),
+											_List_Nil),
+											A2(
+											$elm$svg$Svg$circle,
+											_List_fromArray(
+												[
+													$elm$svg$Svg$Attributes$cx(
+													$elm$core$String$fromFloat(x)),
+													$elm$svg$Svg$Attributes$cy(
+													$elm$core$String$fromFloat(y)),
+													$elm$svg$Svg$Attributes$r('3.5'),
+													$elm$svg$Svg$Attributes$class('text-sky-200 hover:text-white'),
+													$elm$svg$Svg$Attributes$fill('currentColor')
+												]),
+											_List_Nil)
+										]));
+							}),
+						series,
+						points))
+				]));
+	});
+var $author$project$Statistics$followerGrowthCard = function (cfg) {
+	var series = A5($author$project$Statistics$quarterlyFollowerSeries, cfg.zone, cfg.now, cfg.quarters, cfg.seedFollowers, cfg.performances);
+	var spark = A2(
+		$author$project$Statistics$sparkline,
+		{h: 96, pad: 10, w: 260},
+		series);
+	var avgGainPerQ = function () {
+		var gains = $author$project$Statistics$quarterGains(
+			A2($elm$core$List$map, $elm$core$Tuple$second, series));
+		return $elm$core$List$isEmpty(gains) ? 0 : (($elm$core$List$sum(gains) / $elm$core$List$length(gains)) | 0);
+	}();
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class(
+				A2(
+					$elm$core$String$join,
+					' ',
+					_List_fromArray(
+						['relative rounded-2xl bg-slate-900/60', 'ring-1 ring-white/10 shadow-xl', 'hover:ring-white/20 hover:shadow-2xl', 'transition p-4 flex flex-col w-full', 'min-h-[180px] overflow-hidden'])))
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('flex items-start justify-between mb-2')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('text-md font-semibold tracking-wide text-white/80')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Follower Growth')
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('relative group')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class(
+										A2(
+											$elm$core$String$join,
+											' ',
+											_List_fromArray(
+												['w-5 h-5 rounded-full flex items-center justify-center', 'text-[11px] font-bold bg-white/10 text-white/80', 'ring-1 ring-white/15 cursor-default']))),
+										$elm$html$Html$Attributes$title('Follower Growth')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('i')
+									])),
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class(
+										A2(
+											$elm$core$String$join,
+											' ',
+											_List_fromArray(
+												['pointer-events-none opacity-0 group-hover:opacity-100', 'absolute right-0 mt-2 z-20 min-w-[16rem] max-w-[20rem]', 'bg-black/90 text-white text-xs rounded-lg p-3', 'ring-1 ring-white/10 shadow-2xl transition'])))
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Each point is the follower count at the END of the quarter (Q1–Q4) in your local time. Gains per quarter are computed from summed performance ‘newFollowers’ plus your starting seed.')
+									]))
+							]))
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('mt-3 h-24 w-full')
+					]),
+				_List_fromArray(
+					[spark])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('pt-2 text-white/70')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('text-xl font-semibold text-white/80')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								$elm$core$String$fromInt(avgGainPerQ))
+							])),
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('ml-2 text-sm')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('avg per quarter')
+							]))
+					]))
+			]));
+};
+var $author$project$Statistics$formatMoney = function (amount) {
+	var sign = (amount < 0) ? '-' : '';
+	var pad2 = function (n) {
+		return (n < 10) ? ('0' + $elm$core$String$fromInt(n)) : $elm$core$String$fromInt(n);
+	};
+	var cents = $elm$core$Basics$round(amount * 100);
+	var dollars = (cents / 100) | 0;
+	var remCents = $elm$core$Basics$abs(cents - (dollars * 100));
+	return sign + ('$' + ($author$project$Statistics$formatInt(
+		$elm$core$Basics$abs(dollars)) + ('.' + pad2(remCents))));
+};
+var $author$project$Statistics$sumBy = F2(
+	function (f, items) {
+		return $elm$core$List$sum(
+			A2($elm$core$List$map, f, items));
+	});
+var $author$project$Statistics$merchAverageSalesCard = function (perfs) {
+	var visible = A2(
+		$elm$core$List$filter,
+		function (p) {
+			return !p.hide;
+		},
+		perfs);
+	var perTicket = A2(
+		$author$project$Statistics$safeDiv,
+		A2(
+			$author$project$Statistics$sumBy,
+			function ($) {
+				return $.merchSales;
+			},
+			visible),
+		$elm$core$List$sum(
 			A2(
+				$elm$core$List$map,
+				function (p) {
+					return p.totalDraw;
+				},
+				visible)));
+	var avgSales = A2(
+		$author$project$Statistics$safeDiv,
+		A2(
+			$author$project$Statistics$sumBy,
+			function ($) {
+				return $.merchSales;
+			},
+			visible),
+		$elm$core$List$length(visible));
+	return $author$project$Statistics$statCard(
+		{
+			info: 'Average merch revenue (gross) per show, plus per-ticket-holder spend.',
+			primary: $author$project$Statistics$formatMoney(avgSales),
+			secondaryMain: $author$project$Statistics$formatMoney(perTicket),
+			secondarySuffix: 'per ticket holder',
+			title: 'Average Gross Sales'
+		});
+};
+var $author$project$Statistics$merchTotalSalesCard = function (perfs) {
+	var visible = A2(
+		$elm$core$List$filter,
+		function (p) {
+			return !p.hide;
+		},
+		perfs);
+	var total = A2(
+		$author$project$Statistics$sumBy,
+		function ($) {
+			return $.merchSales;
+		},
+		visible);
+	return $author$project$Statistics$statCard(
+		{
+			info: 'Sum of merch revenue (gross) across all visible shows.',
+			primary: $author$project$Statistics$formatMoney(total),
+			secondaryMain: $author$project$Statistics$formatInt(
+				$elm$core$List$length(visible)),
+			secondarySuffix: 'shows reported',
+			title: 'Total Gross Sales'
+		});
+};
+var $author$project$Statistics$merchVsTicketCard = function (perfs) {
+	var visible = A2(
+		$elm$core$List$filter,
+		function (p) {
+			return !p.hide;
+		},
+		perfs);
+	var tickets = $elm$core$List$sum(
+		A2(
+			$elm$core$List$map,
+			function (p) {
+				return p.ourDraw * p.ticketPrice;
+			},
+			visible));
+	var merch = A2(
+		$author$project$Statistics$sumBy,
+		function ($) {
+			return $.merchSales;
+		},
+		visible);
+	var ratio = A2($author$project$Statistics$safeDiv, merch, tickets);
+	var moneyPer10 = $author$project$Statistics$formatMoney(ratio * 10);
+	return $author$project$Statistics$statCard(
+		{
+			info: 'Gross merch vs. your ticket revenue. Secondary shows how much merch is sold per $10 of ticket revenue.',
+			primary: $author$project$Statistics$percent(ratio),
+			secondaryMain: moneyPer10,
+			secondarySuffix: 'merch per $10 tickets',
+			title: 'Merch vs. Ticket Sales'
+		});
+};
+var $author$project$Statistics$repeatListenRateCard = function (tracks) {
+	var totalRepeats = $elm$core$List$sum(
+		A2(
+			$elm$core$List$map,
+			function ($) {
+				return $.repeatListeners;
+			},
+			tracks));
+	var totalListeners = $elm$core$List$sum(
+		A2(
+			$elm$core$List$map,
+			function ($) {
+				return $.listeners;
+			},
+			tracks));
+	var rate = A2($author$project$Statistics$safeDiv, totalRepeats, totalListeners);
+	return $author$project$Statistics$statCard(
+		{
+			info: 'Share of listeners who listened to a track more than 5 times.',
+			primary: $author$project$Statistics$percent(rate),
+			secondaryMain: $elm$core$String$fromInt(
+				$elm$core$Basics$round(rate * 100)) + '%',
+			secondarySuffix: 'listen > 5 times',
+			title: 'Repeat Listen Rate'
+		});
+};
+var $author$project$Statistics$yearOf = F2(
+	function (zone, dt) {
+		return A2(
+			$elm$time$Time$toYear,
+			zone,
+			$PanagiotisGeorgiadis$elm_datetime$DateTime$toPosix(dt));
+	});
+var $author$project$Statistics$showsPlayedCard = F2(
+	function (zone, perfs) {
+		var visible = A2(
+			$elm$core$List$filter,
+			function (p) {
+				return !p.hide;
+			},
+			perfs);
+		var totalShows = $elm$core$List$length(visible);
+		var latestYear = A2(
+			$elm$core$Maybe$withDefault,
+			1970,
+			$elm$core$List$maximum(
+				A2(
+					$elm$core$List$map,
+					function (p) {
+						return A2($author$project$Statistics$yearOf, zone, p.datetime);
+					},
+					visible)));
+		var showsThisYear = $elm$core$List$length(
+			A2(
+				$elm$core$List$filter,
+				function (p) {
+					return _Utils_eq(
+						A2($author$project$Statistics$yearOf, zone, p.datetime),
+						latestYear);
+				},
+				visible));
+		return $author$project$Statistics$statCard(
+			{
+				info: 'Total shows played (all time) and how many in the most recent calendar year present in your data.',
+				primary: $author$project$Statistics$formatInt(totalShows),
+				secondaryMain: $author$project$Statistics$formatInt(showsThisYear),
+				secondarySuffix: 'played in ' + $elm$core$String$fromInt(latestYear),
+				title: 'Shows Played'
+			});
+	});
+var $author$project$Statistics$socialFollowerCountCard = function (profiles) {
+	var total = $elm$core$List$sum(
+		A2(
+			$elm$core$List$map,
+			function ($) {
+				return $.followers;
+			},
+			profiles));
+	var topPlatform = $elm$core$List$head(
+		A2(
+			$elm$core$List$sortBy,
+			function (p) {
+				return -p.followers;
+			},
+			profiles));
+	var suffix = function () {
+		if (topPlatform.$ === 'Just') {
+			var p = topPlatform.a;
+			return 'follow on ' + p.platform;
+		} else {
+			return 'no platforms connected';
+		}
+	}();
+	var secondary = function () {
+		if (topPlatform.$ === 'Just') {
+			var p = topPlatform.a;
+			var pct = A2($author$project$Statistics$safeDiv, p.followers, total);
+			return $elm$core$String$fromInt(
+				$elm$core$Basics$round(pct * 100)) + '%';
+		} else {
+			return '';
+		}
+	}();
+	return $author$project$Statistics$statCard(
+		{
+			info: 'Sum of followers across connected social profiles. Secondary shows where most followers are.',
+			primary: $author$project$Statistics$formatInt(total),
+			secondaryMain: secondary,
+			secondarySuffix: suffix,
+			title: 'Follower Count'
+		});
+};
+var $elm$core$String$toLower = _String_toLower;
+var $author$project$Statistics$spotifyFollowersCard = function (profiles) {
+	var spotify = $elm$core$List$head(
+		A2(
+			$elm$core$List$filter,
+			function (p) {
+				return $elm$core$String$toLower(p.platform) === 'spotify';
+			},
+			profiles));
+	var total = function () {
+		if (spotify.$ === 'Just') {
+			var s = spotify.a;
+			return s.followers;
+		} else {
+			return 0;
+		}
+	}();
+	return $author$project$Statistics$statCard(
+		{
+			info: 'Current followers on Spotify artist profile.',
+			primary: $author$project$Statistics$formatInt(total),
+			secondaryMain: '~8',
+			secondarySuffix: 'per month',
+			title: 'Spotify Followers'
+		});
+};
+var $author$project$Statistics$totalStreamsCard = function (tracks) {
+	var total = $elm$core$List$sum(
+		A2(
+			$elm$core$List$map,
+			function ($) {
+				return $.streams;
+			},
+			tracks));
+	var avgPerTrack = A2(
+		$author$project$Statistics$safeDiv,
+		total,
+		$elm$core$List$length(tracks));
+	return $author$project$Statistics$statCard(
+		{
+			info: 'Sum of streams across all tracks; secondary is average streams per track.',
+			primary: $author$project$Statistics$formatInt(total),
+			secondaryMain: $author$project$Statistics$formatInt(
+				$elm$core$Basics$round(avgPerTrack)),
+			secondarySuffix: 'avg streams per track',
+			title: 'Total Streams'
+		});
+};
+var $author$project$Main$statisticsPanel = function (model) {
+	var tracks = _List_fromArray(
+		[
+			{listeners: 430, repeatListeners: 100, saves: 80, streams: 1200},
+			{listeners: 680, repeatListeners: 180, saves: 140, streams: 2100},
+			{listeners: 520, repeatListeners: 140, saves: 100, streams: 1600},
+			{listeners: 1190, repeatListeners: 360, saves: 320, streams: 5484}
+		]);
+	var socials = _List_fromArray(
+		[
+			{followers: 545, platform: 'Instagram'},
+			{followers: 113, platform: 'Spotify'},
+			{followers: 67, platform: 'YouTube'}
+		]);
+	var perfs = A2(
+		$elm$core$List$filter,
+		function (p) {
+			return !p.hide;
+		},
+		$author$project$Main$performances);
+	var growthSeries = _List_fromArray(
+		[520, 540, 535, 560, 588, 604, 612]);
+	var followerCard = $author$project$Statistics$followerGrowthCard(
+		{now: model.now, performances: $author$project$Main$performances, quarters: 8, seedFollowers: 0, zone: model.zone});
+	var engagement = _List_fromArray(
+		[
+			{interactions: 18, reach: 450},
+			{interactions: 22, reach: 520},
+			{interactions: 15, reach: 360},
+			{interactions: 28, reach: 640},
+			{interactions: 19, reach: 410},
+			{interactions: 25, reach: 580},
+			{interactions: 13, reach: 300}
+		]);
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$id('statistics'),
+				$elm$html$Html$Attributes$class('pt-8 md:pt-16 lg:px-16 xl:px-32')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$h1,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('text-xl md:text-2xl text-white font-bold mb-4 md:mb-6')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Statistics')
+					])),
+				A2(
+				$elm$html$Html$h2,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('mt-2 mb-2 text-lg md:text-xl text-white/80 font-semibold')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Live Performance')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4')
+					]),
+				_List_fromArray(
+					[
+						A2($author$project$Statistics$showsPlayedCard, model.zone, perfs),
+						$author$project$Statistics$averageDrawCard(perfs),
+						$author$project$Statistics$audienceCaptureCard(perfs)
+					])),
+				A2(
+				$elm$html$Html$h2,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('mt-6 mb-2 text-lg md:text-xl text-white/80 font-semibold')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Merchandising')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4')
+					]),
+				_List_fromArray(
+					[
+						$author$project$Statistics$merchTotalSalesCard(perfs),
+						$author$project$Statistics$merchAverageSalesCard(perfs),
+						$author$project$Statistics$merchVsTicketCard(perfs)
+					])),
+				A2(
+				$elm$html$Html$h2,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('mt-6 mb-2 text-lg md:text-xl text-white/80 font-semibold')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Streaming & Digital')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4')
+					]),
+				_List_fromArray(
+					[
+						$author$project$Statistics$spotifyFollowersCard(socials),
+						$author$project$Statistics$totalStreamsCard(tracks),
+						$author$project$Statistics$averageSavesPerTrackCard(tracks),
+						$author$project$Statistics$repeatListenRateCard(tracks)
+					])),
+				A2(
+				$elm$html$Html$h2,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('mt-6 mb-2 text-lg md:text-xl text-white/80 font-semibold')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Social Media & Fan Growth')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4')
+					]),
+				_List_fromArray(
+					[
+						$author$project$Statistics$socialFollowerCountCard(socials),
+						$author$project$Statistics$engagementRateCard(engagement),
+						followerCard
+					]))
+			]));
+};
+var $author$project$Main$globalStyles = A3(
+	$elm$html$Html$node,
+	'style',
+	_List_Nil,
+	_List_fromArray(
+		[
+			$elm$html$Html$text('\n@keyframes testimonials-scroll {\n  from { transform: translateX(0); }\n  to   { transform: translateX(-50%); }\n}\n.animate-testimonials { animation: testimonials-scroll 60s linear infinite; }\n.animate-testimonials:hover { animation-play-state: paused; }\n@media (prefers-reduced-motion: reduce) {\n  .animate-testimonials { animation: none; }\n}\n')
+		]));
+var $author$project$Types$CloseLightbox = {$: 'CloseLightbox'};
+var $author$project$Types$NoOp = {$: 'NoOp'};
+var $author$project$Main$lightboxView = function (model) {
+	var _v0 = model.lightbox;
+	if (_v0.$ === 'Nothing') {
+		return $elm$html$Html$text('');
+	} else {
+		var media = _v0.a;
+		var stopClick = A2(
+			$elm$html$Html$Events$stopPropagationOn,
+			'click',
+			$elm$json$Json$Decode$succeed(
+				_Utils_Tuple2($author$project$Types$NoOp, true)));
+		return A2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('flex items-center justify-center gap-8 md:gap-24 py-6 md:py-12')
+					$elm$html$Html$Attributes$class('fixed inset-0 z-[2000] bg-black/80 p-4'),
+					$elm$html$Html$Attributes$class('flex items-center justify-center'),
+					$elm$html$Html$Events$onClick($author$project$Types$CloseLightbox)
 				]),
 			_List_fromArray(
 				[
-					A2(
-					$elm$html$Html$a,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$href('https://open.spotify.com/artist/1z9AQTlfG5SjjDtKf1r2Mt?si=pnTiiO5UTziuu4YgCPaTAA'),
-							$elm$html$Html$Attributes$target('_blank')
-						]),
-					_List_fromArray(
-						[
-							A2(
+					function () {
+					if (media.$ === 'LbImage') {
+						var imgData = media.a;
+						return A2(
 							$elm$html$Html$img,
 							_List_fromArray(
 								[
-									$elm$html$Html$Attributes$src('images/spotify-logo.png'),
-									$elm$html$Html$Attributes$class('max-w-18 md:max-w-32'),
-									$elm$html$Html$Attributes$alt('Spotify logo. Clicking this takes you to Mortrem\'s Spotify page.')
+									$elm$html$Html$Attributes$src(imgData.src),
+									$elm$html$Html$Attributes$alt(imgData.alt),
+									$elm$html$Html$Attributes$class('max-h-[85vh] max-w-[90vw] rounded-xl shadow-2xl'),
+									stopClick
 								]),
-							_List_Nil)
-						])),
+							_List_Nil);
+					} else {
+						var yt = media.a;
+						return A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('w-[90vw] max-w-4xl aspect-video'),
+									stopClick
+								]),
+							_List_fromArray(
+								[
+									A3(
+									$elm$html$Html$node,
+									'iframe',
+									_List_fromArray(
+										[
+											A2(
+											$elm$html$Html$Attributes$attribute,
+											'src',
+											$author$project$Main$youtubeEmbedUrl(yt.youtubeId)),
+											A2($elm$html$Html$Attributes$attribute, 'title', yt.title),
+											$elm$html$Html$Attributes$class('w-full h-full rounded-xl'),
+											A2($elm$html$Html$Attributes$attribute, 'frameborder', '0'),
+											A2($elm$html$Html$Attributes$attribute, 'allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'),
+											A2($elm$html$Html$Attributes$attribute, 'allowfullscreen', ''),
+											A2($elm$html$Html$Attributes$attribute, 'referrerpolicy', 'strict-origin-when-cross-origin')
+										]),
+									_List_Nil)
+								]));
+					}
+				}(),
 					A2(
-					$elm$html$Html$a,
+					$elm$html$Html$button,
 					_List_fromArray(
 						[
-							$elm$html$Html$Attributes$href('https://music.apple.com/ca/artist/mortrem/1723532370'),
-							$elm$html$Html$Attributes$target('_blank')
+							$elm$html$Html$Attributes$class('absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 ring-1 ring-white/25 text-white text-2xl leading-none'),
+							$elm$html$Html$Events$onClick($author$project$Types$CloseLightbox),
+							stopClick
 						]),
 					_List_fromArray(
 						[
-							A2(
-							$elm$html$Html$img,
-							_List_fromArray(
-								[
-									$elm$html$Html$Attributes$src('images/apple-music-logo.png'),
-									$elm$html$Html$Attributes$class('max-w-14 md:max-w-28'),
-									$elm$html$Html$Attributes$alt('Apple Music logo. Clicking this takes you to Mortrem\'s Apple Music page.')
-								]),
-							_List_Nil)
-						])),
-					A2(
-					$elm$html$Html$a,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$href('https://www.youtube.com/channel/UCLaZTiER4UOVGzsCV50tbfA'),
-							$elm$html$Html$Attributes$target('_blank')
-						]),
-					_List_fromArray(
-						[
-							A2(
-							$elm$html$Html$img,
-							_List_fromArray(
-								[
-									$elm$html$Html$Attributes$src('images/youtube-logo.png'),
-									$elm$html$Html$Attributes$class('max-w-18 md:max-w-32'),
-									$elm$html$Html$Attributes$alt('Youtube logo. Clicking this takes you to Mortrem\'s Youtube page.')
-								]),
-							_List_Nil)
+							$elm$html$Html$text('×')
 						]))
-				]))
-		]));
+				]));
+	}
+};
+var $author$project$Main$testimonialCard = function (t) {
+	var zone = $elm$time$Time$utc;
+	var timeStr = A2($author$project$Utils$formatTimeLocalHHMM, zone, t.quotedAt);
+	var thumbFor = function (media) {
+		if (media.$ === 'LbImage') {
+			var i = media.a;
+			return {alt: i.alt, url: i.src};
+		} else {
+			var mv = media.a;
+			return {
+				alt: mv.title,
+				url: $author$project$Main$youtubeThumb(mv)
+			};
+		}
+	};
+	var thumb = thumbFor(t.media);
+	var dateStr = A2($author$project$Utils$formatDateLocal, zone, t.quotedAt);
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('flex-none w-72 sm:w-80 md:w-96 rounded-2xl bg-slate-900/60 ring-1 ring-white/10 shadow-xl overflow-hidden')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$button,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('block relative w-full h-24 sm:h-32 md:h-40 overflow-hidden'),
+						$elm$html$Html$Events$onClick(
+						$author$project$Types$OpenLightbox(t.media))
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$img,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$src(thumb.url),
+								$elm$html$Html$Attributes$alt(thumb.alt),
+								$elm$html$Html$Attributes$class('absolute inset-0 w-full h-full object-cover transform hover:scale-[1.03] transition')
+							]),
+						_List_Nil)
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('p-4 flex flex-col gap-2')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$p,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('text-sm leading-relaxed text-white/90')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('“' + (t.quote + '”'))
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('flex items-center justify-between text-xs text-white/60')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$span,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text(t.author)
+									])),
+								A2(
+								$elm$html$Html$span,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text(dateStr + (' · ' + timeStr))
+									]))
+							]))
+					]))
+			]));
+};
+var $author$project$Main$testimonialsPanel = function (model) {
+	var cards = A2($elm$core$List$map, $author$project$Main$testimonialCard, model.testimonials);
+	var track = _Utils_ap(cards, cards);
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$id('testimonials'),
+				$elm$html$Html$Attributes$class('py-8 md:py-16 lg:px-16 xl:px-32 text-white')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$h1,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('text-lg md:text-xl font-bold mb-4 md:mb-6')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Testimonials')
+					])),
+				$author$project$Main$globalStyles,
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('relative overflow-hidden')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('pointer-events-none absolute inset-y-0 left-0 w-12 z-10'),
+								A2($elm$html$Html$Attributes$style, 'background', 'linear-gradient(90deg, rgba(0,0,0,1), rgba(0,0,0,0))')
+							]),
+						_List_Nil),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('pointer-events-none absolute inset-y-0 right-0 w-12 z-10'),
+								A2($elm$html$Html$Attributes$style, 'background', 'linear-gradient(270deg, rgba(0,0,0,1), rgba(0,0,0,0))')
+							]),
+						_List_Nil),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class(
+								A2(
+									$elm$core$String$join,
+									' ',
+									_List_fromArray(
+										['flex gap-4 items-stretch will-change-transform', 'min-w-max', 'animate-testimonials'])))
+							]),
+						track)
+					])),
+				$author$project$Main$lightboxView(model)
+			]));
+};
 var $author$project$Main$videoBanner = function (title) {
 	return A2(
 		$elm$html$Html$div,
@@ -10748,7 +12159,7 @@ var $author$project$Main$videoBanner = function (title) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('relative z-20 flex items-center justify-center h-full font-serif text-8xl breathe')
+						$elm$html$Html$Attributes$class('relative z-20 flex items-center justify-center h-full font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl breathe')
 					]),
 				_List_fromArray(
 					[
@@ -10807,7 +12218,6 @@ var $author$project$Main$view = function (model) {
 					[
 						$author$project$Main$discographyPanel(model),
 						$author$project$Main$musicVideosPanel(model),
-						$author$project$Main$streamingServicesPanel,
 						$author$project$Main$videoSwitchMarker2
 					])),
 				$author$project$Main$videoBanner('Performance Metrics'),
@@ -10818,6 +12228,7 @@ var $author$project$Main$view = function (model) {
 					[
 						$author$project$Main$performanceHistoryPanel(model),
 						$author$project$Main$statisticsPanel(model),
+						$author$project$Main$testimonialsPanel(model),
 						$author$project$Main$videoSwitchMarker3
 					])),
 				$author$project$Main$videoBanner('Gallery'),

@@ -36,3 +36,14 @@ body {
   width: 0 !important;
   height: 0 !important;
 }
+
+@keyframes testimonials-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); } /* because we duplicated the cards */
+}
+
+.animate-testimonials {
+  animation: testimonials-scroll 60s linear infinite;
+}
+
+.animate-testimonials:hover { animation-play-state: paused; }

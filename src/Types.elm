@@ -66,6 +66,18 @@ type alias Performance =
     , hide : Bool
     }
 
+type alias Testimonial =
+    { id : Int
+    , media : LightboxContent
+    , quote : String
+    , author : String
+    , quotedAt : DateTime
+    }
+
+type LightboxContent
+    = LbImage { src: String, alt : String }
+    | LbYoutube YoutubeVideo
+
 type alias YoutubeVideo =
     { title : String
     , youtubeId : String
@@ -99,9 +111,12 @@ type alias Model =
     , videoMarkers : List ( String, Float )
     , activeBgIndex : Int
     , debugMarkers : Bool
+    , now : Time.Posix
     , zone : Zone
     , visiblePerfCount : Int
     , expandedPerf : Set Int
+    , testimonials : List Testimonial
+    , lightbox : Maybe LightboxContent
     }
 
 type Msg
@@ -136,3 +151,7 @@ type Msg
     | TogglePerformance Int
     | LoadMorePerformances
     | GotZone Time.Zone
+    | GotNow Time.Posix
+    | OpenLightbox LightboxContent
+    | CloseLightbox
+    | NoOp
