@@ -9,21 +9,17 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # Map DO Spaces secrets -> AWS env vars the CLI expects
       AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_ACCESS_KEY_SECRET }}
-      AWS_DEFAULT_REGION: us-east-1            # any value is fine for Spaces
-      AWS_EC2_METADATA_DISABLED: "true"        # skip IMDS lookup
-      SPACES_ENDPOINT: https://nyc3.digitaloceanspaces.com
-      SPACES_BUCKET: mortrem-epk
+      AWS_EC2_METADATA_DISABLED: "true"
+      SPACES_REGION: ${{ secrets.SPACES_REGION }}
+      SPACES_BUCKET: ${{ secrets.SPACES_BUCKET }}
+      SPACES_ENDPOINT: ${{ secrets.SPACES_ENDPOINT }}
+      SPACES_CDN_BASE: ${{ secrets.SPACES_CDN_BASE }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Verify creds are present
-        run: |
-          test -n "$AWS_ACCESS_KEY_ID" && echo "AWS_ACCESS_KEY_ID=*** set" || (echo "Missing AWS_ACCESS_KEY_ID" && exit 1)
-          test -n "$AWS_SECRET_ACCESS_KEY" && echo "AWS_SECRET_ACCESS_KEY=*** set" || (echo "Missing AWS_SECRET_ACCESS_KEY" && exit 1)
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
