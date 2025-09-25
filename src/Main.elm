@@ -980,18 +980,18 @@ bioPanel model =
     div [ id "bio", class "flex flex-col pt-12 pb-16 lg:px-16 xl:px-32" ] -- Added padding for smaller screens
         [ div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
               [ div [ class "lg:w-2/5" ]
-                  [ img [ src "images/zak-charlie-fourleaf.png", alt "test", class "w-full h-full object-cover" ] [] ]
+                  [ img [ src "assets/images/zak-charlie-fourleaf.png", alt "test", class "w-full h-full object-cover" ] [] ]
               , div [ class "lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText1 ]
               ]
         , div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
               [ div [ class "lg:w-3/5 text-white text-md leading-relaxed hidden lg:block" ] [ text bioText2 ]
               , div [ class "lg:w-2/5" ]
-                  [ img [ src "images/mortrem-profile.jpg", alt "test", class "w-full h-full object-cover" ] [] ]
+                  [ img [ src "assets/images/mortrem-profile.jpg", alt "test", class "w-full h-full object-cover" ] [] ]
               , div [ class "text-white text-md leading-relaxed visible lg:hidden" ] [ text bioText2 ]
               ]
         , div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
               [ div [ class "lg:w-2/5" ]
-                  [ img [ src "images/mortrem-profile.jpg", alt "test", class "w-full h-full object-cover" ] [] ]
+                  [ img [ src "assets/images/mortrem-profile.jpg", alt "test", class "w-full h-full object-cover" ] [] ]
               , div [ class "lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText3 ]
               ]
         ]
