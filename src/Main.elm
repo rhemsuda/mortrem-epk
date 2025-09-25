@@ -55,9 +55,9 @@ barsCount = 10
 -- MODEL
 songs : List Song
 songs =
-    [ { title = "Kingdom Come", src = "/audio/mortrem-kingdom-come.mp3", duration = 120, released = False, artwork = Nothing }
-    , { title = "Nonfiction", src = "/audio/mortrem-nonfiction.mp3", duration = 130, released = True, artwork = Just "/images/coverart/mortrem-nonfiction.png" }
-    , { title = "Vanity Box", src = "/audio/mortrem-vanitybox.mp3", duration = 100, released = False, artwork = Nothing }
+    [ { title = "Kingdom Come", src = "assets/audio/mortrem-kingdom-come.mp3", duration = 120, released = False, artwork = Nothing }
+    , { title = "Nonfiction", src = "assets/audio/mortrem-nonfiction.mp3", duration = 130, released = True, artwork = Just "assets/images/coverart/mortrem-nonfiction.png" }
+    , { title = "Vanity Box", src = "assets/audio/mortrem-vanitybox.mp3", duration = 100, released = False, artwork = Nothing }
     ]
 
 musicVideos : List YoutubeVideo
@@ -82,13 +82,13 @@ whyBookMortremText = "- We bring a unique sound and energy that keeps crowds eng
 
 galleryImages : List GalleryImage
 galleryImages =
-    [ { colSpan = 4, rowSpan = 6, image = { src = "/images/gallery/samuel-george-lees.png", alt = "Samuel George. Lead Singer. Walking on stage in red light." } }
-    , { colSpan = 4, rowSpan = 4, image = { src = "/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
-    , { colSpan = 4, rowSpan = 4, image = { src = "/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
-    , { colSpan = 6, rowSpan = 4, image = { src = "/images/gallery/kyle-jensen-lees.png", alt = "Kyle Jensen. Guitar & Vocals. Playing guitar and singing with a blue light." } }
-    , { colSpan = 4, rowSpan = 6, image = { src = "/images/gallery/sammy-romeo-lees.png", alt = "Sammy Romeo. Drums. Playing drums on stage." } }
-    , { colSpan = 4, rowSpan = 6, image = { src = "/images/gallery/zak-stulla-lees.png", alt = "Zak Stulla. Bass Guitar. Holding a black bass guitar." } }
-    , { colSpan = 4, rowSpan = 4, image = { src = "/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+    [ { colSpan = 4, rowSpan = 6, image = { src = "assets/images/gallery/samuel-george-lees.png", alt = "Samuel George. Lead Singer. Walking on stage in red light." } }
+    , { colSpan = 4, rowSpan = 4, image = { src = "assets/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+    , { colSpan = 4, rowSpan = 4, image = { src = "assets/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+    , { colSpan = 6, rowSpan = 4, image = { src = "assets/images/gallery/kyle-jensen-lees.png", alt = "Kyle Jensen. Guitar & Vocals. Playing guitar and singing with a blue light." } }
+    , { colSpan = 4, rowSpan = 6, image = { src = "assets/images/gallery/sammy-romeo-lees.png", alt = "Sammy Romeo. Drums. Playing drums on stage." } }
+    , { colSpan = 4, rowSpan = 6, image = { src = "assets/images/gallery/zak-stulla-lees.png", alt = "Zak Stulla. Bass Guitar. Holding a black bass guitar." } }
+    , { colSpan = 4, rowSpan = 4, image = { src = "assets/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
     ]
 
 
@@ -119,13 +119,13 @@ testimonials =
       , quotedAt = fromPosix (Time.millisToPosix 1735190400000)
       }
     , { id = 2
-      , media = LbImage { src = "/images/testimonials/whiskey-pit.jpg", alt = "Joe in the crowd" }
+      , media = LbImage { src = "assets/images/testimonials/whiskey-pit.jpg", alt = "Joe in the crowd" }
       , quote = "Professional and punctual. Easy to work with and they deliver."
       , author = "Shelly – The Casbah"
       , quotedAt = fromPosix (Time.millisToPosix 1727481600000) -- 2024-09-28
       }
     , { id = 3
-      , media = LbImage { src = "/images/testimonials/whiskey-pit.jpg", alt = "Joe in the crowd" }
+      , media = LbImage { src = "assets/images/testimonials/whiskey-pit.jpg", alt = "Joe in the crowd" }
       , quote = "Crowd loved them. We want them back."
       , author = "AJ – Sneaky Dee’s"
       , quotedAt = fromPosix (Time.millisToPosix 1731196800000) -- 2024-11-10
@@ -631,7 +631,7 @@ discographyPanel model =
         artSrc =
             case currentSong.artwork of
                 Just url -> url
-                Nothing -> "images/coverart/default.png"
+                Nothing -> "assets/images/coverart/default.png"
 
         artistName = "Mortrem" -- change if you store artist elsewhere
 
@@ -767,7 +767,7 @@ streamingServicesPanel =
               , target "_blank"
               ]
               [ img
-                    [ src "images/spotify-logo.png"
+                    [ src "assets/images/spotify-logo.png"
                     , class "max-w-18 md:max-w-32"
                     , alt "Spotify logo. Clicking this takes you to Mortrem's Spotify page."
                     ]
@@ -778,7 +778,7 @@ streamingServicesPanel =
               , target "_blank"
               ]
               [ img
-                    [ src "images/apple-music-logo.png"
+                    [ src "assets/images/apple-music-logo.png"
                     , class "max-w-14 md:max-w-28"
                     , alt "Apple Music logo. Clicking this takes you to Mortrem's Apple Music page."
                     ]
@@ -789,7 +789,7 @@ streamingServicesPanel =
               , target "_blank"
               ]
               [ img
-                    [ src "images/youtube-logo.png"
+                    [ src "assets/images/youtube-logo.png"
                     , class "max-w-18 md:max-w-32"
                     , alt "Youtube logo. Clicking this takes you to Mortrem's Youtube page."
                     ]
@@ -1180,11 +1180,6 @@ lineupPositionToString pos =
         Headline -> "Headline"
 
 
--- Minimal, dependency-free formatter while you're iterating.
--- Swap this later for a nicer formatter if you like.
-formatDateTime : DateTime -> String
-formatDateTime dt =
-    Debug.toString dt
 
 
 -- Venue cell with hover info panel

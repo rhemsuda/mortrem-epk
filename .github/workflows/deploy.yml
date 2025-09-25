@@ -1,0 +1,57 @@
+name: Deploy EPK to DigitalOcean Spaces (CDN)
+
+on:
+  push:
+    branches: [ master, main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET }}
+      AWS_EC2_METADATA_DISABLED: "true"
+      SPACES_REGION: ${{ secrets.SPACES_REGION }}
+      SPACES_BUCKET: ${{ secrets.SPACES_BUCKET }}
+      SPACES_ENDPOINT: ${{ secrets.SPACES_ENDPOINT }}
+      SPACES_CDN_BASE: ${{ secrets.SPACES_CDN_BASE }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install elm
+        run: |
+          npm i -g elm@0.19.1-5
+      - name: Build
+        run: |
+          rm -rf dist && mkdir -p dist
+          elm make src/Main.elm --optimize --output=dist/elm.js
+          cp -r public/* dist/
+          if [ -d assets ]; then cp -r assets dist/assets; fi
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y awscli
+      - name: Upload HTML (no-cache)
+        run: |
+          aws s3 sync dist s3://${SPACES_BUCKET}/ \
+            --endpoint-url ${SPACES_ENDPOINT} \
+            --acl public-read \
+            --delete \
+            --exclude "*" \
+            --include "*.html" \
+            --cache-control "no-cache, no-store, must-revalidate"
+      - name: Upload HTML (long cache)
+        run: |
+          aws s3 sync dist s3://${SPACES_BUCKET}/ \
+            --endpoint-url ${SPACES_ENDPOINT} \
+            --acl public-read \
+            --delete \
+            --exclude "*" \
+            --include "*.html" \
+            --cache-control "public, max-age=31536000, immutable"
