@@ -547,7 +547,7 @@ topDownBlackGradientSpan =
 
 albumArtwork : Song -> String
 albumArtwork song =
-    Maybe.withDefault "images/coverart/default.png" song.artwork
+    Maybe.withDefault "assets/images/coverart/default.png" song.artwork
 
 
 heroBannerContent : Float -> Html Msg
@@ -562,7 +562,7 @@ heroBannerContent scrollY =
         ]
         [ div [ class "relative z-20 flex items-center justify-center h-full" ]
               [ img
-                    [ src "images/Mortrem-logo-white-transparent.png"
+                    [ src "assets/images/Mortrem-logo-white-transparent.png"
                     , alt "Mortrem Logo"
                     , class "w-[60%] transition-transform duration-100"
                     , style "transform" ("scale(" ++ String.fromFloat scale ++ ")")
