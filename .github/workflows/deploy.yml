@@ -39,8 +39,7 @@ jobs:
             --endpoint-url ${SPACES_ENDPOINT} \
             --acl public-read \
             --delete \
-            --exclude "*" \
-            --include "*.html" \
+            --include "*" \
             --cache-control "no-cache, no-store, must-revalidate"
       - name: Upload HTML (long cache)
         run: |
@@ -48,6 +47,5 @@ jobs:
             --endpoint-url ${SPACES_ENDPOINT} \
             --acl public-read \
             --delete \
-            --exclude "*" \
-            --include "*.html" \
+            --include "*" \
             --cache-control "public, max-age=31536000, immutable"
