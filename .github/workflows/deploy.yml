@@ -10,8 +10,8 @@ jobs:
 
     env:
       # Map DO Spaces secrets -> AWS env vars the CLI expects
-      AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_KEY }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_ACCESS_KEY_SECRET }}
       AWS_DEFAULT_REGION: us-east-1            # any value is fine for Spaces
       AWS_EC2_METADATA_DISABLED: "true"        # skip IMDS lookup
       SPACES_ENDPOINT: https://nyc3.digitaloceanspaces.com
