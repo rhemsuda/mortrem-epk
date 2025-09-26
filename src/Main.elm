@@ -983,15 +983,15 @@ videoSwitchMarker3 =
 
 contentPanel : Model -> List (Html Msg) -> Html Msg
 contentPanel model children =
-    div [ class "bg-black w-full px-8 sm:px-12 md:px-18 lg:px-26" ]
-        [ div [ class "mx-auto max-w-[80rem]" ]
+    div [ class "bg-black w-full px-12 sm:px-16 md:px-24" ]
+        [ div [ class "mx-auto max-w-[60rem]" ]
               children
         ]
 
 
 bioPanel : Model -> Html Msg
 bioPanel model =
-    div [ id "bio", class "flex flex-col pt-12 pb-16 lg:px-16 xl:px-32" ] -- Added padding for smaller screens
+    div [ id "bio", class "flex flex-col pt-12 pb-16" ] -- Added padding for smaller screens
         [ div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
               [ div [ class "lg:w-2/5" ]
                   [ img [ src "assets/images/zak-charlie-fourleaf.png", alt "test", class "w-full h-full object-cover" ] [] ]
