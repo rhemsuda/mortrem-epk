@@ -40,8 +40,6 @@ port onScroll : (Float -> msg) -> Sub msg
 port frequencyData : (List Float -> msg) -> Sub msg
 port drawWaveform : List Float -> Cmd msg
 port setActiveBg : Int -> Cmd msg
---port changeVideo : String -> Cmd msg
---port videoSwitch : (Bool -> msg) -> Sub msg
 port scrollToId : String -> Cmd msg
 port setBodyScroll : Bool -> Cmd msg
 port scrollReel : (String, Int) -> Cmd msg
@@ -100,7 +98,7 @@ performances =
     , { datetime = fromPosix (Time.millisToPosix 1731121200000), venue = venue_tailOfTheJunction, totalDraw = 18, ourDraw = 11, organicDraw = 0, newFollowers = 1, merchSales = 10.0, ticketPrice = 15.0, position = Headline, durationMinutes = 30, hide = False }
     , { datetime = fromPosix (Time.millisToPosix 1735357500000), venue = venue_jimmyJazz, totalDraw = 43, ourDraw = 14, organicDraw = 0, newFollowers = 8, merchSales = 40.0, ticketPrice = 0.0, position = Support, durationMinutes = 40, hide = False }
     , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_theUnion, totalDraw = 26, ourDraw = 13, organicDraw = 0, newFollowers = 3, merchSales = 0.0, ticketPrice = 15.0, position = Headline, durationMinutes = 30, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_leesPalace, totalDraw = 47, ourDraw = 19, organicDraw = 0, newFollowers = 6, merchSales = 0.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_leesPalace, totalDraw = 63, ourDraw = 27, organicDraw = 4, newFollowers = 6, merchSales = 0.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, hide = False }
     , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_theUnion, totalDraw = 33, ourDraw = 16, organicDraw = 0, newFollowers = 2, merchSales = 0.0, ticketPrice = 15.0, position = Open, durationMinutes = 30, hide = False }
     , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_sneakyDees, totalDraw = 67, ourDraw = 17, organicDraw = 3, newFollowers = 12, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, hide = False }
     , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_absinthe, totalDraw = 42, ourDraw = 13, organicDraw = 1, newFollowers = 4, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 40, hide = False }
@@ -925,7 +923,7 @@ navbar model =
             "data-[ready=true]:transition-transform data-[ready=true]:duration-300 data-[ready=true]:ease-in-out ")
         ]
         [ div [ class "h-16 bg-black text-white flex items-center justify-center relative" ]
-            [ img [ src "images/Mortrem-logo-white-transparent.png", alt "Mortrem Logo", class "h-12" ] []
+            [ img [ src "assets/images/Mortrem-logo-white-transparent.png", alt "Mortrem Logo", class "h-12" ] []
             , button
                 [ class "absolute right-4 top-1/2 -translate-y-1/2 py-1 px-2.5 rounded-md border border-black bg-white/10 hover:bg-white/15 shadow-md"
                 , onClick ToggleMenu
