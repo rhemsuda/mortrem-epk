@@ -78,6 +78,12 @@ type LightboxContent
     = LbImage { src: String, alt : String }
     | LbYoutube YoutubeVideo
 
+type alias LightboxDetails =
+    { media : LightboxContent
+    , caption : Maybe String
+    , extraText : Maybe String
+    }
+
 type alias YoutubeVideo =
     { title : String
     , youtubeId : String
@@ -116,7 +122,8 @@ type alias Model =
     , visiblePerfCount : Int
     , expandedPerf : Set Int
     , testimonials : List Testimonial
-    , lightbox : Maybe LightboxContent
+    , lightbox : Maybe LightboxDetails
+    , draggingTestimonials : Maybe { startX : Float, startScrollX : Float }
     }
 
 type Msg
@@ -152,6 +159,10 @@ type Msg
     | LoadMorePerformances
     | GotZone Time.Zone
     | GotNow Time.Posix
-    | OpenLightbox LightboxContent
+    | OpenLightbox LightboxDetails
     | CloseLightbox
     | NoOp
+    | BeginTestimonialsDrag Float
+    | GotTestimonialsDragStart Float (Result Dom.Error Dom.Viewport)
+    | MoveTestimonialsDrag Float
+    | EndTestimonialsDrag

@@ -10,7 +10,7 @@ import Task
 
 import Html exposing (Html, div, span, h1, h2, h3, p, text, img, i, audio, canvas, button, table, thead, tbody, tr, th, td, a, input, small, textarea, li, ul, hr)
 import Html.Attributes exposing (class, style, src, alt, id, href, target, width, height, preload, title, attribute)
-import Html.Events exposing (on, onClick, onInput, onSubmit, stopPropagationOn)
+import Html.Events exposing (on, onClick, onInput, onSubmit, stopPropagationOn, preventDefaultOn)
 import DateTime exposing (fromPosix)
 
 import Constants exposing (..)
@@ -161,6 +161,7 @@ init _ =
       , now = Time.millisToPosix 0
       , testimonials = testimonials
       , lightbox = Nothing
+      , draggingTestimonials = Nothing
       }
     , Cmd.batch
           [ Task.attempt GotViewport Dom.getViewport  -- sync scroll and height now
@@ -181,7 +182,7 @@ view model =
         , heroBannerContent model.scrollY
         , navbarMarker
 
-        , contentPanel model [ socialMediaLinks, bioPanel model, videoSwitchMarker1 ]
+        , contentPanel model [ bioPanel model, videoSwitchMarker1 ]
 
         , videoBanner "Music & Videos" -- TODO: This video should be candid closeup video of the band working on writing
 
@@ -208,10 +209,39 @@ update msg model =
     in
     case msg of
         OnScroll y -> OnScroll.handle y model setActiveBg
-        OpenLightbox media ->
-            ( { model | lightbox = Just media }, setBodyScroll True )
+        OpenLightbox payload ->
+            ( { model | lightbox = Just payload }, setBodyScroll True )
         CloseLightbox ->
             ( { model | lightbox = Nothing }, setBodyScroll False )
+
+        BeginTestimonialsDrag startX ->
+            ( model
+            , Dom.getViewportOf "testimonial-reel"
+                |> Task.attempt (GotTestimonialsDragStart startX)
+            )
+
+        GotTestimonialsDragStart startX (Ok vp) ->
+            ( { model | draggingTestimonials = Just { startX = startX, startScrollX = vp.viewport.x } }
+            , Cmd.none
+            )
+        GotTestimonialsDragStart _ (Err _) ->
+            ( model, Cmd.none )
+        MoveTestimonialsDrag x ->
+            case model.draggingTestimonials of
+                Just drag ->
+                    let
+                        dx = x - drag.startX
+                        newScroll = drag.startScrollX - dx
+                    in
+                        ( model
+                        , Dom.setViewportOf "testimonial-reel" newScroll 0
+                        |> Task.attempt (\_ -> NoOp)
+                        )
+
+                Nothing ->
+                    ( model, Cmd.none )
+        EndTestimonialsDrag ->
+            ( { model | draggingTestimonials = Nothing }, Cmd.none )
         GotViewport (Ok vp) ->
             let
                 w = vp.viewport.width
@@ -941,7 +971,7 @@ mobileSidePanel model =
     let
         panelClasses =
             "fixed left-0 top-16 h-[calc(100vh-4rem)] z-[900] w-full " ++
-            "transform  will-change-transform " ++
+            "transform will-change-transform " ++
             "backdrop-blur-xl backdrop-saturate-150 bg-black/95 " ++
             "ring-1 ring-white/10 shadow-2xl text-white overflow-y-auto no-scrollbar " ++
             "data-[ready=true]:transition-transform data-[ready=true]:duration-300"
@@ -961,6 +991,9 @@ mobileSidePanel model =
                 , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "gallery") ] [ text "Gallery" ]
                 ]
             ]
+            , div [ class "space-y-2 text-white" ]
+              [ socialMediaLinks
+              ]
         ]
 
 
@@ -983,7 +1016,7 @@ videoSwitchMarker3 =
 
 contentPanel : Model -> List (Html Msg) -> Html Msg
 contentPanel model children =
-    div [ class "bg-black w-full px-12 sm:px-16 md:px-24" ]
+    div [ class "bg-black w-full px-8 sm:px-16 md:px-24" ]
         [ div [ class "mx-auto max-w-[60rem]" ]
               children
         ]
@@ -994,7 +1027,8 @@ bioPanel model =
     div [ id "bio", class "flex flex-col pt-12 pb-16" ] -- Added padding for smaller screens
         [ div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
               [ div [ class "lg:w-2/5" ]
-                  [ img [ src "assets/images/zak-charlie-fourleaf.png", alt "test", class "w-full h-full object-cover" ] [] ]
+                    [ clickableImage { src = "assets/images/zak-charlie-fourleaf.png", alt = "test", caption = Nothing, extraText = Nothing, classes = "w-full h-full object-cover" } ]
+                  --[ img [ src "assets/images/zak-charlie-fourleaf.png", alt "test", class "w-full h-full object-cover" ] [] ]
               , div [ class "lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText1 ]
               ]
         , div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
@@ -1315,33 +1349,51 @@ statisticsPanel model =
 testimonialsPanel : Model -> Html Msg
 testimonialsPanel model =
     let
+        -- you can keep duplication if you want a very long reel; not required for drag
         cards =
-            model.testimonials |> List.map testimonialCard
+            model.testimonials |> List.map (testimonialCard model)
 
         track =
-            cards ++ cards  -- duplicate for seamless loop
+            cards ++ cards  -- optional; remove if you don't need extra-long reel
     in
     div [ id "testimonials", class "py-8 md:py-16 lg:px-16 xl:px-32 text-white" ]
         [ h1 [ class "text-lg md:text-xl font-bold mb-4 md:mb-6" ] [ text "Testimonials" ]
 
-        , -- inject the keyframes/class once
-          globalStyles
+        , globalStyles  -- fine to keep; animation class below is removed
 
         , div [ class "relative overflow-hidden" ]
-            [ -- edge fades (optional)
-              div [ class "pointer-events-none absolute inset-y-0 left-0 w-12 z-10", style "background" "linear-gradient(90deg, rgba(0,0,0,1), rgba(0,0,0,0))" ] []
-            , div [ class "pointer-events-none absolute inset-y-0 right-0 w-12 z-10", style "background" "linear-gradient(270deg, rgba(0,0,0,1), rgba(0,0,0,0))" ] []
-
-            , div
-                [ class
-                    (String.join " "
-                        [ "flex gap-4 items-stretch will-change-transform"
-                        , "min-w-max"              -- <- track won’t shrink
-                        , "animate-testimonials"   -- <- now defined
-                        ]
-                    )
+            [ -- left/right fades stay above the reel
+              div
+                [ class "pointer-events-none absolute inset-y-0 left-0 w-12 z-10"
+                , style "background" "linear-gradient(90deg, rgba(0,0,0,1), rgba(0,0,0,0))"
                 ]
-                track
+                []
+            , div
+                [ class "pointer-events-none absolute inset-y-0 right-0 w-12 z-10"
+                , style "background" "linear-gradient(270deg, rgba(0,0,0,1), rgba(0,0,0,0))"
+                ]
+                []
+
+              -- ↓↓↓ REPLACE YOUR OLD “track with animate-testimonials” WITH THIS SCROLLER ↓↓↓
+            , div
+                [ id "testimonial-reel"
+                , class "overflow-x-auto no-scrollbar select-none cursor-grab active:cursor-grabbing"
+                , preventDefaultOn "pointerdown"
+                    (Decode.map (\x -> ( BeginTestimonialsDrag x, True ))
+                        (Decode.field "clientX" Decode.float)
+                    )
+                , on "pointermove" (Decode.map MoveTestimonialsDrag (Decode.field "clientX" Decode.float))
+                , on "pointerup" (Decode.succeed EndTestimonialsDrag)
+                , on "pointerleave" (Decode.succeed EndTestimonialsDrag)
+                ]
+                [ -- the inner track: flex row, won’t shrink
+                  div
+                    [ class "flex gap-4 items-stretch min-w-max"
+                      -- NOTE: no 'animate-testimonials' here
+                    ]
+                    track
+                ]
+              -- ↑↑↑ END REPLACEMENT ↑↑↑
             ]
         , lightboxView model
         ]
@@ -1361,40 +1413,68 @@ globalStyles =
 }
 """ ]
 
-testimonialCard : Testimonial -> Html Msg
-testimonialCard t =
+testimonialCard : Model -> Testimonial -> Html Msg
+testimonialCard model t =
     let
-        dateStr = formatDateLocal zone t.quotedAt   -- uses your Utils helpers
-        timeStr = formatTimeLocalHHMM zone t.quotedAt
-        zone = Time.utc  -- replaced at runtime when you lift this into Main with model.zone
-        thumbFor media =
-            case media of
-                LbImage i ->
-                    { url = i.src, alt = i.alt }
-                LbYoutube mv ->
-                    { url = youtubeThumb mv, alt = mv.title }
-        thumb = thumbFor t.media
+        thumb =
+            case t.media of
+                LbImage i -> { url = i.src, alt = i.alt }
+                LbYoutube mv -> { url = youtubeThumb mv, alt = mv.title }
+
+        -- full text for the lightbox (you can style/format more richly if you want)
+        fullText =
+            let
+                dateStr = formatDateLocal model.zone t.quotedAt
+                timeStr = formatTimeLocalHHMM model.zone t.quotedAt
+                meta = "— " ++ t.author ++ " • " ++ dateStr ++ " " ++ timeStr
+            in
+            t.quote ++ "\n\n" ++ meta
+
+        openLb payload =
+            OpenLightbox payload
     in
-    div
-        [ class "flex-none w-72 sm:w-80 md:w-96 rounded-2xl bg-slate-900/60 ring-1 ring-white/10 shadow-xl overflow-hidden" ]
-        [ -- image button
+    div [ class "min-w-[18rem] max-w-[22rem] rounded-2xl bg-slate-900/60 ring-1 ring-white/10 text-white shadow-xl overflow-hidden" ]
+        [ -- media thumb (click -> lightbox)
           button
-            [ class "block relative w-full h-24 sm:h-32 md:h-40 overflow-hidden"
-            , onClick (OpenLightbox t.media)
+            [ class "block relative w-full"
+            , onClick <|
+                openLb
+                    { media = t.media
+                    , caption = Just t.author
+                    , extraText = Just fullText
+                    }
             ]
             [ img
                 [ src thumb.url
                 , alt thumb.alt
-                , class "absolute inset-0 w-full h-full object-cover transform hover:scale-[1.03] transition"
+                , class "w-full h-48 md:h-56 object-cover transition hover:opacity-90"
                 ]
                 []
             ]
-        , -- body
-          div [ class "p-4 flex flex-col gap-2" ]
-            [ p [ class "text-sm leading-relaxed text-white/90" ] [ text ("“" ++ t.quote ++ "”") ]
-            , div [ class "flex items-center justify-between text-xs text-white/60" ]
-                [ span [] [ text t.author ]
-                , span [] [ text (dateStr ++ " · " ++ timeStr) ]
+        , -- quote (preview: 5 lines)
+          button
+            [ class "block text-left p-3 w-full"
+            , onClick <|
+                openLb
+                    { media = t.media
+                    , caption = Just t.author
+                    , extraText = Just fullText
+                    }
+            ]
+            [ p
+                [ class "text-sm leading-relaxed"
+                , style "display" "-webkit-box"
+                , style "-webkit-line-clamp" "5"
+                , style "-webkit-box-orient" "vertical"
+                , style "overflow" "hidden"
+                ]
+                [ text t.quote ]
+            , div [ class "mt-2 text-xs text-white/60" ]
+                [ let
+                    dateStr = formatDateLocal model.zone t.quotedAt
+                    timeStr = formatTimeLocalHHMM model.zone t.quotedAt
+                  in
+                  text (dateStr ++ " " ++ timeStr)
                 ]
             ]
         ]
@@ -1405,41 +1485,65 @@ lightboxView model =
         Nothing ->
             text ""
 
-        Just media ->
+        Just lb ->
             let
                 stopClick : Html.Attribute Msg
                 stopClick =
                     stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
-            in
-            div
-                [ class "fixed inset-0 z-[2000] bg-black/80 p-4"
-                , class "flex items-center justify-center"
-                , onClick CloseLightbox
-                ]
-                [ -- content
-                  case media of
-                    LbImage imgData ->
-                        img
-                            [ src imgData.src
-                            , alt imgData.alt
-                            , class "max-h-[85vh] max-w-[90vw] rounded-xl shadow-2xl"
-                            , stopClick
-                            ]
-                            []
 
-                    LbYoutube yt ->
-                        div [ class "w-[90vw] max-w-4xl aspect-video", stopClick ]
-                            [ Html.node "iframe"
-                                [ attribute "src" (youtubeEmbedUrl yt.youtubeId)
-                                , attribute "title" yt.title
-                                , class "w-full h-full rounded-xl"
-                                , attribute "frameborder" "0"
-                                , attribute "allow" "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                , attribute "allowfullscreen" ""
-                                , attribute "referrerpolicy" "strict-origin-when-cross-origin"
+                mediaView =
+                    case lb.media of
+                        LbImage imgData ->
+                            img
+                                [ src imgData.src
+                                , alt imgData.alt
+                                , class "w-full max-h-[70vh] object-contain rounded-xl"
+                                , stopClick
                                 ]
                                 []
-                            ]
+
+                        LbYoutube yt ->
+                            div [ class "w-full aspect-video", stopClick ]
+                                [ Html.node "iframe"
+                                    [ attribute "src" (youtubeEmbedUrl yt.youtubeId)
+                                    , attribute "title" yt.title
+                                    , class "w-full h-full rounded-xl"
+                                    , attribute "frameborder" "0"
+                                    , attribute "allow" "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    , attribute "allowfullscreen" ""
+                                    , attribute "referrerpolicy" "strict-origin-when-cross-origin"
+                                    ]
+                                    []
+                                ]
+
+                captionView =
+                    case lb.caption of
+                        Nothing -> text ""
+                        Just c ->
+                            div [ class "mt-2 text-white/70 text-sm", stopClick ] [ text c ]
+
+                textView =
+                    case lb.extraText of
+                        Nothing ->
+                            text ""
+
+                        Just s ->
+                            div
+                                [ class "mt-3 max-h-[24vh] overflow-y-auto text-sm leading-relaxed text-white/85 pr-1"
+                                , stopClick
+                                ]
+                                [ text s ]
+            in
+            div
+                [ class "fixed inset-0 z-[2000] bg-black/80 p-4 flex items-center justify-center"
+                , onClick CloseLightbox
+                ]
+                [ -- dialog
+                  div
+                    [ class "w-[92vw] max-w-5xl"
+                    , stopClick
+                    ]
+                    [ mediaView, captionView, textView ]
                 , -- close button
                   button
                     [ class "absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 ring-1 ring-white/25 text-white text-2xl leading-none"
@@ -1503,7 +1607,14 @@ galleryImageComponent g =
         [ src i.src
         , alt i.alt
         , class ("col-span-12 sm:col-span-" ++ String.fromInt cs ++ " row-span-12 sm:row-span-" ++ String.fromInt rs ++ " cursor-pointer object-cover transform hover:scale-[1.03] transition")
-        , onClick (OpenLightbox (LbImage { src = i.src, alt = i.alt }))
+        , onClick
+              (OpenLightbox
+                   (LightboxDetails
+                        (LbImage { src = i.src, alt = i.alt })
+                        Nothing
+                        Nothing
+                   )
+              )
         ]
         []
 
@@ -1766,6 +1877,23 @@ visiblePerformances model =
         |> List.sortBy (\p -> -(DateTime.toPosix p.datetime |> Time.posixToMillis)) -- newest first
         |> List.take model.visiblePerfCount
 
+
+clickableImage :
+    { src : String, alt : String, caption : Maybe String, extraText : Maybe String, classes : String }
+    -> Html Msg
+clickableImage cfg =
+    img
+        [ src cfg.src
+        , alt cfg.alt
+        , class (cfg.classes ++ " cursor-zoom-in transition hover:opacity-90")
+        , onClick <|
+            OpenLightbox
+                { media = LbImage { src = cfg.src, alt = cfg.alt }
+                , caption = cfg.caption
+                , extraText = cfg.extraText
+                }
+        ]
+        []
 
 
 -- BOOTSTRAP
