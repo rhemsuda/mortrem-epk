@@ -1024,7 +1024,7 @@ contentPanel model children =
 
 bioPanel : Model -> Html Msg
 bioPanel model =
-    div [ id "bio", class "flex flex-col pt-12 pb-16" ] -- Added padding for smaller screens
+    div [ id "bio", class "flex flex-col pt-6 md:pt-12 pb-16" ] -- Added padding for smaller screens
         [ div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
               [ div [ class "lg:w-2/5" ]
                     [ clickableImage { src = "assets/images/zak-charlie-fourleaf.png", alt = "test", caption = Nothing, extraText = Nothing, classes = "w-full h-full object-cover" } ]
