@@ -991,7 +991,7 @@ mobileSidePanel model =
                 , button [ class "w-full text-left px-3 py-2 rounded hover:bg-white/10", onClick (ScrollTo "gallery") ] [ text "Gallery" ]
                 ]
             ]
-            , div [ class "space-y-2 text-white" ]
+            , div [ class "p-4 space-y-2 text-white" ]
               [ socialMediaLinks
               ]
         ]
