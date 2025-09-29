@@ -999,7 +999,7 @@ mobileSidePanel model =
 
 navbarMarker : Html Msg
 navbarMarker =
-    span [ id "navbar-marker", class "h-[1px] bg-black block" ] []
+    span [ id "navbar-marker", class "h-[0px] bg-black block" ] []
 
 videoSwitchMarker1 : Html Msg
 videoSwitchMarker1 =
@@ -1011,7 +1011,7 @@ videoSwitchMarker2 =
 
 videoSwitchMarker3 : Html Msg
 videoSwitchMarker3 =
-    span [ id "videoswitch-marker-3", class "h-[1px] bg-black block" ] []
+    span [ id "videoswitch-marker-3", class "h-[0px] bg-black block" ] []
 
 
 contentPanel : Model -> List (Html Msg) -> Html Msg
