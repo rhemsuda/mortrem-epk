@@ -130,6 +130,9 @@ type alias Model =
     , testimonials : List Testimonial
     , lightbox : Maybe LightboxDetails
     , draggingTestimonials : Maybe { startX : Float, startScrollX : Float }
+    , testimonialsHover : Bool
+    , testimonialScrollX : Float
+    , testimonialsHalfTrackW : Float
     }
 
 type Msg
@@ -168,7 +171,11 @@ type Msg
     | OpenLightbox LightboxDetails
     | CloseLightbox
     | NoOp
+    | GotTestimonialsTrack (Result Dom.Error Dom.Element)
     | BeginTestimonialsDrag Float
     | GotTestimonialsDragStart Float (Result Dom.Error Dom.Viewport)
     | MoveTestimonialsDrag Float
     | EndTestimonialsDrag
+    | AutoScrollTick
+    | TestimonialsMouseEnter
+    | TestimonialsMouseLeave

@@ -162,12 +162,16 @@ init _ =
       , testimonials = testimonials
       , lightbox = Nothing
       , draggingTestimonials = Nothing
+      , testimonialsHover = False
+      , testimonialScrollX = 0
+      , testimonialsHalfTrackW = 0
       }
     , Cmd.batch
           [ Task.attempt GotViewport Dom.getViewport  -- sync scroll and height now
           , measureMarkersCmd videoMarkerIds    -- measure all markers atomically
           , Task.perform GotZone Time.here
           , Task.perform GotNow Time.now
+          , measureTestimonialsTrack
           ]
     )
 
@@ -213,35 +217,6 @@ update msg model =
             ( { model | lightbox = Just payload }, setBodyScroll True )
         CloseLightbox ->
             ( { model | lightbox = Nothing }, setBodyScroll False )
-
-        BeginTestimonialsDrag startX ->
-            ( model
-            , Dom.getViewportOf "testimonial-reel"
-                |> Task.attempt (GotTestimonialsDragStart startX)
-            )
-
-        GotTestimonialsDragStart startX (Ok vp) ->
-            ( { model | draggingTestimonials = Just { startX = startX, startScrollX = vp.viewport.x } }
-            , Cmd.none
-            )
-        GotTestimonialsDragStart _ (Err _) ->
-            ( model, Cmd.none )
-        MoveTestimonialsDrag x ->
-            case model.draggingTestimonials of
-                Just drag ->
-                    let
-                        dx = x - drag.startX
-                        newScroll = drag.startScrollX - dx
-                    in
-                        ( model
-                        , Dom.setViewportOf "testimonial-reel" newScroll 0
-                        |> Task.attempt (\_ -> NoOp)
-                        )
-
-                Nothing ->
-                    ( model, Cmd.none )
-        EndTestimonialsDrag ->
-            ( { model | draggingTestimonials = Nothing }, Cmd.none )
         GotViewport (Ok vp) ->
             let
                 w = vp.viewport.width
@@ -264,6 +239,7 @@ update msg model =
             , Cmd.batch
                 [ Task.attempt GotViewport Dom.getViewport
                 , measureMarkersCmd videoMarkerIds
+                , measureTestimonialsTrack
                 ]
             )
         MarkersMeasured pairs ->
@@ -453,6 +429,101 @@ update msg model =
             in
             ( { model | visiblePerfCount = model.visiblePerfCount + step }, Cmd.none )
 
+        GotTestimonialsTrack result ->
+            case result of
+                Ok el ->
+                    ( { model | testimonialsHalfTrackW = el.element.width / 2 }
+                    , Cmd.none
+                    )
+                Err _ ->
+                    ( model, Cmd.none )
+
+        TestimonialsMouseEnter ->
+            ( { model | testimonialsHover = True }, Cmd.none )
+
+        TestimonialsMouseLeave ->
+            ( { model | testimonialsHover = False }, Cmd.none )
+
+        AutoScrollTick ->
+            let
+                paused =
+                    model.testimonialsHover || Maybe.withDefault False (Maybe.map (\_ -> True) model.draggingTestimonials)
+
+                step : Float
+                step = 0.6  -- px per tick; tweak to taste
+
+                half = model.testimonialsHalfTrackW
+                advance =
+                    if half > 0 then
+                        let
+                            raw = model.testimonialScrollX + step
+                            wrapped =
+                                if raw >= half then
+                                    raw - half
+                                else
+                                    raw
+                        in
+                            wrapped
+                    else
+                        model.testimonialScrollX
+            in
+                if paused || half <= 0 then
+                    ( model, Cmd.none )
+                else
+                    ( { model | testimonialScrollX = advance }
+                    , Dom.setViewportOf "testimonial-reel" advance 0
+                    |> Task.attempt (\_ -> NoOp)
+                    )
+
+        BeginTestimonialsDrag startX ->
+            ( model
+            , Dom.getViewportOf "testimonial-reel"
+                |> Task.attempt (GotTestimonialsDragStart startX)
+            )
+
+        GotTestimonialsDragStart startX result ->
+            case result of
+                Ok vp ->
+                    ( { model
+                          | draggingTestimonials = Just { startX = startX, startScrollX = vp.viewport.x }
+                          , testimonialScrollX = vp.viewport.x
+                      }
+                    , Cmd.none
+                    )
+                Err _ ->
+                    ( model, Cmd.none )
+
+        MoveTestimonialsDrag x ->
+            case model.draggingTestimonials of
+                Just drag ->
+                    let
+                        dx = drag.startX - x
+                        raw = drag.startScrollX + dx
+                        half = model.testimonialsHalfTrackW
+
+                        -- optional wrap when dragging rightward past half-width
+                        newScroll =
+                            if half > 0 then
+                                if raw >= half then
+                                    raw - half
+                                else if raw < 0 then
+                                    raw + half
+                                else
+                                    raw
+                            else
+                                max 0 raw
+                    in
+                        ( { model | testimonialScrollX = newScroll }
+                        , Dom.setViewportOf "testimonial-reel" newScroll 0
+                        |> Task.attempt (\_ -> NoOp)
+                        )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        EndTestimonialsDrag ->
+            ( { model | draggingTestimonials = Nothing }, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -561,6 +632,7 @@ subscriptions model =
         , songEnded (\_ -> SongEnded)
         , audioError AudioError
         , if model.isPlaying then frequencyData FrequencyData else Sub.none
+        , Time.every 30 (\_ -> AutoScrollTick)
         --, videoSwitch VideoSwitch
         ]
 
@@ -1363,54 +1435,99 @@ statisticsPanel model =
             ]
         ]
 
+-- testimonialsPanel : Model -> Html Msg
+-- testimonialsPanel model =
+--     let
+--         -- you can keep duplication if you want a very long reel; not required for drag
+--         cards =
+--             model.testimonials |> List.map (testimonialCard model)
+
+--         track =
+--             cards ++ cards  -- optional; remove if you don't need extra-long reel
+--     in
+--     div [ id "testimonials", class "py-8 md:py-16 lg:px-16 xl:px-32 text-white" ]
+--         [ h1 [ class "text-lg md:text-xl font-bold mb-4 md:mb-6" ] [ text "Testimonials" ]
+
+--         , globalStyles  -- fine to keep; animation class below is removed
+
+--         , div [ class "relative overflow-hidden" ]
+--             [ -- left/right fades stay above the reel
+--               div
+--                 [ class "pointer-events-none absolute inset-y-0 left-0 w-12 z-10"
+--                 , style "background" "linear-gradient(90deg, rgba(0,0,0,1), rgba(0,0,0,0))"
+--                 ]
+--                 []
+--             , div
+--                 [ class "pointer-events-none absolute inset-y-0 right-0 w-12 z-10"
+--                 , style "background" "linear-gradient(270deg, rgba(0,0,0,1), rgba(0,0,0,0))"
+--                 ]
+--                 []
+
+--               -- ↓↓↓ REPLACE YOUR OLD “track with animate-testimonials” WITH THIS SCROLLER ↓↓↓
+--             , div
+--                 [ id "testimonial-reel"
+--                 , class "overflow-x-auto no-scrollbar select-none cursor-grab active:cursor-grabbing"
+--                 , preventDefaultOn "pointerdown"
+--                     (Decode.map (\x -> ( BeginTestimonialsDrag x, True ))
+--                         (Decode.field "clientX" Decode.float)
+--                     )
+--                 , on "pointermove" (Decode.map MoveTestimonialsDrag (Decode.field "clientX" Decode.float))
+--                 , on "pointerup" (Decode.succeed EndTestimonialsDrag)
+--                 , on "pointerleave" (Decode.succeed EndTestimonialsDrag)
+--                 ]
+--                 [ -- the inner track: flex row, won’t shrink
+--                   div
+--                     [ class "flex gap-4 items-stretch min-w-max"
+--                       -- NOTE: no 'animate-testimonials' here
+--                     ]
+--                     track
+--                 ]
+--               -- ↑↑↑ END REPLACEMENT ↑↑↑
+--             ]
+--         , lightboxView model
+--         ]
+
 testimonialsPanel : Model -> Html Msg
 testimonialsPanel model =
     let
-        -- you can keep duplication if you want a very long reel; not required for drag
         cards =
             model.testimonials |> List.map (testimonialCard model)
 
-        track =
-            cards ++ cards  -- optional; remove if you don't need extra-long reel
+        -- duplicate content for seamless wrap
+        trackNodes =
+            cards ++ cards
     in
     div [ id "testimonials", class "py-8 md:py-16 lg:px-16 xl:px-32 text-white" ]
         [ h1 [ class "text-lg md:text-xl font-bold mb-4 md:mb-6" ] [ text "Testimonials" ]
-
-        , globalStyles  -- fine to keep; animation class below is removed
-
+        , globalStyles
         , div [ class "relative overflow-hidden" ]
-            [ -- left/right fades stay above the reel
-              div
-                [ class "pointer-events-none absolute inset-y-0 left-0 w-12 z-10"
-                , style "background" "linear-gradient(90deg, rgba(0,0,0,1), rgba(0,0,0,0))"
-                ]
-                []
-            , div
-                [ class "pointer-events-none absolute inset-y-0 right-0 w-12 z-10"
-                , style "background" "linear-gradient(270deg, rgba(0,0,0,1), rgba(0,0,0,0))"
-                ]
-                []
+            [ -- edge fades (optional)
+              div [ class "pointer-events-none absolute inset-y-0 left-0 w-12 z-10", style "background" "linear-gradient(90deg, rgba(0,0,0,1), rgba(0,0,0,0))" ] []
+            , div [ class "pointer-events-none absolute inset-y-0 right-0 w-12 z-10", style "background" "linear-gradient(270deg, rgba(0,0,0,1), rgba(0,0,0,0))" ] []
 
-              -- ↓↓↓ REPLACE YOUR OLD “track with animate-testimonials” WITH THIS SCROLLER ↓↓↓
+              -- REEL (scroll container)
             , div
                 [ id "testimonial-reel"
                 , class "overflow-x-auto no-scrollbar select-none cursor-grab active:cursor-grabbing"
+                , Html.Attributes.style "scroll-behavior" "auto"
+                , Html.Events.onMouseEnter TestimonialsMouseEnter
+                , Html.Events.onMouseLeave TestimonialsMouseLeave
                 , preventDefaultOn "pointerdown"
                     (Decode.map (\x -> ( BeginTestimonialsDrag x, True ))
                         (Decode.field "clientX" Decode.float)
                     )
-                , on "pointermove" (Decode.map MoveTestimonialsDrag (Decode.field "clientX" Decode.float))
+                , on "pointermove"
+                    (Decode.map MoveTestimonialsDrag (Decode.field "clientX" Decode.float))
                 , on "pointerup" (Decode.succeed EndTestimonialsDrag)
                 , on "pointerleave" (Decode.succeed EndTestimonialsDrag)
                 ]
-                [ -- the inner track: flex row, won’t shrink
+                [ -- TRACK (the wide child we measure)
                   div
-                    [ class "flex gap-4 items-stretch min-w-max"
-                      -- NOTE: no 'animate-testimonials' here
+                    [ id "testimonial-track"
+                    , class "flex gap-4 items-stretch min-w-max"
                     ]
-                    track
+                    trackNodes
                 ]
-              -- ↑↑↑ END REPLACEMENT ↑↑↑
             ]
         , lightboxView model
         ]
@@ -1886,6 +2003,10 @@ measureMarkersCmd ids =
         |> Task.map (List.filterMap identity)
         |> Task.perform MarkersMeasured
 
+measureTestimonialsTrack : Cmd Msg
+measureTestimonialsTrack =
+    Dom.getElement "testimonial-track"
+        |> Task.attempt GotTestimonialsTrack
 
 visiblePerformances : Model -> List Performance
 visiblePerformances model =
