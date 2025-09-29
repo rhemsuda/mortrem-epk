@@ -129,7 +129,7 @@ type alias Model =
     , expandedPerf : Set Int
     , testimonials : List Testimonial
     , lightbox : Maybe LightboxDetails
-    , draggingTestimonials : Maybe { startX : Float, startScrollX : Float }
+    , draggingTestimonials : Maybe { startScrollX : Float, startX : Float, pointerType : String }
     , testimonialsHover : Bool
     , testimonialScrollX : Float
     , testimonialsHalfTrackW : Float
@@ -172,8 +172,9 @@ type Msg
     | CloseLightbox
     | NoOp
     | GotTestimonialsTrack (Result Dom.Error Dom.Element)
-    | BeginTestimonialsDrag Float
-    | GotTestimonialsDragStart Float (Result Dom.Error Dom.Viewport)
+    | BeginTestimonialsDrag Float String
+    | GotTestimonialsDragStart Float String (Result Dom.Error Dom.Viewport)
+    | SyncTestimonialScroll (Result Dom.Error Dom.Viewport)
     | MoveTestimonialsDrag Float
     | EndTestimonialsDrag
     | AutoScrollTick

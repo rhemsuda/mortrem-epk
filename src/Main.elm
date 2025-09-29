@@ -447,7 +447,9 @@ update msg model =
             ( { model | testimonialsHover = True }, Cmd.none )
 
         TestimonialsPointerLeave ->
-            ( { model | testimonialsHover = False, draggingTestimonials = Nothing }, Cmd.none )
+            ( { model | testimonialsHover = False, draggingTestimonials = Nothing }
+            , Dom.getViewportOf "testimonial-reel" |> Task.attempt SyncTestimonialScroll
+            )
 
         AutoScrollTick ->
             let
@@ -480,21 +482,21 @@ update msg model =
                     |> Task.attempt (\_ -> NoOp)
                     )
 
-        BeginTestimonialsDrag startX ->
+        BeginTestimonialsDrag startX pointerType ->
             ( model
             , Dom.getViewportOf "testimonial-reel"
-                |> Task.attempt (GotTestimonialsDragStart startX)
+            |> Task.attempt (GotTestimonialsDragStart startX pointerType)
             )
 
-        GotTestimonialsDragStart startX result ->
+        GotTestimonialsDragStart startX pointerType result ->
             case result of
                 Ok vp ->
-                    ( { model
-                          | draggingTestimonials = Just { startX = startX, startScrollX = vp.viewport.x }
-                          , testimonialScrollX = vp.viewport.x
+                    ( { model | draggingTestimonials = Just { startX = startX, startScrollX = vp.viewport.x, pointerType = pointerType }
+                      , testimonialScrollX = vp.viewport.x
                       }
                     , Cmd.none
                     )
+
                 Err _ ->
                     ( model, Cmd.none )
 
@@ -502,32 +504,35 @@ update msg model =
             case model.draggingTestimonials of
                 Just drag ->
                     let
-                        dx = drag.startX - x
-                        raw = drag.startScrollX + dx
-                        half = model.testimonialsHalfTrackW
-
-                        -- optional wrap when dragging rightward past half-width
-                        newScroll =
-                            if half > 0 then
-                                if raw >= half then
-                                    raw - half
-                                else if raw < 0 then
-                                    raw + half
-                                else
-                                    raw
-                            else
-                                max 0 raw
+                        dx = x - drag.startX
                     in
-                        ( { model | testimonialScrollX = newScroll }
-                        , Dom.setViewportOf "testimonial-reel" newScroll 0
-                        |> Task.attempt (\_ -> NoOp)
-                        )
+                        if drag.pointerType == "mouse" then
+                            -- programmatic drag for mouse
+                            let
+                                newScroll = drag.startScrollX - dx
+                            in
+                                ( { model | testimonialScrollX = newScroll }
+                                , Dom.setViewportOf "testimonial-reel" newScroll 0
+                                |> Task.attempt (\_ -> NoOp)
+                                )
+                        else
+                            -- touch: let native scrolling do the work
+                            ( model, Cmd.none )
 
                 Nothing ->
                     ( model, Cmd.none )
 
         EndTestimonialsDrag ->
-            ( { model | draggingTestimonials = Nothing }, Cmd.none )
+            ( { model | draggingTestimonials = Nothing }
+            , Dom.getViewportOf "testimonial-reel" |> Task.attempt SyncTestimonialScroll
+            )
+
+        SyncTestimonialScroll result ->
+            case result of
+                Ok vp ->
+                    ( { model | testimonialScrollX = vp.viewport.x }, Cmd.none )
+                Err _ ->
+                    ( model, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -1515,13 +1520,18 @@ testimonialsPanel model =
                   [ id "testimonial-reel"
                   , class "overflow-x-auto no-scrollbar select-none cursor-grab active:cursor-grabbing"
                   , Html.Attributes.style "scroll-behavior" "auto"
-                  , Html.Attributes.style "touch-action" "pan-y"  -- lets vertical swipe scroll the page; pointer events still work horizontally
+                  , Html.Attributes.style "touch-action" "pan-y"  -- allow vertical page scroll; let touch do native horizontal scroll
                   , on "pointerenter" (Decode.succeed TestimonialsPointerEnter)
                   , on "pointerleave" (Decode.succeed TestimonialsPointerLeave)
                   , on "pointercancel" (Decode.succeed TestimonialsPointerLeave)
+                  -- pointerdown: prevent default ONLY for mouse, not for touch
                   , preventDefaultOn "pointerdown"
-                      (Decode.map (\x -> ( BeginTestimonialsDrag x, True ))
-                           (Decode.field "clientX" Decode.float)
+                      (Decode.map
+                           (\(x, pt) -> ( BeginTestimonialsDrag x pt, pt == "mouse"))
+                           (Decode.map2 Tuple.pair
+                                (Decode.field "clientX" Decode.float)
+                                (Decode.field "pointerType" Decode.string)
+                           )
                       )
                   , on "pointermove" (Decode.map MoveTestimonialsDrag (Decode.field "clientX" Decode.float))
                   , on "pointerup" (Decode.succeed EndTestimonialsDrag)
