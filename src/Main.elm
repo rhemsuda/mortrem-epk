@@ -184,8 +184,8 @@ view model =
         navbar model
         , mobileSidePanel model
         , heroBannerContent model.scrollY
-
-        , contentPanel model [ bioPanel model, navbarMarker, videoSwitchMarker1 ]
+        , navbarMarker
+        , contentPanel model [ bioPanel model, videoSwitchMarker1 ]
 
         , videoBanner "Music & Videos" -- TODO: This video should be candid closeup video of the band working on writing
 
