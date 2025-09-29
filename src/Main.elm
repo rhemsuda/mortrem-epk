@@ -852,7 +852,7 @@ musicVideosPanel model =
                 |> Maybe.withDefault
                     { title = "", youtubeId = "", thumbnail = "" }
     in
-    div [ class "py-8 md:py-16 lg:px-16 xl:px-32" ]
+    div [ class "pt-8 py-16 md:py-24 md:pt-16 lg:px-16 xl:px-32" ]
         [ h1 [ class "text-lg md:text-xl text-white font-bold mb-4 md:mb-6" ] [ text "Videos" ]
 
         , -- EMBED PLAYER (16:9, rounded)
