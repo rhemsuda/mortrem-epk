@@ -1079,7 +1079,7 @@ performanceHistoryPanel model =
                     totalUnits perf.merchSold
 
                 unitsSuffix units =
-                    if units > 1 then "units" else "unit"
+                    if units == 1 then "unit" else "units"
 
                 merchSoldPill : Performance -> Html Msg
                 merchSoldPill p =
