@@ -179,3 +179,5 @@ type Msg
     | AutoScrollTick
     | TestimonialsMouseEnter
     | TestimonialsMouseLeave
+    | TestimonialsPointerEnter
+    | TestimonialsPointerLeave

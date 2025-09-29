@@ -184,9 +184,8 @@ view model =
         navbar model
         , mobileSidePanel model
         , heroBannerContent model.scrollY
-        , navbarMarker
 
-        , contentPanel model [ bioPanel model, videoSwitchMarker1 ]
+        , contentPanel model [ bioPanel model, navbarMarker, videoSwitchMarker1 ]
 
         , videoBanner "Music & Videos" -- TODO: This video should be candid closeup video of the band working on writing
 
@@ -443,6 +442,12 @@ update msg model =
 
         TestimonialsMouseLeave ->
             ( { model | testimonialsHover = False }, Cmd.none )
+
+        TestimonialsPointerEnter ->
+            ( { model | testimonialsHover = True }, Cmd.none )
+
+        TestimonialsPointerLeave ->
+            ( { model | testimonialsHover = False, draggingTestimonials = Nothing }, Cmd.none )
 
         AutoScrollTick ->
             let
@@ -1507,27 +1512,23 @@ testimonialsPanel model =
 
               -- REEL (scroll container)
             , div
-                [ id "testimonial-reel"
-                , class "overflow-x-auto no-scrollbar select-none cursor-grab active:cursor-grabbing"
-                , Html.Attributes.style "scroll-behavior" "auto"
-                , Html.Events.onMouseEnter TestimonialsMouseEnter
-                , Html.Events.onMouseLeave TestimonialsMouseLeave
-                , preventDefaultOn "pointerdown"
-                    (Decode.map (\x -> ( BeginTestimonialsDrag x, True ))
-                        (Decode.field "clientX" Decode.float)
-                    )
-                , on "pointermove"
-                    (Decode.map MoveTestimonialsDrag (Decode.field "clientX" Decode.float))
-                , on "pointerup" (Decode.succeed EndTestimonialsDrag)
-                , on "pointerleave" (Decode.succeed EndTestimonialsDrag)
-                ]
-                [ -- TRACK (the wide child we measure)
-                  div
-                    [ id "testimonial-track"
-                    , class "flex gap-4 items-stretch min-w-max"
-                    ]
-                    trackNodes
-                ]
+                  [ id "testimonial-reel"
+                  , class "overflow-x-auto no-scrollbar select-none cursor-grab active:cursor-grabbing"
+                  , Html.Attributes.style "scroll-behavior" "auto"
+                  , Html.Attributes.style "touch-action" "pan-y"  -- lets vertical swipe scroll the page; pointer events still work horizontally
+                  , on "pointerenter" (Decode.succeed TestimonialsPointerEnter)
+                  , on "pointerleave" (Decode.succeed TestimonialsPointerLeave)
+                  , on "pointercancel" (Decode.succeed TestimonialsPointerLeave)
+                  , preventDefaultOn "pointerdown"
+                      (Decode.map (\x -> ( BeginTestimonialsDrag x, True ))
+                           (Decode.field "clientX" Decode.float)
+                      )
+                  , on "pointermove" (Decode.map MoveTestimonialsDrag (Decode.field "clientX" Decode.float))
+                  , on "pointerup" (Decode.succeed EndTestimonialsDrag)
+                  ]
+                  [ div [ id "testimonial-track", class "flex gap-4 items-stretch min-w-max" ]
+                        trackNodes
+                  ]
             ]
         , lightboxView model
         ]
