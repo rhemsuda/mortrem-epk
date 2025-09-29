@@ -94,18 +94,18 @@ galleryImages =
 -- also show total number of streams and total number of people we've played to and ratios for fan:revenue and performance:following
 performances : List Performance
 performances =
-    [ { datetime = fromPosix (Time.millisToPosix 1727315100000), venue = venue_theCasbah, totalDraw = 31, ourDraw = 18, organicDraw = 0, newFollowers = 3, merchSales = 400.0, ticketPrice = 15.0, position = Support, durationMinutes = 30, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1731121200000), venue = venue_tailOfTheJunction, totalDraw = 18, ourDraw = 11, organicDraw = 0, newFollowers = 1, merchSales = 10.0, ticketPrice = 15.0, position = Headline, durationMinutes = 30, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1735357500000), venue = venue_jimmyJazz, totalDraw = 43, ourDraw = 14, organicDraw = 0, newFollowers = 8, merchSales = 40.0, ticketPrice = 0.0, position = Support, durationMinutes = 40, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_theUnion, totalDraw = 26, ourDraw = 13, organicDraw = 0, newFollowers = 3, merchSales = 0.0, ticketPrice = 15.0, position = Headline, durationMinutes = 30, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_leesPalace, totalDraw = 63, ourDraw = 27, organicDraw = 4, newFollowers = 6, merchSales = 0.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_theUnion, totalDraw = 33, ourDraw = 16, organicDraw = 0, newFollowers = 2, merchSales = 0.0, ticketPrice = 15.0, position = Open, durationMinutes = 30, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_sneakyDees, totalDraw = 67, ourDraw = 17, organicDraw = 3, newFollowers = 12, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_absinthe, totalDraw = 42, ourDraw = 13, organicDraw = 1, newFollowers = 4, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 40, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_duffysTavern, totalDraw = 18, ourDraw = 6, organicDraw = 1, newFollowers = 8, merchSales = 0.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_redPapaya, totalDraw = 38, ourDraw = 10, organicDraw = 0, newFollowers = 6, merchSales = 90.0, ticketPrice = 20.0, position = Open, durationMinutes = 30, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_hardLuck, totalDraw = 23, ourDraw = 7, organicDraw = 0, newFollowers = 3, merchSales = 30.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_sneakyDees, totalDraw = 16, ourDraw = 9, organicDraw = 2, newFollowers = 5, merchSales = 30.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, hide = False }
+    [ { datetime = fromPosix (Time.millisToPosix 1727315100000), venue = venue_theCasbah, totalDraw = 31, ourDraw = 18, organicDraw = 0, newFollowers = 3, merchSales = 400.0, ticketPrice = 15.0, position = Support, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1731121200000), venue = venue_tailOfTheJunction, totalDraw = 18, ourDraw = 11, organicDraw = 0, newFollowers = 1, merchSales = 10.0, ticketPrice = 15.0, position = Headline, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1735357500000), venue = venue_jimmyJazz, totalDraw = 43, ourDraw = 14, organicDraw = 0, newFollowers = 8, merchSales = 40.0, ticketPrice = 0.0, position = Support, durationMinutes = 40, merchSold = { shirts = 0, stickers = 0 }, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_theUnion, totalDraw = 26, ourDraw = 13, organicDraw = 0, newFollowers = 3, merchSales = 0.0, ticketPrice = 15.0, position = Headline, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_leesPalace, totalDraw = 63, ourDraw = 27, organicDraw = 4, newFollowers = 6, merchSales = 0.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_theUnion, totalDraw = 33, ourDraw = 16, organicDraw = 0, newFollowers = 2, merchSales = 0.0, ticketPrice = 15.0, position = Open, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_sneakyDees, totalDraw = 67, ourDraw = 17, organicDraw = 3, newFollowers = 12, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, merchSold = { shirts = 0, stickers = 0 }, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_absinthe, totalDraw = 42, ourDraw = 13, organicDraw = 1, newFollowers = 4, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 40, merchSold = { shirts = 0, stickers = 0 }, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_duffysTavern, totalDraw = 18, ourDraw = 6, organicDraw = 1, newFollowers = 8, merchSales = 0.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_redPapaya, totalDraw = 38, ourDraw = 10, organicDraw = 0, newFollowers = 6, merchSales = 90.0, ticketPrice = 20.0, position = Open, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_hardLuck, totalDraw = 23, ourDraw = 7, organicDraw = 0, newFollowers = 3, merchSales = 30.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
+    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_sneakyDees, totalDraw = 16, ourDraw = 9, organicDraw = 2, newFollowers = 5, merchSales = 30.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, merchSold = { shirts = 0, stickers = 0 }, hide = False }
     ]
 
 testimonials : List Testimonial
@@ -1029,18 +1029,18 @@ bioPanel model =
               [ div [ class "lg:w-2/5" ]
                     [ clickableImage { src = "assets/images/zak-charlie-fourleaf.png", alt = "test", caption = Nothing, extraText = Nothing, classes = "w-full h-full object-cover" } ]
                   --[ img [ src "assets/images/zak-charlie-fourleaf.png", alt "test", class "w-full h-full object-cover" ] [] ]
-              , div [ class "lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText1 ]
+              , div [ class "pt-4 md:pt-6 lg:pt-0 lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText1 ]
               ]
         , div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
               [ div [ class "lg:w-3/5 text-white text-md leading-relaxed hidden lg:block" ] [ text bioText2 ]
               , div [ class "lg:w-2/5" ]
                   [ img [ src "assets/images/mortrem-profile.jpg", alt "test", class "w-full h-full object-cover" ] [] ]
-              , div [ class "text-white text-md leading-relaxed visible lg:hidden" ] [ text bioText2 ]
+              , div [ class "pt-4 md:pt-6 lg:pt-0 text-white text-md leading-relaxed visible lg:hidden" ] [ text bioText2 ]
               ]
         , div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
               [ div [ class "lg:w-2/5" ]
                   [ img [ src "assets/images/mortrem-profile.jpg", alt "test", class "w-full h-full object-cover" ] [] ]
-              , div [ class "lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText3 ]
+              , div [ class "pt-4 md:pt-6 lg:pt-0 lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText3 ]
               ]
         ]
 
@@ -1074,6 +1074,23 @@ performanceHistoryPanel model =
 
                 pill cls txt =
                     span [ class ("px-2 py-0.5 rounded-full text-xs " ++ cls) ] [ text txt ]
+
+                merchUnitsSold =
+                    totalUnits perf.merchSold
+
+                unitsSuffix units =
+                    if units > 1 then "units" else "unit"
+
+                merchSoldPill : Performance -> Html Msg
+                merchSoldPill p =
+                    let units = merchUnitsSold
+                        class = pillClassForAmount units
+                        suffix = unitsSuffix units
+                        label = "Merch Sold: " ++ String.fromInt units ++ " " ++ suffix
+                    in
+                    if totalUnits p.merchSold <= 0
+                    then text ""
+                    else pill class label
             in
             div
                 [ class
@@ -1131,13 +1148,9 @@ performanceHistoryPanel model =
                             ("Total Draw: " ++ String.fromInt perf.totalDraw)
                         , pill "bg-sky-500/15 text-sky-200 ring-1 ring-sky-500/20"
                             ("Our Draw: " ++ String.fromInt perf.ourDraw)
-                        , pill (pillClassForAmount (ourRevenue perf))
-                            ("Tickets: " ++ formatCurrency (ourRevenue perf))
-                        , pill (pillClassForAmount perf.merchSales)
-                            ("Merch: " ++ formatCurrency perf.merchSales)
+                        , merchSoldPill perf
                         ]
                     ]
-
                 , -- expandable details
                   div
                     [ class
@@ -1161,10 +1174,10 @@ performanceHistoryPanel model =
                                 Support -> "Support"
                                 Headline -> "Headline"
                             )
-                        , row "Show Revenue" (formatCurrency (showRevenue perf))
-                        , row "Our Revenue" (formatCurrency (ourRevenue perf))
                         , row "Set Length" (String.fromInt perf.durationMinutes ++ " min")
-                        , row "Merch Sales" (formatCurrency perf.merchSales)
+                        , row "Merch Sold" (String.fromInt merchUnitsSold ++ " " ++ unitsSuffix merchUnitsSold)
+                        , row "Shirts Sold" (String.fromInt perf.merchSold.shirts)
+                        , row "Stickers Sold" (String.fromInt perf.merchSold.stickers)
                         ]
                     ]
                 ]
@@ -1198,7 +1211,7 @@ performanceHistoryPanel model =
               text ""
         ]
 
-pillClassForAmount : Float -> String
+pillClassForAmount : Int -> String
 pillClassForAmount amt =
     if amt > 0 then
         "bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-500/20"
@@ -1206,6 +1219,10 @@ pillClassForAmount amt =
         "bg-red-500/15 text-red-200 ring-1 ring-red-500/20"
     else
         "bg-white/10 text-white/80 ring-1 ring-white/10"
+
+
+
+
 
 -- Helpers
 
@@ -1323,9 +1340,9 @@ statisticsPanel model =
         , -- MERCH
           h2 [ class "mt-6 mb-2 text-lg md:text-xl text-white/80 font-semibold" ] [ text "Merchandising" ]
         , div [ class "grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4" ]
-            [ merchTotalSalesCard perfs
-            , merchAverageSalesCard perfs
-            , merchVsTicketCard perfs
+            [ ticketsSoldCard perfs
+            , merchUnitsCard perfs
+            , unitsPerAttendeeCard perfs
             ]
 
         , -- STREAMING & DIGITAL

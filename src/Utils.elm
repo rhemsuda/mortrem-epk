@@ -2,7 +2,7 @@ module Utils exposing (..)
 
 import DateTime exposing (DateTime, fromPosix, toPosix)
 import Time exposing (millisToPosix, Zone, Month(..), utc, toYear, toMonth, toDay, toHour, toMinute)
-import Types exposing (Performance)
+import Types exposing (Performance, MerchUnits)
 
 pad2 : Int -> String
 pad2 n = if n < 10 then "0" ++ String.fromInt n else String.fromInt n
@@ -73,3 +73,20 @@ activeIndexFrom bottomY markers videosLen =
                 |> List.length
     in
     Basics.clamp 0 (videosLen - 1) crossed
+
+totalUnits : MerchUnits -> Int
+totalUnits m =
+    m.shirts + m.stickers
+
+sumUnits : List MerchUnits -> Int
+sumUnits =
+    List.map totalUnits >> List.sum
+
+
+{-| Simple helper for fixed-precision display without bringing in extra deps. -}
+roundTo : Int -> Float -> Float
+roundTo places n =
+    let
+        f = 10 ^ places |> toFloat
+    in
+    (n * f |> round |> toFloat) / f

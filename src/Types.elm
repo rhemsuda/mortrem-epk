@@ -40,6 +40,11 @@ type alias ContactForm =
     , honeypot : String
     }
 
+type alias MerchUnits =
+    { shirts : Int
+    , stickers : Int
+    }
+
 type ContactStatus
     = ContactIdle
     | ContactEditing
@@ -60,6 +65,7 @@ type alias Performance =
     , organicDraw : Int
     , newFollowers : Int
     , merchSales : Float
+    , merchSold : MerchUnits
     , ticketPrice : Float
     , position : LineupPosition
     , durationMinutes : Int

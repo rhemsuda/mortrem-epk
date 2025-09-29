@@ -6,9 +6,9 @@ module Statistics
         , showsPlayedCard
         , averageDrawCard
         , audienceCaptureCard
-        , merchTotalSalesCard
-        , merchAverageSalesCard
-        , merchVsTicketCard
+        , ticketsSoldCard
+        , merchUnitsCard
+        , unitsPerAttendeeCard
         , totalStreamsCard
         , spotifyFollowersCard
         , averageSavesPerTrackCard
@@ -27,6 +27,7 @@ import Types exposing (..)
 import DateTime exposing (DateTime)
 import Time exposing (Zone, Posix, Month(..), toMonth, toYear)
 import String
+import Utils exposing (sumUnits, roundTo)
 
 
 -- ──────────────────────────────────────────────────────────────────────────────
@@ -258,58 +259,139 @@ audienceCaptureCard perfs =
 -- MERCHANDISING
 -- ──────────────────────────────────────────────────────────────────────────────
 
-merchTotalSalesCard : List Performance -> Html msg
-merchTotalSalesCard perfs =
+-- merchTotalSalesCard : List Performance -> Html msg
+-- merchTotalSalesCard perfs =
+--     let
+--         visible = List.filter (\p -> not p.hide) perfs
+--         total = sumBy .merchSales visible
+--     in
+--     statCard
+--         { title = "Total Gross Sales"
+--         , info = "Sum of merch revenue (gross) across all visible shows."
+--         , primary = formatMoney total
+--         , secondaryMain = formatInt (List.length visible)
+--         , secondarySuffix = "shows reported"
+--         }
+
+
+-- merchAverageSalesCard : List Performance -> Html msg
+-- merchAverageSalesCard perfs =
+--     let
+--         visible = List.filter (\p -> not p.hide) perfs
+--         avgSales = safeDiv (sumBy .merchSales visible) (toFloat (List.length visible))
+--         perTicket =
+--             safeDiv (sumBy .merchSales visible)
+--                 (visible |> List.map (\p -> toFloat p.totalDraw) |> List.sum)
+--     in
+--     statCard
+--         { title = "Average Gross Sales"
+--         , info = "Average merch revenue (gross) per show, plus per-ticket-holder spend."
+--         , primary = formatMoney avgSales
+--         , secondaryMain = formatMoney perTicket
+--         , secondarySuffix = "per ticket holder"
+--         }
+
+
+-- merchVsTicketCard : List Performance -> Html msg
+-- merchVsTicketCard perfs =
+--     let
+--         visible = List.filter (\p -> not p.hide) perfs
+--         merch = sumBy .merchSales visible
+--         tickets =
+--             visible
+--                 |> List.map (\p -> (toFloat p.ourDraw) * p.ticketPrice)
+--                 |> List.sum
+--         ratio = safeDiv merch tickets
+--         moneyPer10 =
+--             formatMoney (ratio * 10)
+--     in
+--     statCard
+--         { title = "Merch vs. Ticket Sales"
+--         , info = "Gross merch vs. your ticket revenue. Secondary shows how much merch is sold per $10 of ticket revenue."
+--         , primary = percent ratio
+--         , secondaryMain = moneyPer10
+--         , secondarySuffix = "merch per $10 tickets"
+--         }
+
+{-| Total tickets sold (uses totalDraw), plus avg per show. -}
+ticketsSoldCard : List Performance -> Html msg
+ticketsSoldCard perfs =
     let
-        visible = List.filter (\p -> not p.hide) perfs
-        total = sumBy .merchSales visible
+        shows =
+            perfs |> List.filter (\p -> not p.hide)
+
+        totalTickets =
+            shows |> List.map .totalDraw |> List.sum
+
+        avgPerShow =
+            case List.length shows of
+                0 -> 0
+                n -> totalTickets // n
     in
     statCard
-        { title = "Total Gross Sales"
-        , info = "Sum of merch revenue (gross) across all visible shows."
-        , primary = formatMoney total
-        , secondaryMain = formatInt (List.length visible)
-        , secondarySuffix = "shows reported"
+        { title = "Tickets Sold"
+        , info = "Total attendees across shows (Total Draw). Avg is per show."
+        , primary = String.fromInt totalTickets
+        , secondaryMain = String.fromInt avgPerShow
+        , secondarySuffix = "avg / show"
+        }
+
+{-| Total merch units (from units feed), plus avg per show. -}
+merchUnitsCard : List Performance -> Html msg
+merchUnitsCard perfs =
+    let
+        total = perfs
+              |> List.map (.merchSold)
+              |> sumUnits
+
+        showCount =
+            List.length perfs
+
+        avgPerShow =
+            if showCount == 0 then
+                0
+            else
+                total // showCount
+    in
+    statCard
+        { title = "Merch Units Sold"
+        , info = "Sum of all physical units (shirts, stickers). Avg is per show."
+        , primary = String.fromInt total
+        , secondaryMain = String.fromInt avgPerShow
+        , secondarySuffix = "avg / show"
         }
 
 
-merchAverageSalesCard : List Performance -> Html msg
-merchAverageSalesCard perfs =
+{-| Units per attendee = total merch units ÷ total audience. -}
+unitsPerAttendeeCard : List Performance -> Html msg
+unitsPerAttendeeCard perfs =
     let
-        visible = List.filter (\p -> not p.hide) perfs
-        avgSales = safeDiv (sumBy .merchSales visible) (toFloat (List.length visible))
-        perTicket =
-            safeDiv (sumBy .merchSales visible)
-                (visible |> List.map (\p -> toFloat p.totalDraw) |> List.sum)
-    in
-    statCard
-        { title = "Average Gross Sales"
-        , info = "Average merch revenue (gross) per show, plus per-ticket-holder spend."
-        , primary = formatMoney avgSales
-        , secondaryMain = formatMoney perTicket
-        , secondarySuffix = "per ticket holder"
-        }
+        totalUnits_ = perfs
+              |> List.map (.merchSold)
+              |> sumUnits
 
-
-merchVsTicketCard : List Performance -> Html msg
-merchVsTicketCard perfs =
-    let
-        visible = List.filter (\p -> not p.hide) perfs
-        merch = sumBy .merchSales visible
-        tickets =
-            visible
-                |> List.map (\p -> (toFloat p.ourDraw) * p.ticketPrice)
+        totalAudience =
+            perfs
+                |> List.filter (\p -> not p.hide)
+                |> List.map .totalDraw
                 |> List.sum
-        ratio = safeDiv merch tickets
-        moneyPer10 =
-            formatMoney (ratio * 10)
+
+        ratio : Float
+        ratio =
+            if totalAudience <= 0 then
+                0
+            else
+                toFloat totalUnits_ / toFloat totalAudience
+
+        ratioStr =
+            String.fromFloat (roundTo 2 ratio)
     in
     statCard
-        { title = "Merch vs. Ticket Sales"
-        , info = "Gross merch vs. your ticket revenue. Secondary shows how much merch is sold per $10 of ticket revenue."
-        , primary = percent ratio
-        , secondaryMain = moneyPer10
-        , secondarySuffix = "merch per $10 tickets"
+        { title = "Units per Attendee"
+        , info = "Total merch units divided by total audience across the same period."
+        , primary = ratioStr
+        , secondaryMain = String.fromInt totalUnits_
+        , secondarySuffix = "total units"
         }
 
 
