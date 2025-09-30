@@ -7,27 +7,55 @@ document.addEventListener('DOMContentLoaded', () => {
   const navbarLoadTime = 300;
   const sidepanelLoadTime = 300;
 
-  function onScrollRAF() {
-    latestY = window.scrollY || window.pageYOffset || 0;
-    if (!ticking) {
-      requestAnimationFrame(() => {
-        app.ports.onScroll.send(latestY);
-        ticking = false;
-      });
-      ticking = true;
-    }
-  }
-  window.addEventListener('scroll', onScrollRAF, { passive: true });
 
-  // Smoothly scroll the horizontal video reel by ~one viewport width
-  if (app.ports.scrollReel) {
-    app.ports.scrollReel.subscribe(([id, dir]) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const amount = Math.round(el.clientWidth * 0.85); // ~one page of thumbnails
-      el.scrollBy({ left: amount * (dir || 1), behavior: 'smooth' });
-    });
+  const isiOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+  // On iOS, visualViewport.pageTop reflects the real visual top as the bars move.
+  function readScrollTop() {
+    if (isiOS && window.visualViewport && typeof window.visualViewport.pageTop === 'number') {
+      return window.visualViewport.pageTop;
+    }
+    return window.scrollY || window.pageYOffset || 0;
   }
+
+  function emitScroll() {
+    app.ports.onScroll && app.ports.onScroll.send(readScrollTop());
+  }
+
+  // Listen to both document scroll and visualViewport changes on iOS.
+  window.addEventListener('scroll', emitScroll, { passive: true });
+  if (isiOS && window.visualViewport) {
+    window.visualViewport.addEventListener('scroll', emitScroll, { passive: true });
+    window.visualViewport.addEventListener('resize', emitScroll, { passive: true });
+  }
+
+  // Send an initial value after layout settles.
+  window.requestAnimationFrame(emitScroll);
+
+
+  // function onScrollRAF() {
+  //   latestY = window.scrollY || window.pageYOffset || 0;
+  //   if (!ticking) {
+  //     requestAnimationFrame(() => {
+  //       app.ports.onScroll.send(latestY);
+  //       ticking = false;
+  //     });
+  //     ticking = true;
+  //   }
+  // }
+  // window.addEventListener('scroll', onScrollRAF, { passive: true });
+
+
+
+  // // Smoothly scroll the horizontal video reel by ~one viewport width
+  // if (app.ports.scrollReel) {
+  //   app.ports.scrollReel.subscribe(([id, dir]) => {
+  //     const el = document.getElementById(id);
+  //     if (!el) return;
+  //     const amount = Math.round(el.clientWidth * 0.85); // ~one page of thumbnails
+  //     el.scrollBy({ left: amount * (dir || 1), behavior: 'smooth' });
+  //   });
+  // }
 
   // Copy-to-clipboard
   if (app.ports.copyToClipboard) {
