@@ -162,16 +162,12 @@ init _ =
       , testimonials = testimonials
       , lightbox = Nothing
       , draggingTestimonials = Nothing
-      , testimonialsHover = False
-      , testimonialScrollX = 0
-      , testimonialsHalfTrackW = 0
       }
     , Cmd.batch
           [ Task.attempt GotViewport Dom.getViewport  -- sync scroll and height now
           , measureMarkersCmd videoMarkerIds    -- measure all markers atomically
           , Task.perform GotZone Time.here
           , Task.perform GotNow Time.now
-          , measureTestimonialsTrack
           ]
     )
 
@@ -238,7 +234,6 @@ update msg model =
             , Cmd.batch
                 [ Task.attempt GotViewport Dom.getViewport
                 , measureMarkersCmd videoMarkerIds
-                , measureTestimonialsTrack
                 ]
             )
         MarkersMeasured pairs ->
@@ -427,112 +422,6 @@ update msg model =
                 step = if model.viewportW < Constants.mobileThreshold then 3 else 5
             in
             ( { model | visiblePerfCount = model.visiblePerfCount + step }, Cmd.none )
-
-        GotTestimonialsTrack result ->
-            case result of
-                Ok el ->
-                    ( { model | testimonialsHalfTrackW = el.element.width / 2 }
-                    , Cmd.none
-                    )
-                Err _ ->
-                    ( model, Cmd.none )
-
-        TestimonialsMouseEnter ->
-            ( { model | testimonialsHover = True }, Cmd.none )
-
-        TestimonialsMouseLeave ->
-            ( { model | testimonialsHover = False }, Cmd.none )
-
-        TestimonialsPointerEnter ->
-            ( { model | testimonialsHover = True }, Cmd.none )
-
-        TestimonialsPointerLeave ->
-            ( { model | testimonialsHover = False, draggingTestimonials = Nothing }
-            , Dom.getViewportOf "testimonial-reel" |> Task.attempt SyncTestimonialScroll
-            )
-
-        AutoScrollTick ->
-            let
-                paused =
-                    model.testimonialsHover || Maybe.withDefault False (Maybe.map (\_ -> True) model.draggingTestimonials)
-
-                step : Float
-                step = 0.6  -- px per tick; tweak to taste
-
-                half = model.testimonialsHalfTrackW
-                advance =
-                    if half > 0 then
-                        let
-                            raw = model.testimonialScrollX + step
-                            wrapped =
-                                if raw >= half then
-                                    raw - half
-                                else
-                                    raw
-                        in
-                            wrapped
-                    else
-                        model.testimonialScrollX
-            in
-                if paused || half <= 0 then
-                    ( model, Cmd.none )
-                else
-                    ( { model | testimonialScrollX = advance }
-                    , Dom.setViewportOf "testimonial-reel" advance 0
-                    |> Task.attempt (\_ -> NoOp)
-                    )
-
-        BeginTestimonialsDrag startX pointerType ->
-            ( model
-            , Dom.getViewportOf "testimonial-reel"
-            |> Task.attempt (GotTestimonialsDragStart startX pointerType)
-            )
-
-        GotTestimonialsDragStart startX pointerType result ->
-            case result of
-                Ok vp ->
-                    ( { model | draggingTestimonials = Just { startX = startX, startScrollX = vp.viewport.x, pointerType = pointerType }
-                      , testimonialScrollX = vp.viewport.x
-                      }
-                    , Cmd.none
-                    )
-
-                Err _ ->
-                    ( model, Cmd.none )
-
-        MoveTestimonialsDrag x ->
-            case model.draggingTestimonials of
-                Just drag ->
-                    let
-                        dx = x - drag.startX
-                    in
-                        if drag.pointerType == "mouse" then
-                            -- programmatic drag for mouse
-                            let
-                                newScroll = drag.startScrollX - dx
-                            in
-                                ( { model | testimonialScrollX = newScroll }
-                                , Dom.setViewportOf "testimonial-reel" newScroll 0
-                                |> Task.attempt (\_ -> NoOp)
-                                )
-                        else
-                            -- touch: let native scrolling do the work
-                            ( model, Cmd.none )
-
-                Nothing ->
-                    ( model, Cmd.none )
-
-        EndTestimonialsDrag ->
-            ( { model | draggingTestimonials = Nothing }
-            , Dom.getViewportOf "testimonial-reel" |> Task.attempt SyncTestimonialScroll
-            )
-
-        SyncTestimonialScroll result ->
-            case result of
-                Ok vp ->
-                    ( { model | testimonialScrollX = vp.viewport.x }, Cmd.none )
-                Err _ ->
-                    ( model, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -2011,10 +1900,6 @@ measureMarkersCmd ids =
         |> Task.map (List.filterMap identity)
         |> Task.perform MarkersMeasured
 
-measureTestimonialsTrack : Cmd Msg
-measureTestimonialsTrack =
-    Dom.getElement "testimonial-track"
-        |> Task.attempt GotTestimonialsTrack
 
 visiblePerformances : Model -> List Performance
 visiblePerformances model =
