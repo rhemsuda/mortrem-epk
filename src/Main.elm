@@ -1530,11 +1530,16 @@ testimonialsPanel model =
                            (\(x, pt) -> ( BeginTestimonialsDrag x pt, pt == "mouse"))
                            (Decode.map2 Tuple.pair
                                 (Decode.field "clientX" Decode.float)
-                                (Decode.field "pointerType" Decode.string)
+                                (Decode.oneOf
+                                     [ Decode.field "pointerType" Decode.string
+                                     , Decode.succeed "mouse"   -- fallback
+                                     ]
+                                )
                            )
                       )
                   , on "pointermove" (Decode.map MoveTestimonialsDrag (Decode.field "clientX" Decode.float))
                   , on "pointerup" (Decode.succeed EndTestimonialsDrag)
+                  , preventDefaultOn "dragstart" (Decode.succeed ( NoOp, True ))
                   ]
                   [ div [ id "testimonial-track", class "flex gap-4 items-stretch min-w-max" ]
                         trackNodes
@@ -1593,6 +1598,7 @@ testimonialCard model t =
                 [ src thumb.url
                 , alt thumb.alt
                 , class "w-full h-48 md:h-56 object-cover transition hover:opacity-90"
+                , Html.Attributes.attribute "draggable" "false"
                 ]
                 []
             ]
