@@ -1583,7 +1583,7 @@ lightboxView model =
                     [ mediaView, captionView, textView ]
                 , -- close button
                   button
-                  [ class "absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 ring-1 ring-white/25 text-white text-2xl leading-none"
+                  [ class "absolute top-4 right-4 w-10 h-10 rounded-full bg-black hover:bg-black ring-1 ring-white/20 hover:ring-white/35 text-white text-2xl leading-none"
                   , Html.Events.stopPropagationOn "click" (Decode.succeed ( CloseLightbox, True ))
                   , Html.Attributes.attribute "aria-label" "Close lightbox"
                   ]
