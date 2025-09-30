@@ -642,7 +642,7 @@ subscriptions model =
         , songEnded (\_ -> SongEnded)
         , audioError AudioError
         , if model.isPlaying then frequencyData FrequencyData else Sub.none
-        , Time.every 30 (\_ -> AutoScrollTick)
+        , Time.every 60 (\_ -> AutoScrollTick)
         --, videoSwitch VideoSwitch
         ]
 
