@@ -1398,7 +1398,7 @@ testimonialsPanel model =
 
         , globalStyles  -- keeps the keyframes + animation class
 
-        , div [ class "relative overflow-hidden" ]
+        , div [ class "relative overflow-hidden testimonials-hover-pause" ]
             [ -- soft edge fades (optional)
               div
                 [ class "pointer-events-none absolute inset-y-0 left-0 w-12 z-10"
@@ -1438,6 +1438,9 @@ globalStyles =
 }
 .animate-testimonials { animation: testimonials-scroll 45s linear infinite; }
 .animate-testimonials:hover { animation-play-state: paused; }
+.animate-testimonials:hover { animation-play-state: paused; }
+.testimonials-hover-pause:hover .animate-testimonials { animation-play-state: paused; }
+
 @media (prefers-reduced-motion: reduce) {
   .animate-testimonials { animation: none; }
 }
