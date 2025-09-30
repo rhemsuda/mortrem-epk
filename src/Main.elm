@@ -1392,6 +1392,9 @@ testimonialsPanel model =
 
         track =
             cards ++ cards
+
+        pausedCls =
+            if model.lightbox /= Nothing then "paused" else ""
     in
     div [ id "testimonials", class "py-8 md:py-16 lg:px-16 xl:px-32 text-white" ]
         [ h1 [ class "text-lg md:text-xl font-bold mb-4 md:mb-6" ] [ text "Testimonials" ]
@@ -1417,7 +1420,7 @@ testimonialsPanel model =
                     (String.join " "
                         [ "flex gap-4 items-stretch will-change-transform"
                         , "min-w-max"
-                        , "animate-testimonials"   -- CSS animation does all the work
+                        , "animate-testimonials " ++ pausedCls
                         ]
                     )
                 ]
@@ -1438,7 +1441,7 @@ globalStyles =
 }
 .animate-testimonials { animation: testimonials-scroll 45s linear infinite; }
 .animate-testimonials:hover { animation-play-state: paused; }
-.animate-testimonials:hover { animation-play-state: paused; }
+.paused { animation-play-state: paused !important; }
 .testimonials-hover-pause:hover .animate-testimonials { animation-play-state: paused; }
 
 @media (prefers-reduced-motion: reduce) {
