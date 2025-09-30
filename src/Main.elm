@@ -569,7 +569,7 @@ heroBannerContent scrollY =
             max 0 (1 - scrollY / 300)
     in
     div
-        [ class "h-screen flex items-center justify-center text-white relative"
+        [ class "h-screen ios:h-[100svh] flex items-center justify-center text-white relative"
         , style "z-index" "10" -- Lower z-index for hero banner
         ]
         [ div [ class "relative z-20 flex items-center justify-center h-full" ]
