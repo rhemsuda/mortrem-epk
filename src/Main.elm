@@ -637,13 +637,10 @@ subscriptions model =
     Sub.batch
         [ onScroll OnScroll
         , Browser.Events.onResize ViewportResized
-        --, Browser.Events.onResize (\_ h -> ViewportResize (toFloat h))
         , timeUpdate (\(current, duration) -> TimeUpdate current duration)
         , songEnded (\_ -> SongEnded)
         , audioError AudioError
         , if model.isPlaying then frequencyData FrequencyData else Sub.none
-        , Time.every 60 (\_ -> AutoScrollTick)
-        --, videoSwitch VideoSwitch
         ]
 
 
@@ -1500,53 +1497,47 @@ statisticsPanel model =
 testimonialsPanel : Model -> Html Msg
 testimonialsPanel model =
     let
+        -- Build the cards once, then duplicate for seamless looping
         cards =
             model.testimonials |> List.map (testimonialCard model)
 
-        -- duplicate content for seamless wrap
-        trackNodes =
+        track =
             cards ++ cards
     in
     div [ id "testimonials", class "py-8 md:py-16 lg:px-16 xl:px-32 text-white" ]
         [ h1 [ class "text-lg md:text-xl font-bold mb-4 md:mb-6" ] [ text "Testimonials" ]
-        , globalStyles
-        , div [ class "relative overflow-hidden" ]
-            [ -- edge fades (optional)
-              div [ class "pointer-events-none absolute inset-y-0 left-0 w-12 z-10", style "background" "linear-gradient(90deg, rgba(0,0,0,1), rgba(0,0,0,0))" ] []
-            , div [ class "pointer-events-none absolute inset-y-0 right-0 w-12 z-10", style "background" "linear-gradient(270deg, rgba(0,0,0,1), rgba(0,0,0,0))" ] []
 
-              -- REEL (scroll container)
+        , globalStyles  -- keeps the keyframes + animation class
+
+        , div [ class "relative overflow-hidden" ]
+            [ -- soft edge fades (optional)
+              div
+                [ class "pointer-events-none absolute inset-y-0 left-0 w-12 z-10"
+                , style "background" "linear-gradient(90deg, rgba(0,0,0,1), rgba(0,0,0,0))"
+                ]
+                []
             , div
-                  [ id "testimonial-reel"
-                  , class "overflow-x-auto no-scrollbar select-none cursor-grab active:cursor-grabbing"
-                  , Html.Attributes.style "scroll-behavior" "auto"
-                  , Html.Attributes.style "touch-action" "pan-y"  -- allow vertical page scroll; let touch do native horizontal scroll
-                  , on "pointerenter" (Decode.succeed TestimonialsPointerEnter)
-                  , on "pointerleave" (Decode.succeed TestimonialsPointerLeave)
-                  , on "pointercancel" (Decode.succeed TestimonialsPointerLeave)
-                  -- pointerdown: prevent default ONLY for mouse, not for touch
-                  , preventDefaultOn "pointerdown"
-                      (Decode.map
-                           (\(x, pt) -> ( BeginTestimonialsDrag x pt, pt == "mouse"))
-                           (Decode.map2 Tuple.pair
-                                (Decode.field "clientX" Decode.float)
-                                (Decode.oneOf
-                                     [ Decode.field "pointerType" Decode.string
-                                     , Decode.succeed "mouse"   -- fallback
-                                     ]
-                                )
-                           )
-                      )
-                  , on "pointermove" (Decode.map MoveTestimonialsDrag (Decode.field "clientX" Decode.float))
-                  , on "pointerup" (Decode.succeed EndTestimonialsDrag)
-                  , preventDefaultOn "dragstart" (Decode.succeed ( NoOp, True ))
-                  ]
-                  [ div [ id "testimonial-track", class "flex gap-4 items-stretch min-w-max" ]
-                        trackNodes
-                  ]
+                [ class "pointer-events-none absolute inset-y-0 right-0 w-12 z-10"
+                , style "background" "linear-gradient(270deg, rgba(0,0,0,1), rgba(0,0,0,0))"
+                ]
+                []
+
+            , -- The auto-scrolling track
+              div
+                [ class
+                    (String.join " "
+                        [ "flex gap-4 items-stretch will-change-transform"
+                        , "min-w-max"
+                        , "animate-testimonials"   -- CSS animation does all the work
+                        ]
+                    )
+                ]
+                track
             ]
+
         , lightboxView model
         ]
+
 
 globalStyles : Html msg
 globalStyles =
@@ -1556,7 +1547,7 @@ globalStyles =
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
 }
-.animate-testimonials { animation: testimonials-scroll 60s linear infinite; }
+.animate-testimonials { animation: testimonials-scroll 45s linear infinite; }
 .animate-testimonials:hover { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
   .animate-testimonials { animation: none; }
