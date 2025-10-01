@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: registry.digitalocean.com/${{ secrets.DOCR_NAME }}
-  IMAGE: ${{ env.REGISTRY }}/mortrem-epk
+  IMAGE: registry.digitalocean.com/${{ secrets.DOCR_NAME }}/mortrem-epk
 
 jobs:
   build-and-push:
