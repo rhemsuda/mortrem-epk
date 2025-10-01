@@ -53,7 +53,7 @@ barsCount = 10
 songs : Model -> List Song
 songs model =
     [ { title = "Big Blue", src = (cdnUrl model.cdnBase "assets/audio/mortrem-bigblue.wav"), duration = 321, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-bigblue.png") }
-    , { title = "Nonfiction", src = (cdnUrl model.cdnBase "assets/audio/mortrem-nonfiction.mp3"), duration = 277, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-nonfiction.png") }
+    , { title = "Nonfiction", src = (cdnUrl model.cdnBase "assets/audio/mortrem-nonfiction.wav"), duration = 277, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-nonfiction.png") }
     , { title = "Better for You", src = (cdnUrl model.cdnBase "assets/audio/mortrem-betterforyou.wav"), duration = 198, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-betterforyou.png") }
     ]
 
