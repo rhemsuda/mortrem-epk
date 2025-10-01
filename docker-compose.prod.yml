@@ -3,16 +3,17 @@ services:
     image: registry.digitalocean.com/${DOCR_NAME}/mortrem-epk:${IMAGE_TAG}
     ports:
       - "80:80"
-      - "443:443"        # map 443 too, you’ll need it after certs exist
-    restart: unless-stopped
+      - "443:443"
     environment:
       CDN_BASE_URL: "${CDN_BASE_URL}"
     volumes:
       - letsencrypt:/etc/letsencrypt:ro
       - certbot-www:/var/www/certbot:ro
+    restart: unless-stopped
 
   certbot:
     image: certbot/certbot:latest
+    # IMPORTANT: no '/bin/sh' here; either omit entrypoint or:
     entrypoint: ["certbot"]
     volumes:
       - letsencrypt:/etc/letsencrypt

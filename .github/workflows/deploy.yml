@@ -90,8 +90,12 @@ jobs:
                 image: registry.digitalocean.com/${{ secrets.DOCR_NAME }}/mortrem-epk:${{ needs.build-and-push.outputs.IMAGE_TAG }}
                 ports:
                   - "80:80"
+                  - "443:443"
                 environment:
                   - CDN_BASE_URL=${{ secrets.CDN_BASE_URL }}
+                volumes:
+                  - letsencrypt:/etc/letsencrypt:ro
+                  - certbot-www:/var/www/certbot:ro
                 restart: unless-stopped
 
               certbot:
@@ -99,8 +103,7 @@ jobs:
                 volumes:
                   - letsencrypt:/etc/letsencrypt
                   - certbot-www:/var/www/certbot
-                entrypoint: /bin/sh
-                command: -c "sleep infinity"
+                entrypoint: [ "certbot" ]
             volumes:
               letsencrypt:
               certbot-www:
