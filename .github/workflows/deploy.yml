@@ -53,26 +53,35 @@ jobs:
             curl -fsSL https://get.docker.com | sh
             fi
 
-            # Log in to DOCR so the droplet can pull the private image
-            echo "${{ secrets.DO_API_TOKEN }}" | docker login registry.digitalocean.com -u doctl --password-stdin || true
-
             mkdir -p /srv/mortrem-epk
             cd /srv/mortrem-epk
 
+            # Log in to DOCR so the droplet can pull the private image
+            echo "${{ secrets.DO_API_TOKEN }}" | docker login registry.digitalocean.com -u doctl --password-stdin || true
+
+
             # Write compose with literal values (no env expansion needed)
-            cat > docker-compose.prod.yml <<YAML
+            cat > docker-compose.prod.yml <<'YAML'
             services:
               web:
                 image: registry.digitalocean.com/${{ secrets.DOCR_NAME }}/mortrem-epk:${{ needs.build-and-push.outputs.IMAGE_TAG }}
                 ports:
                   - "80:80"
-                  environment:
-                    - CDN_BASE_URL=${{ secrets.CDN_BASE_URL }}
-                    restart: unless-stopped
-                    YAML
+                environment:
+                  CDN_BASE_URL=${{ secrets.CDN_BASE_URL }}
+                restart: unless-stopped
+            YAML
 
-                    # Open firewall for HTTP if UFW is in use
-                    if command -v ufw >/dev/null; then ufw allow 80/tcp || true; fi
+            # Write .env so docker compose picks it up automatically
+            cat > .env <<EOF
+            DOCR_NAME=${{ secrets.DOCR_NAME }}
+            IMAGE_TAG=${{ needs.build-and-push.outputs.IMAGE_TAG }}
+            CDN_BASE_URL=${{ secrets.CDN_BASE_URL }}
+            EOF
 
-                    docker compose -f docker-compose.prod.yml up -d
-                    docker image prune -f
+            # Open firewall for HTTP if UFW is in use
+            if command -v ufw >/dev/null; then
+              sudo ufw allow 80/tcp || true
+            fi
+
+            sudo docker compose -f docker-compose.prod.yml up -d
