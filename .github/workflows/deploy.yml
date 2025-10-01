@@ -42,43 +42,37 @@ jobs:
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          username: ${{ secrets.SSH_USER }}   # 'root' if you SSH as root
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             set -euo pipefail
 
+            # Install Docker if missing
             if ! command -v docker >/dev/null; then
-              curl -fsSL https://get.docker.com | sh
+            curl -fsSL https://get.docker.com | sh
             fi
 
-            sudo mkdir -p /srv/mortrem-epk
+            # Log in to DOCR so the droplet can pull the private image
+            echo "${{ secrets.DO_API_TOKEN }}" | docker login registry.digitalocean.com -u doctl --password-stdin || true
+
+            mkdir -p /srv/mortrem-epk
             cd /srv/mortrem-epk
 
-            # Login to DOCR (idempotent)
-            echo "${{ secrets.DO_API_TOKEN }}" | sudo docker login registry.digitalocean.com -u doctl --password-stdin || true
-
-            # Write/update compose file
-            cat > docker-compose.prod.yml <<'YAML'
+            # Write compose with literal values (no env expansion needed)
+            cat > docker-compose.prod.yml <<YAML
             services:
               web:
-                image: registry.digitalocean.com/${DOCR_NAME}/mortrem-epk:${IMAGE_TAG}
+                image: registry.digitalocean.com/${{ secrets.DOCR_NAME }}/mortrem-epk:${{ needs.build-and-push.outputs.IMAGE_TAG }}
                 ports:
                   - "80:80"
-                environment:
-                  CDN_BASE_URL: "${CDN_BASE_URL}"
-                restart: unless-stopped
-            YAML
+                  environment:
+                    - CDN_BASE_URL=${{ secrets.CDN_BASE_URL }}
+                    restart: unless-stopped
+                    YAML
 
-            # Vars used by the compose file
-            export DOCR_NAME="${{ secrets.DOCR_NAME }}"
-            export IMAGE_TAG="${{ needs.build-and-push.outputs.IMAGE_TAG }}"
-            export CDN_BASE_URL="${{ secrets.CDN_BASE_URL }}"
+                    # Open firewall for HTTP if UFW is in use
+                    if command -v ufw >/dev/null; then ufw allow 80/tcp || true; fi
 
-            # Open basic firewall (if UFW enabled)
-            if command -v ufw >/dev/null; then
-              sudo ufw allow 80/tcp || true
-            fi
-
-            # Run/update
-            sudo docker compose -f docker-compose.prod.yml up -d
+                    docker compose -f docker-compose.prod.yml up -d
+                    docker image prune -f
