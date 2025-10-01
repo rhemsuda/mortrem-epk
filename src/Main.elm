@@ -52,9 +52,9 @@ barsCount = 10
 
 songs : Model -> List Song
 songs model =
-    [ { title = "Kingdom Come", src = (cdnUrl model.cdnBase "assets/audio/mortrem-kingdom-come.mp3"), duration = 120, released = False, artwork = Nothing }
-    , { title = "Nonfiction", src = (cdnUrl model.cdnBase "assets/audio/mortrem-nonfiction.mp3"), duration = 130, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-nonfiction.png") }
-    , { title = "Vanity Box", src = (cdnUrl model.cdnBase "assets/audio/mortrem-vanitybox.mp3"), duration = 100, released = False, artwork = Nothing }
+    [ { title = "Big Blue", src = (cdnUrl model.cdnBase "assets/audio/mortrem-bigblue.wav"), duration = 321, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-bigblue.png") }
+    , { title = "Nonfiction", src = (cdnUrl model.cdnBase "assets/audio/mortrem-nonfiction.mp3"), duration = 277, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-nonfiction.png") }
+    , { title = "Better for You", src = (cdnUrl model.cdnBase "assets/audio/mortrem-betterforyou.wav"), duration = 198, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-betterforyou.png") }
     ]
 
 musicVideos : List YoutubeVideo
@@ -1833,10 +1833,9 @@ footer model =
                   [ h3 [ class "uppercase text-sm tracking-wider text-white/70 mb-3 md:text-right" ]
                         [ text "Resources" ]
                   , ul [ class "space-y-2 md:text-right" ]
-                      [ li [] [ a [ href "/docs/tech-rider.pdf", class "hover:underline" ] [ text "Tech Rider" ] ]
-                      , li [] [ a [ href "/docs/stage-plot.pdf", class "hover:underline" ] [ text "Stage Plot" ] ]
-                      , li [] [ a [ href "/docs/press-kit.zip", class "hover:underline" ] [ text "Press Kit" ] ]
-                      , li [] [ a [ href "/docs/other.pdf", class "hover:underline" ] [ text "Other Resources" ] ]
+                      [ --li [] [ a [ href "/docs/tech-rider.pdf", class "hover:underline" ] [ text "Tech Rider" ] ]
+                      --, li [] [ a [ href "/docs/stage-plot.pdf", class "hover:underline" ] [ text "Stage Plot" ] ]
+                      li [] [ a [ href "https://www.dropbox.com/scl/fo/xeyfda3ze6e1bo7652ihh/AGQQTbgnvYnVpSY6QtlaOjc?rlkey=51qn09u8p20c9qugqykwb9m2q&st=ctn73jvi&dl=0", class "hover:underline", target "_blank" ] [ text "Press Kit" ] ]
                       ]
                   ]
           ]

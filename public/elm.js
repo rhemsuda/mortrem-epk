@@ -6993,26 +6993,28 @@ var $author$project$Main$songs = function (model) {
 	return _List_fromArray(
 		[
 			{
-			artwork: $elm$core$Maybe$Nothing,
-			duration: 120,
-			released: false,
-			src: A2($author$project$Utils$cdnUrl, model.cdnBase, 'assets/audio/mortrem-kingdom-come.mp3'),
-			title: 'Kingdom Come'
+			artwork: $elm$core$Maybe$Just(
+				A2($author$project$Utils$cdnUrl, model.cdnBase, 'assets/images/coverart/mortrem-bigblue.png')),
+			duration: 321,
+			released: true,
+			src: A2($author$project$Utils$cdnUrl, model.cdnBase, 'assets/audio/mortrem-bigblue.wav'),
+			title: 'Big Blue'
 		},
 			{
 			artwork: $elm$core$Maybe$Just(
 				A2($author$project$Utils$cdnUrl, model.cdnBase, 'assets/images/coverart/mortrem-nonfiction.png')),
-			duration: 130,
+			duration: 277,
 			released: true,
 			src: A2($author$project$Utils$cdnUrl, model.cdnBase, 'assets/audio/mortrem-nonfiction.mp3'),
 			title: 'Nonfiction'
 		},
 			{
-			artwork: $elm$core$Maybe$Nothing,
+			artwork: $elm$core$Maybe$Just(
+				A2($author$project$Utils$cdnUrl, model.cdnBase, 'assets/images/coverart/mortrem-betterforyou.png')),
 			duration: 100,
-			released: false,
-			src: A2($author$project$Utils$cdnUrl, model.cdnBase, 'assets/audio/mortrem-vanitybox.mp3'),
-			title: 'Vanity Box'
+			released: true,
+			src: A2($author$project$Utils$cdnUrl, model.cdnBase, 'assets/audio/mortrem-betterforyou.wav'),
+			title: 'Better for You'
 		}
 		]);
 };
@@ -8807,63 +8809,13 @@ var $author$project$Main$footer = function (model) {
 												$elm$html$Html$a,
 												_List_fromArray(
 													[
-														$elm$html$Html$Attributes$href('/docs/tech-rider.pdf'),
-														$elm$html$Html$Attributes$class('hover:underline')
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text('Tech Rider')
-													]))
-											])),
-										A2(
-										$elm$html$Html$li,
-										_List_Nil,
-										_List_fromArray(
-											[
-												A2(
-												$elm$html$Html$a,
-												_List_fromArray(
-													[
-														$elm$html$Html$Attributes$href('/docs/stage-plot.pdf'),
-														$elm$html$Html$Attributes$class('hover:underline')
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text('Stage Plot')
-													]))
-											])),
-										A2(
-										$elm$html$Html$li,
-										_List_Nil,
-										_List_fromArray(
-											[
-												A2(
-												$elm$html$Html$a,
-												_List_fromArray(
-													[
-														$elm$html$Html$Attributes$href('/docs/press-kit.zip'),
-														$elm$html$Html$Attributes$class('hover:underline')
+														$elm$html$Html$Attributes$href('https://www.dropbox.com/scl/fo/xeyfda3ze6e1bo7652ihh/AGQQTbgnvYnVpSY6QtlaOjc?rlkey=51qn09u8p20c9qugqykwb9m2q&st=ctn73jvi&dl=0'),
+														$elm$html$Html$Attributes$class('hover:underline'),
+														$elm$html$Html$Attributes$target('_blank')
 													]),
 												_List_fromArray(
 													[
 														$elm$html$Html$text('Press Kit')
-													]))
-											])),
-										A2(
-										$elm$html$Html$li,
-										_List_Nil,
-										_List_fromArray(
-											[
-												A2(
-												$elm$html$Html$a,
-												_List_fromArray(
-													[
-														$elm$html$Html$Attributes$href('/docs/other.pdf'),
-														$elm$html$Html$Attributes$class('hover:underline')
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text('Other Resources')
 													]))
 											]))
 									]))
