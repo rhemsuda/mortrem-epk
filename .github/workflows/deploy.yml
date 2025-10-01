@@ -68,7 +68,7 @@ jobs:
                 ports:
                   - "80:80"
                 environment:
-                  CDN_BASE_URL=${{ secrets.CDN_BASE_URL }}
+                  - CDN_BASE_URL=${{ secrets.CDN_BASE_URL }}
                 restart: unless-stopped
             YAML
 
