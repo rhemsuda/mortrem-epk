@@ -93,6 +93,17 @@ jobs:
                 environment:
                   - CDN_BASE_URL=${{ secrets.CDN_BASE_URL }}
                 restart: unless-stopped
+
+              certbot:
+                image: certbot/certbot:latest
+                volumes:
+                  - letsencrypt:/etc/letsencrypt
+                  - certbot-www:/var/www/certbot
+                entrypoint: /bin/sh
+                command: -c "sleep infinity"
+            volumes:
+              letsencrypt:
+              certbot-www:
             YAML
 
             # Write .env so docker compose picks it up automatically
