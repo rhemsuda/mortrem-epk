@@ -81,11 +81,11 @@ galleryImages : Model -> List GalleryImage
 galleryImages model =
     [ { colSpan = 4, rowSpan = 6, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/samuel-george-lees.png"), alt = "Samuel George. Lead Singer. Walking on stage in red light." } }
     , { colSpan = 4, rowSpan = 4, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/charlie-romeo-lees.png"), alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
-    , { colSpan = 4, rowSpan = 4, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/charlie-romeo-lees.png"), alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+    -- , { colSpan = 4, rowSpan = 4, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/charlie-romeo-lees.png"), alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
     , { colSpan = 6, rowSpan = 4, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/kyle-jensen-lees.png"), alt = "Kyle Jensen. Guitar & Vocals. Playing guitar and singing with a blue light." } }
     , { colSpan = 4, rowSpan = 6, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/sammy-romeo-lees.png"), alt = "Sammy Romeo. Drums. Playing drums on stage." } }
     , { colSpan = 4, rowSpan = 6, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/zak-stulla-lees.png"), alt = "Zak Stulla. Bass Guitar. Holding a black bass guitar." } }
-    , { colSpan = 4, rowSpan = 4, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/charlie-romeo-lees.png"), alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+    -- , { colSpan = 4, rowSpan = 4, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/charlie-romeo-lees.png"), alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
     ]
 
 
