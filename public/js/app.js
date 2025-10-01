@@ -435,6 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const audio = document.getElementById('audioPlayer');
   let audioContext, source, analyser;
   if (audio) {
+    audio.crossOrigin = 'anonymous';
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     source = audioContext.createMediaElementSource(audio);
     analyser = audioContext.createAnalyser();
@@ -452,6 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
           console.error('AudioContext resume failed:', e);
         }
       }
+      audio.crossOrigin = 'anonymous';
       const normalizedExpectedSrc = new URL(expectedSrc, window.location.origin).href;
       if (audio.src !== normalizedExpectedSrc) {
         audio.src = expectedSrc;

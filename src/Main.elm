@@ -649,6 +649,7 @@ discographyPanel model =
     div [ id "discography", class "pt-16 md:pt-28 lg:px-16 md:max-w-5xl lg:max-w-8xl mx-auto text-white" ]
         [ audio
             [ id "audioPlayer"
+            , Html.Attributes.attribute "crossorigin" "anonymous"
             , src currentSong.src
             , preload "auto"
             , class "hidden"
