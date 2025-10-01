@@ -2,6 +2,7 @@ module Update.OnScroll exposing (handle)
 
 import Utils exposing (activeIndexFrom)
 import Types exposing (Model, Msg(..))
+import Constants exposing (numVideoBgs)
 
 handle : Float -> Model -> (Int -> Cmd Msg) -> (Model, Cmd Msg)
 handle y model setActiveBgCmd =
@@ -10,7 +11,7 @@ handle y model setActiveBgCmd =
             y + model.viewportH
 
         idx =
-            activeIndexFrom bottom model.videoMarkers (List.length model.videoSources)
+            activeIndexFrom bottom model.videoMarkers numVideoBgs
 
         swapCmd =
             if idx /= model.activeBgIndex then

@@ -1,51 +1,84 @@
-name: Deploy EPK to DigitalOcean Spaces (CDN)
+name: Deploy EPK to DigitalOcean (Nginx)
 
 on:
   push:
     branches: [ master, main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry.digitalocean.com/${{ secrets.DOCR_NAME }}
+  IMAGE: ${{ env.REGISTRY }}/mortrem-epk
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_ACCESS_KEY_SECRET }}
-      AWS_EC2_METADATA_DISABLED: "true"
-      SPACES_REGION: ${{ secrets.SPACES_REGION }}
-      SPACES_BUCKET: ${{ secrets.SPACES_BUCKET }}
-      SPACES_ENDPOINT: ${{ secrets.SPACES_ENDPOINT }}
-      SPACES_CDN_BASE: ${{ secrets.SPACES_CDN_BASE }}
-
+    outputs:
+      IMAGE_TAG: ${{ steps.meta.outputs.IMAGE_TAG }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
         with:
-          node-version: 20
-      - name: Install elm
+          token: ${{ secrets.DO_API_TOKEN }}
+
+      - name: Login to DO Container Registry
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Build and push image
+        id: meta
         run: |
-          npm i -g elm@0.19.1-5
-      - name: Build
-        run: |
-          rm -rf dist && mkdir -p dist
-          elm make src/Main.elm --optimize --output=dist/elm.js
-          cp -r public/* dist/
-          if [ -d assets ]; then cp -r assets dist/assets; fi
-      - name: Upload HTML (no-cache)
-        run: |
-          aws s3 sync dist s3://${SPACES_BUCKET}/ \
-            --endpoint-url ${SPACES_ENDPOINT} \
-            --acl public-read \
-            --delete \
-            --include "*" \
-            --cache-control "no-cache, no-store, must-revalidate"
-      - name: Upload HTML (long cache)
-        run: |
-          aws s3 sync dist s3://${SPACES_BUCKET}/ \
-            --endpoint-url ${SPACES_ENDPOINT} \
-            --acl public-read \
-            --delete \
-            --include "*" \
-            --cache-control "public, max-age=31536000, immutable"
+          TAG=${GITHUB_SHA::7}
+          docker build -t $IMAGE:$TAG -t $IMAGE:latest .
+          docker push $IMAGE:$TAG
+          docker push $IMAGE:latest
+          echo "IMAGE_TAG=$TAG" >> $GITHUB_OUTPUT
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH & deploy
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -euo pipefail
+
+            if ! command -v docker >/dev/null; then
+              curl -fsSL https://get.docker.com | sh
+            fi
+
+            sudo mkdir -p /srv/mortrem-epk
+            cd /srv/mortrem-epk
+
+            # Login to DOCR (idempotent)
+            echo "${{ secrets.DO_API_TOKEN }}" | sudo docker login registry.digitalocean.com -u doctl --password-stdin || true
+
+            # Write/update compose file
+            cat > docker-compose.prod.yml <<'YAML'
+            services:
+              web:
+                image: registry.digitalocean.com/${DOCR_NAME}/mortrem-epk:${IMAGE_TAG}
+                ports:
+                  - "80:80"
+                environment:
+                  CDN_BASE_URL: "${CDN_BASE_URL}"
+                restart: unless-stopped
+            YAML
+
+            # Vars used by the compose file
+            export DOCR_NAME="${{ secrets.DOCR_NAME }}"
+            export IMAGE_TAG="${{ needs.build-and-push.outputs.IMAGE_TAG }}"
+            export CDN_BASE_URL="${{ secrets.CDN_BASE_URL }}"
+
+            # Open basic firewall (if UFW enabled)
+            if command -v ufw >/dev/null; then
+              sudo ufw allow 80/tcp || true
+            fi
+
+            # Run/update
+            sudo docker compose -f docker-compose.prod.yml up -d

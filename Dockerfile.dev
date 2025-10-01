@@ -1,0 +1,24 @@
+# Dockerfile.dev
+FROM node:20-alpine
+
+# system deps sometimes handy if elm deps compile to native (not typical)
+RUN apk add --no-cache bash git
+
+WORKDIR /app
+
+# copy only manifests first for better caching
+COPY package.json package-lock.json* ./
+
+# install deps
+RUN npm ci
+
+# now copy the rest
+COPY . .
+
+# expose the dev port
+EXPOSE 8000
+
+ENV CDN_BASE_URL="https://mortrem-epk.nyc3.cdn.digitaloceanspaces.com"
+
+# default command runs dev server
+CMD ["npm", "run", "dev"]

@@ -7,6 +7,10 @@ import Time exposing (Zone)
 import DateTime exposing (DateTime)
 import Dict exposing (Dict)
 
+type alias Flags =
+    { cdnBase : String
+    }
+
 type alias Song =
     { title : String
     , src : String
@@ -102,13 +106,12 @@ type alias Web3Resp =
     }
 
 type alias Model =
-    { scrollY : Float
+    { cdnBase : String
+    , scrollY : Float
     , currentSongIndex : Int
     , isPlaying : Bool
     , currentTime : Float
     , duration : Float
-    , songs : List Song
-    , musicVideos : List YoutubeVideo
     , selectedMusicVideoIndex : Int
     , error : Maybe String
     , barHeights : List Float
@@ -119,7 +122,6 @@ type alias Model =
     , viewportW : Float
     , viewportH : Float
     , videoMarkerIds : List String
-    , videoSources : List String
     , videoMarkers : List ( String, Float )
     , activeBgIndex : Int
     , debugMarkers : Bool
@@ -127,7 +129,6 @@ type alias Model =
     , zone : Zone
     , visiblePerfCount : Int
     , expandedPerf : Set Int
-    , testimonials : List Testimonial
     , lightbox : Maybe LightboxDetails
     , draggingTestimonials : Maybe { startScrollX : Float, startX : Float }
     }

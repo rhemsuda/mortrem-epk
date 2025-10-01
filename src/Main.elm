@@ -50,12 +50,11 @@ barsCount : Int
 barsCount = 10
 
 
--- MODEL
-songs : List Song
-songs =
-    [ { title = "Kingdom Come", src = "assets/audio/mortrem-kingdom-come.mp3", duration = 120, released = False, artwork = Nothing }
-    , { title = "Nonfiction", src = "assets/audio/mortrem-nonfiction.mp3", duration = 130, released = True, artwork = Just "assets/images/coverart/mortrem-nonfiction.png" }
-    , { title = "Vanity Box", src = "assets/audio/mortrem-vanitybox.mp3", duration = 100, released = False, artwork = Nothing }
+songs : Model -> List Song
+songs model =
+    [ { title = "Kingdom Come", src = (cdnUrl model.cdnBase "assets/audio/mortrem-kingdom-come.mp3"), duration = 120, released = False, artwork = Nothing }
+    , { title = "Nonfiction", src = (cdnUrl model.cdnBase "assets/audio/mortrem-nonfiction.mp3"), duration = 130, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-nonfiction.png") }
+    , { title = "Vanity Box", src = (cdnUrl model.cdnBase "assets/audio/mortrem-vanitybox.mp3"), duration = 100, released = False, artwork = Nothing }
     ]
 
 musicVideos : List YoutubeVideo
@@ -78,15 +77,15 @@ whyBookMortremText : String
 whyBookMortremText = "- We bring a unique sound and energy that keeps crowds engaged.\n-We are great at warming up an audience.\n- We handle our show ourselves (no need for monitoring engineers or lighting techs)"
 
 
-galleryImages : List GalleryImage
-galleryImages =
-    [ { colSpan = 4, rowSpan = 6, image = { src = "assets/images/gallery/samuel-george-lees.png", alt = "Samuel George. Lead Singer. Walking on stage in red light." } }
-    , { colSpan = 4, rowSpan = 4, image = { src = "assets/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
-    , { colSpan = 4, rowSpan = 4, image = { src = "assets/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
-    , { colSpan = 6, rowSpan = 4, image = { src = "assets/images/gallery/kyle-jensen-lees.png", alt = "Kyle Jensen. Guitar & Vocals. Playing guitar and singing with a blue light." } }
-    , { colSpan = 4, rowSpan = 6, image = { src = "assets/images/gallery/sammy-romeo-lees.png", alt = "Sammy Romeo. Drums. Playing drums on stage." } }
-    , { colSpan = 4, rowSpan = 6, image = { src = "assets/images/gallery/zak-stulla-lees.png", alt = "Zak Stulla. Bass Guitar. Holding a black bass guitar." } }
-    , { colSpan = 4, rowSpan = 4, image = { src = "assets/images/gallery/charlie-romeo-lees.png", alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+galleryImages : Model -> List GalleryImage
+galleryImages model =
+    [ { colSpan = 4, rowSpan = 6, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/samuel-george-lees.png"), alt = "Samuel George. Lead Singer. Walking on stage in red light." } }
+    , { colSpan = 4, rowSpan = 4, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/charlie-romeo-lees.png"), alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+    , { colSpan = 4, rowSpan = 4, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/charlie-romeo-lees.png"), alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
+    , { colSpan = 6, rowSpan = 4, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/kyle-jensen-lees.png"), alt = "Kyle Jensen. Guitar & Vocals. Playing guitar and singing with a blue light." } }
+    , { colSpan = 4, rowSpan = 6, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/sammy-romeo-lees.png"), alt = "Sammy Romeo. Drums. Playing drums on stage." } }
+    , { colSpan = 4, rowSpan = 6, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/zak-stulla-lees.png"), alt = "Zak Stulla. Bass Guitar. Holding a black bass guitar." } }
+    , { colSpan = 4, rowSpan = 4, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/charlie-romeo-lees.png"), alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
     ]
 
 
@@ -108,22 +107,22 @@ performances =
     , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_sneakyDees, totalDraw = 16, ourDraw = 9, organicDraw = 2, newFollowers = 5, merchSales = 30.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, merchSold = { shirts = 0, stickers = 0 }, hide = False }
     ]
 
-testimonials : List Testimonial
-testimonials =
+testimonials : Model -> List Testimonial
+testimonials model =
     [ { id = 1
       , media = LbYoutube { title = "Inside the Mind of Mortrem: Exclusive Chat on Their Origin and What's Next on the Podcouch!", youtubeId = "4EzaFS2c0l4", thumbnail = "" }
       , quote = "These guys ripped an absolutely  insane set! Each song is totally different, the timing changes and break downs are mind blowing! They are super talented musicians that are very dedicated to their band! We had a wicked time with them and  we suggest that you get out to their next show and experience it your self! Give them a follow, stream their music and don't miss out!"
       , author = "Shane & Ben @ Rye Field Studios"
-      , quotedAt = fromPosix (Time.millisToPosix 1735190400000)
+      , quotedAt = fromPosix (Time.millisToPosix 1747368000000)
       }
     , { id = 2
-      , media = LbImage { src = "assets/images/testimonials/whiskey-pit.jpg", alt = "Joe in the crowd" }
-      , quote = "Professional and punctual. Easy to work with and they deliver."
-      , author = "Shelly – The Casbah"
-      , quotedAt = fromPosix (Time.millisToPosix 1727481600000) -- 2024-09-28
+      , media = LbImage { src = (cdnUrl model.cdnBase "assets/images/testimonials/sunset.jpg"), alt = "Fan from Instagram taking a photo with Mortrem outside of Sneaky Dees" }
+      , quote = "Tonight I had the distinct pleasure of meeting these fine gentlemen. This is a band called Mortrem. For those of you who know me, you know that I go to a lot of shows. Usually local shows in downtown Toronto. I mean this city has got so much talent, so why wouldn’t I?. We Canadians are feisty. We have to be. And we hustle hard. When I do go out to shows, I don’t always wait until the band has dismantled their equipment and loaded their truck just so I can get a photo and have them sign the merch I just bought, but when I do, it’s only because something struck a chord in me. Mortrem’s performance tonight was stellar. And it was worth every second of the wait. Thank you @mortremband for making my night. #toronto #rock #torontorocks #sneakydees"
+      , author = "@sunset_destruction_poetry"
+      , quotedAt = fromPosix (Time.millisToPosix 1749182400000)
       }
     , { id = 3
-      , media = LbImage { src = "assets/images/testimonials/whiskey-pit.jpg", alt = "Joe in the crowd" }
+      , media = LbImage { src = (cdnUrl model.cdnBase "assets/images/testimonials/whiskey-pit.jpg"), alt = "Joe in the crowd" }
       , quote = "Crowd loved them. We want them back."
       , author = "AJ – Sneaky Dee’s"
       , quotedAt = fromPosix (Time.millisToPosix 1731196800000) -- 2024-11-10
@@ -131,22 +130,19 @@ testimonials =
     ]
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
+init : Flags -> ( Model, Cmd Msg )
+init flags =
     ( { scrollY = 0
       , viewportW = 0
       , viewportH = 0
       , videoMarkerIds = Constants.videoMarkerIds
       --, markerPositions = Dict.empty
-      , videoSources = videoBgSources
       , videoMarkers = []
       , activeBgIndex = 0
       , currentSongIndex = 0
       , isPlaying = False
       , currentTime = 0
       , duration = 0
-      , songs = songs
-      , musicVideos = musicVideos
       , selectedMusicVideoIndex = 0
       , error = Nothing
       , barHeights = List.repeat barsCount 25.0
@@ -159,9 +155,9 @@ init _ =
       , expandedPerf = Set.empty
       , zone = Time.utc
       , now = Time.millisToPosix 0
-      , testimonials = testimonials
       , lightbox = Nothing
       , draggingTestimonials = Nothing
+      , cdnBase = String.trim flags.cdnBase
       }
     , Cmd.batch
           [ Task.attempt GotViewport Dom.getViewport  -- sync scroll and height now
@@ -179,7 +175,7 @@ view model =
         [ --backgroundVideoLayer model
         navbar model
         , mobileSidePanel model
-        , heroBannerContent model.scrollY
+        , heroBannerContent model
         , navbarMarker
         , contentPanel model [ bioPanel model, videoSwitchMarker1 ]
 
@@ -190,7 +186,7 @@ view model =
         , videoBanner "Performance Metrics"
         , contentPanel model [ performanceHistoryPanel model, statisticsPanel model, testimonialsPanel model, videoSwitchMarker3 ]
         , videoBanner "Gallery"
-        , contentPanel model [ imageGallery galleryImages ]
+        , contentPanel model [ imageGallery (galleryImages model) ]
         , footer model
         ]
 
@@ -200,7 +196,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
         currentSong =
-            List.drop model.currentSongIndex model.songs
+            List.drop model.currentSongIndex (songs model)
                 |> List.head
                 |> Maybe.withDefault { title = "", src = "", duration = 0, released = False, artwork = Nothing }
         validEmail e =
@@ -241,9 +237,8 @@ update msg model =
                 sorted = List.sortBy Tuple.second pairs
 
                 bottom = model.scrollY + model.viewportH
-                vidsLen = List.length model.videoSources
 
-                idx = activeIndexFrom bottom sorted vidsLen
+                idx = activeIndexFrom bottom sorted numVideoBgs
 
                 swapCmd =
                     if idx /= model.activeBgIndex then
@@ -431,7 +426,7 @@ miniPlayer : Model -> Html Msg
 miniPlayer model =
     let
         currentSong =
-            List.drop model.currentSongIndex model.songs
+            List.drop model.currentSongIndex (songs model)
                 |> List.head
                 |> Maybe.withDefault { title = "", src = "", duration = 0, released = False, artwork = Nothing }
 
@@ -439,7 +434,7 @@ miniPlayer model =
     in
     div [ class "w-full flex items-center gap-3 text-white py-2" ]
         [ div [ class "flex items-center gap-2 cursor-pointer", onClick (ScrollTo "playlist") ]
-            [ img [ src (albumArtwork currentSong), alt "Cover", class "w-10 h-10 rounded object-cover" ] []
+            [ img [ src (albumArtwork model currentSong), alt "Cover", class "w-10 h-10 rounded object-cover" ] []
             , div [ class "text-base truncate" ] [ text currentSong.title ]
             ]
         , div [ class "ml-auto flex items-center gap-3" ]
@@ -490,7 +485,7 @@ playlistTableRedesigned model =
                         ]
                     ]
                 , tbody []
-                    (model.songs
+                    ((songs model)
                         |> List.indexedMap
                             (\idx song ->
                                 let
@@ -557,16 +552,16 @@ topDownBlackGradientSpan : Html Msg
 topDownBlackGradientSpan =
     div [ class "relative top-0 h-[10%] w-full bg-gradient-to-b from-black to-black/0 z-10" ] []
 
-albumArtwork : Song -> String
-albumArtwork song =
-    Maybe.withDefault "assets/images/coverart/default.png" song.artwork
+albumArtwork : Model -> Song -> String
+albumArtwork model song =
+    Maybe.withDefault (cdnUrl model.cdnBase "assets/images/coverart/default.png") song.artwork
 
 
-heroBannerContent : Float -> Html Msg
-heroBannerContent scrollY =
+heroBannerContent : Model -> Html Msg
+heroBannerContent model =
     let
         scale =
-            max 0 (1 - scrollY / 300)
+            max 0 (1 - model.scrollY / 300)
     in
     div
         [ class "h-[100dvh] flex items-center justify-center text-white relative"
@@ -574,7 +569,7 @@ heroBannerContent scrollY =
         ]
         [ div [ class "relative z-20 flex items-center justify-center h-full" ]
               [ img
-                    [ src "assets/images/Mortrem-logo-white-transparent.png"
+                    [ src (cdnUrl model.cdnBase "assets/images/Mortrem-logo-white-transparent.png")
                     , alt "Mortrem Logo"
                     , class "w-[60%] transition-transform duration-100"
                     , style "transform" ("scale(" ++ String.fromFloat scale ++ ")")
@@ -597,7 +592,7 @@ videoBanner title =
 startSong : Int -> Model -> ( Model, Cmd Msg )
 startSong idx model =
     let
-        total = List.length model.songs
+        total = List.length (songs model)
         boundedIndex =
             if total == 0 then
                 0
@@ -609,7 +604,7 @@ startSong idx model =
                 idx
 
         nextSong =
-            model.songs
+            (songs model)
                 |> List.drop boundedIndex
                 |> List.head
                 |> Maybe.withDefault { title = "", src = "", duration = 0, released = False, artwork = Nothing }
@@ -628,7 +623,7 @@ discographyPanel : Model -> Html Msg
 discographyPanel model =
     let
         currentSong =
-            List.drop model.currentSongIndex model.songs
+            List.drop model.currentSongIndex (songs model)
                 |> List.head
                 |> Maybe.withDefault
                     { title = "", src = "", duration = 0, released = False, artwork = Nothing }
@@ -643,7 +638,7 @@ discographyPanel model =
         artSrc =
             case currentSong.artwork of
                 Just url -> url
-                Nothing -> "assets/images/coverart/default.png"
+                Nothing -> (cdnUrl model.cdnBase "assets/images/coverart/default.png")
 
         artistName = "Mortrem" -- change if you store artist elsewhere
 
@@ -769,51 +764,10 @@ discographyPanel model =
         ]
 
 
-streamingServicesPanel : Html Msg
-streamingServicesPanel =
-    div [ class "pt-8 md:pt-16 pb-8 md:pb-16 lg:px-16 xl:px-32" ]
-        [ h1 [ class "text-lg md:text-xl text-white font-bold" ] [ text "Streaming Links" ]
-        , div [ class "flex items-center justify-center gap-8 md:gap-24 py-6 md:py-12" ]
-            [ a
-              [ href "https://open.spotify.com/artist/1z9AQTlfG5SjjDtKf1r2Mt?si=pnTiiO5UTziuu4YgCPaTAA"
-              , target "_blank"
-              ]
-              [ img
-                    [ src "assets/images/spotify-logo.png"
-                    , class "max-w-18 md:max-w-32"
-                    , alt "Spotify logo. Clicking this takes you to Mortrem's Spotify page."
-                    ]
-                    []
-              ]
-            , a
-              [ href "https://music.apple.com/ca/artist/mortrem/1723532370"
-              , target "_blank"
-              ]
-              [ img
-                    [ src "assets/images/apple-music-logo.png"
-                    , class "max-w-14 md:max-w-28"
-                    , alt "Apple Music logo. Clicking this takes you to Mortrem's Apple Music page."
-                    ]
-                    []
-              ]
-            , a
-              [ href "https://www.youtube.com/channel/UCLaZTiER4UOVGzsCV50tbfA"
-              , target "_blank"
-              ]
-              [ img
-                    [ src "assets/images/youtube-logo.png"
-                    , class "max-w-18 md:max-w-32"
-                    , alt "Youtube logo. Clicking this takes you to Mortrem's Youtube page."
-                    ]
-                    []
-              ]
-            ]
-        ]
-
 musicVideosPanel : Model -> Html Msg
 musicVideosPanel model =
     let
-        videos = model.musicVideos
+        videos = musicVideos
         currentVideo =
             List.drop model.selectedMusicVideoIndex videos
                 |> List.head
@@ -921,7 +875,7 @@ navbar model =
             "data-[ready=true]:transition-transform data-[ready=true]:duration-300 data-[ready=true]:ease-in-out ")
         ]
         [ div [ class "h-16 bg-black text-white flex items-center justify-center relative" ]
-            [ img [ src "assets/images/Mortrem-logo-white-transparent.png", alt "Mortrem Logo", class "h-12" ] []
+            [ img [ src (cdnUrl model.cdnBase "assets/images/Mortrem-logo-white-transparent.png"), alt "Mortrem Logo", class "h-12" ] []
             , button
                 [ class "absolute right-4 top-1/2 -translate-y-1/2 py-1 px-2.5 rounded-md border border-black bg-white/10 hover:bg-white/15 shadow-md"
                 , onClick ToggleMenu
@@ -995,19 +949,18 @@ bioPanel model =
     div [ id "bio", class "flex flex-col pt-6 md:pt-12 pb-16" ] -- Added padding for smaller screens
         [ div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
               [ div [ class "lg:w-2/5" ]
-                    [ clickableImage { src = "assets/images/zak-charlie-fourleaf.png", alt = "test", caption = Nothing, extraText = Nothing, classes = "w-full h-full object-cover" } ]
-                  --[ img [ src "assets/images/zak-charlie-fourleaf.png", alt "test", class "w-full h-full object-cover" ] [] ]
+                    [ clickableImage { src = (cdnUrl model.cdnBase "assets/images/zak-charlie-fourleaf.png"), alt = "Zak and Charlie dancing in the crowd during Four Leaf Paradise", caption = Nothing, extraText = Nothing, classes = "w-full h-full object-cover" } ]
               , div [ class "pt-4 md:pt-6 lg:pt-0 lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText1 ]
               ]
         , div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
               [ div [ class "lg:w-3/5 text-white text-md leading-relaxed hidden lg:block" ] [ text bioText2 ]
               , div [ class "lg:w-2/5" ]
-                  [ img [ src "assets/images/mortrem-profile.jpg", alt "test", class "w-full h-full object-cover" ] [] ]
+                  [ clickableImage { src = (cdnUrl model.cdnBase "assets/images/mortrem-profile.jpg"), alt = "A portrait photo of Mortrem in a dark setting", caption = Nothing, extraText = Nothing, classes = "w-full h-full object-cover" } ]
               , div [ class "pt-4 md:pt-6 lg:pt-0 text-white text-md leading-relaxed visible lg:hidden" ] [ text bioText2 ]
               ]
         , div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
               [ div [ class "lg:w-2/5" ]
-                  [ img [ src "assets/images/mortrem-profile.jpg", alt "test", class "w-full h-full object-cover" ] [] ]
+                  [ clickableImage { src = (cdnUrl model.cdnBase "assets/images/band-absinthe-gig.png"), alt = "Mortrem playing music on stage at Club Absinthe in Hamilton", caption = Nothing, extraText = Nothing, classes = "w-full h-full object-cover" } ]
               , div [ class "pt-4 md:pt-6 lg:pt-0 lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText3 ]
               ]
         ]
@@ -1388,7 +1341,7 @@ testimonialsPanel model =
     let
         -- Build the cards once, then duplicate for seamless looping
         cards =
-            model.testimonials |> List.map (testimonialCard model)
+            (testimonials model) |> List.map (testimonialCard model)
 
         track =
             cards ++ cards
@@ -1461,8 +1414,7 @@ testimonialCard model t =
         fullText =
             let
                 dateStr = formatDateLocal model.zone t.quotedAt
-                timeStr = formatTimeLocalHHMM model.zone t.quotedAt
-                meta = "— " ++ t.author ++ " • " ++ dateStr ++ " " ++ timeStr
+                meta = "— " ++ t.author ++ " • " ++ dateStr
             in
             t.quote ++ "\n\n" ++ meta
 
@@ -1490,7 +1442,7 @@ testimonialCard model t =
             ]
         , -- quote (preview: 5 lines)
           button
-            [ class "block text-left p-3 w-full"
+            [ class "block italic text-left p-3 w-full"
             , onClick <|
                 openLb
                     { media = t.media
@@ -1509,9 +1461,8 @@ testimonialCard model t =
             , div [ class "mt-2 text-xs text-white/60" ]
                 [ let
                     dateStr = formatDateLocal model.zone t.quotedAt
-                    timeStr = formatTimeLocalHHMM model.zone t.quotedAt
                   in
-                  text (dateStr ++ " " ++ timeStr)
+                  text dateStr
                 ]
             ]
         ]
@@ -1934,7 +1885,7 @@ clickableImage cfg =
 
 
 -- BOOTSTRAP
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.element
         { init = init

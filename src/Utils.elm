@@ -90,3 +90,21 @@ roundTo places n =
         f = 10 ^ places |> toFloat
     in
     (n * f |> round |> toFloat) / f
+
+
+cdnUrl : String -> String -> String
+cdnUrl cdnBase path =
+    if String.startsWith "http://" path || String.startsWith "https://" path then
+        path
+    else if String.isEmpty (String.trim cdnBase) then
+        path
+    else
+        let
+            -- ensure single slash
+            p =
+                if String.startsWith "/" path then
+                    path
+                else
+                    "/" ++ path
+        in
+        cdnBase ++ p

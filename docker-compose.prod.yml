@@ -1,0 +1,9 @@
+# /srv/mortrem-epk/docker-compose.prod.yml
+services:
+  web:
+    image: registry.digitalocean.com/${DOCR_NAME}/mortrem-epk:${IMAGE_TAG}
+    ports:
+      - "80:80"
+    environment:
+      CDN_BASE_URL: "${CDN_BASE_URL}"
+    restart: unless-stopped

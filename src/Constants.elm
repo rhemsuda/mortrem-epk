@@ -44,13 +44,8 @@ web3formsEndpoint = "https://api.web3forms.com/submit"
 web3formsAccessKey : String
 web3formsAccessKey = "9e3f19e3-d569-4576-8f47-1d96a511ae15"
 
-videoBgSources : List String
-videoBgSources =
-    [ "/videos/epk-banner-fixed.mp4"
-    , "/videos/epk-banner-fixed-clid.mp4"
-    , "/videos/epk-banner-fixed.mp4"
-    , "/videos/epk-banner-fixed-clid.mp4"
-    ]
+numVideoBgs : Int
+numVideoBgs = 4
 
 videoMarkerIds : List String
 videoMarkerIds =

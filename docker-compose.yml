@@ -1,0 +1,25 @@
+services:
+  web:
+    build: .
+    image: mortrem-epk:latest
+    ports:
+      - "8080:80"
+    environment:
+      - CDN_BASE_URL=${CDN_BASE_URL:-}
+
+  dev:
+    image: node:20-alpine
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - node_modules_dev:/app/node_modules
+      - ./assets:/app/public/assets:ro
+
+    command: sh -c "npm ci && npm run dev"
+
+volumes:
+  node_modules_dev:

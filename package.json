@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "description": "A simple Elm site styled with Tailwind CSS",
   "scripts": {
-    "build:css": "tailwindcss -i styles/tailwind.css -o dist/output.css",
-    "watch:css": "tailwindcss -i styles/tailwind.css -o dist/output.css --watch",
-    "dev-server": "python3 -m RangeHTTPServer 9999",
-    "build:elm": "elm make src/Main.elm --output=elm.js",
-    "build": "npm run build:css && npm run build:elm"
+    "dev": "elm-live src/Main.elm --dir=public --host=0.0.0.0 --port=8000 --pushstate --open=false -- --output=public/elm.js",
+    "build": "elm make src/Main.elm --optimize --output=dist/elm.js && cp -r public/* dist/ && ./scripts/40-gen-config.sh dist"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "elm": "0.19.1-5",
+    "elm-live": "^4.0.2",
+    "serve-static": "^1.15.0",
+    "express": "^4.19.2"
   }
 }
