@@ -45,10 +45,10 @@ jobs:
 
       - name: Sync assets to DigitalOcean Spaces
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_KEY }}
-          SPACES_REGION: ${{ secrets.SPACES_REGION }}      # e.g. nyc3
-          SPACES_BUCKET: ${{ secrets.SPACES_BUCKET }}      # e.g. mortrem-epk
+          AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_ACCESS_KEY_SECRET }}
+          SPACES_REGION: ${{ secrets.SPACES_REGION }}
+          SPACES_BUCKET: ${{ secrets.SPACES_BUCKET }}
         run: |
           set -euo pipefail
           ENDPOINT="https://${SPACES_REGION}.digitaloceanspaces.com"
