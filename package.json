@@ -4,7 +4,7 @@
   "description": "A simple Elm site styled with Tailwind CSS",
   "scripts": {
     "dev": "elm-live src/Main.elm --dir=public --host=0.0.0.0 --port=8000 --pushstate --open=false -- --output=public/elm.js",
-    "build": "elm make src/Main.elm --optimize --output=dist/elm.js && cp -r public/* dist/ && ./scripts/40-gen-config.sh dist"
+    "build": "elm make src/Main.elm --optimize --output=dist/elm.js && cp -r public/* dist/"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.17",
