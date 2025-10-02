@@ -5,20 +5,13 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      CDN_BASE_URL: "${CDN_BASE_URL}"
+      DOMAIN: ${DOMAIN}
+      CDN_BASE_URL: ${CDN_BASE_URL}
     volumes:
-      - letsencrypt:/etc/letsencrypt:ro
-      - certbot-www:/var/www/certbot:ro
+      - caddy-data:/data
+      - caddy-config:/config
     restart: unless-stopped
 
-  certbot:
-    image: certbot/certbot:latest
-    # IMPORTANT: no '/bin/sh' here; either omit entrypoint or:
-    entrypoint: ["certbot"]
-    volumes:
-      - letsencrypt:/etc/letsencrypt
-      - certbot-www:/var/www/certbot
-
 volumes:
-  letsencrypt:
-  certbot-www:
+  caddy-data:
+  caddy-config:

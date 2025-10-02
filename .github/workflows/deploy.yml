@@ -1,13 +1,13 @@
-name: Deploy EPK to DigitalOcean (Nginx)
+name: Deploy
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ main, master ]
   workflow_dispatch:
 
 env:
   REGISTRY: registry.digitalocean.com/${{ secrets.DOCR_NAME }}
-  IMAGE: registry.digitalocean.com/${{ secrets.DOCR_NAME }}/mortrem-epk
+  IMAGE: ${{ env.REGISTRY }}/mortrem-epk
 
 jobs:
   build-and-push:
@@ -25,7 +25,7 @@ jobs:
       - name: Login to DO Container Registry
         run: doctl registry login --expiry-seconds 1200
 
-      - name: Build and push image
+      - name: Build & push image
         id: meta
         run: |
           TAG=${GITHUB_SHA::7}
@@ -36,89 +36,81 @@ jobs:
 
   sync-assets:
     runs-on: ubuntu-latest
+    needs: build-and-push
     steps:
       - uses: actions/checkout@v4
 
-      - name: Upload ./assets to DigitalOcean Spaces (CDN origin)
+      - name: Install AWS CLI
+        uses: unfor19/install-aws-cli-action@v1
+
+      - name: Sync assets to DigitalOcean Spaces
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_ACCESS_KEY_SECRET }}
-          SPACES_REGION: ${{ secrets.SPACES_REGION }}
-          SPACES_BUCKET: ${{ secrets.SPACES_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_KEY }}
+          SPACES_REGION: ${{ secrets.SPACES_REGION }}      # e.g. nyc3
+          SPACES_BUCKET: ${{ secrets.SPACES_BUCKET }}      # e.g. mortrem-epk
         run: |
           set -euo pipefail
           ENDPOINT="https://${SPACES_REGION}.digitaloceanspaces.com"
-          # Sync assets folder to s3://<bucket>/assets (public)
           aws s3 sync ./assets "s3://${SPACES_BUCKET}/assets" \
             --endpoint-url "$ENDPOINT" \
             --acl public-read \
             --delete \
             --no-progress
-          # Note: object Cache-Control is optional; your CDN TTL can handle caching.
-          # If you want aggressive browser caching, you can set per-file headers later.
 
   deploy:
-    needs: build-and-push
     runs-on: ubuntu-latest
+    needs: [build-and-push, sync-assets]
     steps:
-      - name: SSH & deploy
+      - uses: actions/checkout@v4
+
+      # Copy exactly the files the server should run (declarative)
+      - name: Upload compose + Caddyfile + entrypoint
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}             # keep 22 (see note about 443 in header)
+          source: |
+            docker-compose.prod.yml
+            Caddyfile
+            scripts/docker-entrypoint.sh
+          target: /srv/mortrem-epk
+          overwrite: true
+          strip_components: 0
+
+      - name: SSH deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}   # 'root' if you SSH as root
+          username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             set -euo pipefail
-
-            # Install Docker if missing
-            if ! command -v docker >/dev/null; then
-            curl -fsSL https://get.docker.com | sh
-            fi
-
-            mkdir -p /srv/mortrem-epk
             cd /srv/mortrem-epk
 
-            # Log in to DOCR so the droplet can pull the private image
+            # Log in to DOCR (idempotent)
             echo "${{ secrets.DO_API_TOKEN }}" | docker login registry.digitalocean.com -u doctl --password-stdin || true
 
-
-            # Write compose with literal values (no env expansion needed)
-            cat > docker-compose.prod.yml <<'YAML'
-            services:
-              web:
-                image: registry.digitalocean.com/${{ secrets.DOCR_NAME }}/mortrem-epk:${{ needs.build-and-push.outputs.IMAGE_TAG }}
-                ports:
-                  - "80:80"
-                  - "443:443"
-                environment:
-                  - CDN_BASE_URL=${{ secrets.CDN_BASE_URL }}
-                volumes:
-                  - letsencrypt:/etc/letsencrypt:ro
-                  - certbot-www:/var/www/certbot:ro
-                restart: unless-stopped
-
-              certbot:
-                image: certbot/certbot:latest
-                volumes:
-                  - letsencrypt:/etc/letsencrypt
-                  - certbot-www:/var/www/certbot
-                entrypoint: [ "certbot" ]
-            volumes:
-              letsencrypt:
-              certbot-www:
-            YAML
-
-            # Write .env so docker compose picks it up automatically
-            cat > .env <<EOF
+            # Write env file used by compose (declarative inputs from repo secrets)
+            cat > .env.prod <<EOF
             DOCR_NAME=${{ secrets.DOCR_NAME }}
             IMAGE_TAG=${{ needs.build-and-push.outputs.IMAGE_TAG }}
-            CDN_BASE_URL=${{ secrets.CDN_BASE_URL }}
+            DOMAIN=${{ secrets.DOMAIN }}                 # e.g. epk.mortrem.band
+            CDN_BASE_URL=${{ secrets.CDN_BASE_URL }}     # https://<space>.<region>.cdn.digitaloceanspaces.com
             EOF
 
-            # Open firewall for HTTP if UFW is in use
-            if command -v ufw >/dev/null; then
-              sudo ufw allow 80/tcp || true
+            # Open firewall (idempotent)
+            if command -v ufw >/dev/null 2>&1; then
+              ufw allow 80/tcp || true
+              ufw allow 443/tcp || true
             fi
 
-            sudo docker compose -f docker-compose.prod.yml up -d
+            # Pull and run (purely from committed files)
+            docker compose -f docker-compose.prod.yml --env-file .env.prod pull
+            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+
+            # Show status
+            docker compose -f docker-compose.prod.yml ps

@@ -1,0 +1,11 @@
+services:
+  dev:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -lc "npm ci && npx elm-live src/Main.elm --dir=public --host=0.0.0.0 --port=8000"
+    ports:
+      - "8000:8000"
+    environment:
+      CDN_BASE_URL: ""
