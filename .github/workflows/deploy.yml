@@ -59,28 +59,25 @@ jobs:
             --no-progress
 
   deploy:
+    needs: build-and-push
     runs-on: ubuntu-latest
-    needs: [build-and-push, sync-assets]
     steps:
       - uses: actions/checkout@v4
 
-      # Copy exactly the files the server should run (declarative)
-      - name: Upload compose + Caddyfile + entrypoint
+      # copy the compose file to the droplet
+      - name: Upload compose file
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}             # keep 22 (see note about 443 in header)
+          port: ${{ secrets.SSH_PORT }}
           source: |
             docker-compose.prod.yml
-            Caddyfile
-            scripts/docker-entrypoint.sh
-          target: /srv/mortrem-epk
+          target: /srv/mortrem-epk/
           overwrite: true
-          strip_components: 0
 
-      - name: SSH deploy
+      - name: SSH & deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -88,29 +85,35 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            set -euo pipefail
+            set -euxo pipefail
+
+            sudo mkdir -p /srv/mortrem-epk
             cd /srv/mortrem-epk
 
-            # Log in to DOCR (idempotent)
-            echo "${{ secrets.DO_API_TOKEN }}" | docker login registry.digitalocean.com -u doctl --password-stdin || true
-
-            # Write env file used by compose (declarative inputs from repo secrets)
-            cat > .env.prod <<EOF
-            DOCR_NAME=${{ secrets.DOCR_NAME }}
-            IMAGE_TAG=${{ needs.build-and-push.outputs.IMAGE_TAG }}
-            DOMAIN=${{ secrets.DOMAIN }}                 # e.g. epk.mortrem.band
-            CDN_BASE_URL=${{ secrets.CDN_BASE_URL }}     # https://<space>.<region>.cdn.digitaloceanspaces.com
-            EOF
-
-            # Open firewall (idempotent)
-            if command -v ufw >/dev/null 2>&1; then
-              ufw allow 80/tcp || true
-              ufw allow 443/tcp || true
+            # Install Docker if missing
+            if ! command -v docker >/dev/null; then
+              curl -fsSL https://get.docker.com | sh
             fi
 
-            # Pull and run (purely from committed files)
-            docker compose -f docker-compose.prod.yml --env-file .env.prod pull
-            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+            # Open firewall for web traffic (if UFW is present)
+            if command -v ufw >/dev/null; then
+              sudo ufw allow 80/tcp || true
+              sudo ufw allow 443/tcp || true
+            fi
 
-            # Show status
-            docker compose -f docker-compose.prod.yml ps
+            # Login to DOCR
+            echo "${{ secrets.DO_API_TOKEN }}" | sudo docker login registry.digitalocean.com -u doctl --password-stdin || true
+
+            # Write .env used by compose variable substitution
+            cat > .env <<'EOF'
+            DOCR_NAME=${{ secrets.DOCR_NAME }}
+            IMAGE_TAG=${{ needs.build-and-push.outputs.IMAGE_TAG }}
+            CDN_BASE_URL=${{ secrets.CDN_BASE_URL }}
+            EOF
+
+            # Pull & run
+            sudo docker compose --env-file .env -f docker-compose.prod.yml pull
+            sudo docker compose --env-file .env -f docker-compose.prod.yml up -d
+
+            # optional cleanup
+            sudo docker system prune -af || true
