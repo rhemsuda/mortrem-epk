@@ -5,13 +5,14 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      DOMAIN: ${DOMAIN}
       CDN_BASE_URL: ${CDN_BASE_URL}
+      DOMAIN: "epk.mortrem.band"
+      EMAIL: "mortremofficial@gmail.com"
     volumes:
-      - caddy-data:/data
-      - caddy-config:/config
+      - caddy_data:/data
+      - caddy_config:/config
     restart: unless-stopped
 
 volumes:
-  caddy-data:
-  caddy-config:
+  caddy_data:
+  caddy_config:

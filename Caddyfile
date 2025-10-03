@@ -1,33 +1,28 @@
 {
-	# Optional: receive expiry/alerts on failures
-	email mortremofficial@gmail.com
-	# For testing only, you could toggle staging CA:
-	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+	email {env.EMAIL}
 }
 
 # Redirect HTTP -> HTTPS
-http://{$DOMAIN} {
-	redir https://{$DOMAIN}{uri} permanent
+http://{env.DOMAIN} {
+	redir https://{env.DOMAIN}{uri} 308
 }
 
 # Primary site (automatic certificates)
-{$DOMAIN} {
-	root * /srv
+{env.DOMAIN} {
+	root * /srv/www
+	try_files {path} /index.html
+
 	encode zstd gzip
 
-	# SPA: serve index.html for unknown routes
-	route {
-		try_files {path} /index.html
-		file_server
-	}
-
-	# cache static files aggressively
+	@assets path_regexp assets ^/assets/.+\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|mp3|mp4|woff2?)$
 	header /assets/* Cache-Control "public, max-age=2592000, immutable"
 
 	# (Optional) security headers
-	header {
-		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-		X-Content-Type-Options "nosniff"
-		Referrer-Policy "no-referrer-when-downgrade"
-	}
+	#header {
+	#	Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+	#	X-Content-Type-Options "nosniff"
+	#	Referrer-Policy "no-referrer-when-downgrade"
+	#}
+
+	file_server
 }

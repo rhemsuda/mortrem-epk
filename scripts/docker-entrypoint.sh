@@ -1,8 +1,12 @@
 #!/usr/bin/env sh
-set -e
-
-# Provide window.APP_CONFIG to the frontend at runtime (so you can change CDN without rebuilding)
+set -euo pipefail
 : "${CDN_BASE_URL:=}"
-printf 'window.APP_CONFIG=%s;' "{\"CDN_BASE_URL\":\"${CDN_BASE_URL}\"}" > /srv/app-config.js
+: "${DOMAIN:=epk.mortrem.band}"
+: "${EMAIL:=mortremofficial@gmail.com}"
+
+mkdir -p /srv/www
+cat >/srv/www/app-config.js <<EOF
+window.APP_CONFIG = { CDN_BASE_URL: "${CDN_BASE_URL}" };
+EOF
 
 exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
