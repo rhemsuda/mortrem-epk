@@ -1,10 +1,10 @@
 {
-	email {env.EMAIL}
+	email {$EMAIL}
 }
 
 # Redirect HTTP -> HTTPS
-http://{env.DOMAIN} {
-	redir https://{env.DOMAIN}{uri} 308
+http://{$DOMAIN} {
+	redir https://{$DOMAIN}{uri} 308
 }
 
 # Primary site (automatic certificates)
@@ -14,7 +14,8 @@ http://{env.DOMAIN} {
 
 	encode zstd gzip
 
-	@assets path_regexp assets ^/assets/.+\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|mp3|mp4|woff2?)$
+	#@assets path_regexp assets ^/assets/.+\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|mp3|mp4|woff2?)$
+	@assets path /assets/*
 	header /assets/* Cache-Control "public, max-age=2592000, immutable"
 
 	# (Optional) security headers
