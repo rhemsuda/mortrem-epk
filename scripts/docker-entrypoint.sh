@@ -5,7 +5,7 @@ set -euo pipefail
 : "${EMAIL:=mortremofficial@gmail.com}"
 
 mkdir -p /srv/www
-cat >/srv/www/app-config.js <<EOF
+cat >/srv/www/js/config.js <<EOF
 window.APP_CONFIG = { CDN_BASE_URL: "${CDN_BASE_URL}" };
 EOF
 
