@@ -8,7 +8,7 @@ http://{$DOMAIN} {
 }
 
 # Primary site (automatic certificates)
-{env.DOMAIN} {
+{$DOMAIN} {
 	root * /srv/www
 	try_files {path} /index.html
 
