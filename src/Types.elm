@@ -17,6 +17,7 @@ type alias Song =
     , released : Bool
     , duration : Float
     , artwork : Maybe String
+    , releaseDate : DateTime
     }
 
 type alias Image =

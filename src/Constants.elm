@@ -1,6 +1,8 @@
 module Constants exposing (..)
 
-import Types exposing (Venue)
+import Types exposing (Venue, Song)
+import DateTime exposing (DateTime, fromPosix)
+import Time
 
 venue_theCasbah : Venue
 venue_theCasbah = { name = "The Casbah", city = "Hamilton", capacity = 160, distanceFromHomeKm = 65 }
@@ -56,3 +58,9 @@ videoMarkerIds =
 
 mobileThreshold : Float
 mobileThreshold = 768.0
+
+defaultDateTime : DateTime
+defaultDateTime = DateTime.fromPosix (Time.millisToPosix 0)
+
+defaultSong : Song
+defaultSong = { title = "", src = "", duration = 0, released = False, artwork = Nothing, releaseDate = defaultDateTime }

@@ -11,7 +11,6 @@ import Task
 import Html exposing (Html, div, span, h1, h2, h3, p, text, img, i, audio, canvas, button, table, thead, tbody, tr, th, td, a, input, small, textarea, li, ul, hr)
 import Html.Attributes exposing (class, style, src, alt, id, href, target, width, height, preload, title, attribute)
 import Html.Events exposing (on, onClick, onInput, onSubmit, stopPropagationOn, preventDefaultOn)
-import DateTime exposing (fromPosix)
 
 import Constants exposing (..)
 import Utils exposing (..)
@@ -52,9 +51,9 @@ barsCount = 10
 
 songs : Model -> List Song
 songs model =
-    [ { title = "Big Blue", src = (cdnUrl model.cdnBase "assets/audio/mortrem-bigblue.wav"), duration = 321, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-bigblue.png") }
-    , { title = "Nonfiction", src = (cdnUrl model.cdnBase "assets/audio/mortrem-nonfiction.wav"), duration = 277, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-nonfiction.png") }
-    , { title = "Better for You", src = (cdnUrl model.cdnBase "assets/audio/mortrem-betterforyou.wav"), duration = 198, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-betterforyou.png") }
+    [ { title = "Big Blue", src = (cdnUrl model.cdnBase "assets/audio/mortrem-bigblue.wav"), duration = 322, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-bigblue.png"), releaseDate = fromPosix (Time.millisToPosix 1726871480000) }
+    , { title = "Nonfiction", src = (cdnUrl model.cdnBase "assets/audio/mortrem-nonfiction.wav"), duration = 275, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-nonfiction.png"), releaseDate = fromPosix (Time.millisToPosix 1705102280000) }
+    , { title = "Better for You", src = (cdnUrl model.cdnBase "assets/audio/mortrem-betterforyou.wav"), duration = 198, released = True, artwork = Just (cdnUrl model.cdnBase "assets/images/coverart/mortrem-betterforyou.png"), releaseDate = fromPosix (Time.millisToPosix 1712961080000) }
     ]
 
 musicVideos : List YoutubeVideo
@@ -198,7 +197,7 @@ update msg model =
         currentSong =
             List.drop model.currentSongIndex (songs model)
                 |> List.head
-                |> Maybe.withDefault { title = "", src = "", duration = 0, released = False, artwork = Nothing }
+                |> Maybe.withDefault Constants.defaultSong
         validEmail e =
             String.contains "@" e && String.contains "." e && String.length e > 5
     in
@@ -428,7 +427,7 @@ miniPlayer model =
         currentSong =
             List.drop model.currentSongIndex (songs model)
                 |> List.head
-                |> Maybe.withDefault { title = "", src = "", duration = 0, released = False, artwork = Nothing }
+                |> Maybe.withDefault Constants.defaultSong
 
         playLabel = if model.isPlaying then "Pause" else "Play"
     in
@@ -460,7 +459,7 @@ playlistTableRedesigned model =
 
         releaseDateFor : Song -> String
         releaseDateFor song =
-            if song.released then "—" else "—"
+            if song.released then (formatMonthYearLocal model.zone song.releaseDate) else "—"
     in
     div
         [ id "playlist"
@@ -607,7 +606,7 @@ startSong idx model =
             (songs model)
                 |> List.drop boundedIndex
                 |> List.head
-                |> Maybe.withDefault { title = "", src = "", duration = 0, released = False, artwork = Nothing }
+                |> Maybe.withDefault Constants.defaultSong
     in
     ( { model
         | currentSongIndex = boundedIndex
@@ -625,8 +624,8 @@ discographyPanel model =
         currentSong =
             List.drop model.currentSongIndex (songs model)
                 |> List.head
-                |> Maybe.withDefault
-                    { title = "", src = "", duration = 0, released = False, artwork = Nothing }
+                |> Maybe.withDefault Constants.defaultSong
+                    
 
         progressPct =
             if model.duration > 0 then
@@ -644,7 +643,7 @@ discographyPanel model =
 
         releaseDateText =
             -- If you later add dates, format them here; for now show a friendly status
-            if currentSong.released then "Released" else "Unreleased"
+            if currentSong.released then "Released " ++ (formatMonthYearLocal model.zone currentSong.releaseDate) else "Unreleased"
     in
     div [ id "discography", class "pt-16 md:pt-28 lg:px-16 md:max-w-5xl lg:max-w-8xl mx-auto text-white" ]
         [ audio

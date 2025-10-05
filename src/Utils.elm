@@ -32,6 +32,13 @@ formatDateLocal zone dt =
         ++ ", "
         ++ String.fromInt (toYear zone p)
 
+formatMonthYearLocal : Zone -> DateTime -> String
+formatMonthYearLocal zone dt =
+    let p = toPosix dt in
+    monthAbbrev (toMonth zone p)
+        ++ " "
+        ++ String.fromInt (toYear zone p)
+
 formatTimeLocalHHMM : Zone -> DateTime -> String
 formatTimeLocalHHMM zone dt =
     let p = toPosix dt in
