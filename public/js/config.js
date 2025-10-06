@@ -1,0 +1,1 @@
+window.APP_CONFIG={CDN_BASE_URL:""};
