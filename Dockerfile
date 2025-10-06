@@ -17,9 +17,6 @@ COPY scripts/docker-entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 ENV XDG_CONFIG_HOME=/config
-ENV DOMAIN=epk.mortrem.band
-ENV EMAIL=mortremofficial@gmail.com
-ENV CND_BASE_URL=""
 
 EXPOSE 80 443
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
