@@ -9,40 +9,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 </head>
 <body class="bg-gray-100">
-  <!-- Hero Banner -->
   <div id="bg-video-stack" class="fixed inset-0 z-[-1]">
-    <video
-      id="bg-hero"
-      class="bg-video absolute inset-0 w-full h-screen object-cover opacity-100 transition-opacity duration-300"
-      autoplay muted loop playsinline
-      src="https://mortrem-epk.nyc3.cdn.digitaloceanspaces.com/assets/videos/epk-video-banner-main.mp4"
-    ></video>
+    <!-- Hero Banner -->
+    <div id="bg-hero">
+      <video
+        class="bg-video absolute inset-0 w-full h-screen object-cover opacity-100 transition-opacity duration-300"
+        autoplay muted loop playsinline
+        src="https://mortrem-epk.nyc3.cdn.digitaloceanspaces.com/assets/videos/epk-video-banner-main.mp4"
+      ></video>
+      <div class="absolute inset-0 bg-black/60"></div>
+    </div>
 
     <!-- Discography -->
-    <video
-      id="bg-discography"
-      class="bg-video absolute inset-0 w-full h-screen object-cover opacity-0 pointer-events-none transition-opacity duration-300"
-      autoplay muted loop playsinline
-      src="https://mortrem-epk.nyc3.cdn.digitaloceanspaces.com/assets/videos/epk-video-banner-music.mp4"
-    ></video>
+    <div id="bg-discography">
+      <video
+        class="bg-video absolute inset-0 w-full h-screen object-cover opacity-0 pointer-events-none transition-opacity duration-300"
+        autoplay muted loop playsinline
+        src="https://mortrem-epk.nyc3.cdn.digitaloceanspaces.com/assets/videos/epk-video-banner-music.mp4"
+      ></video>
+      <div class="absolute inset-0 bg-black/40"></div>
+    </div>
 
-    <!-- Metrics (example/future) -->
-    <video
-      id="bg-metrics"
-      class="bg-video absolute inset-0 w-full h-screen object-cover opacity-0 pointer-events-none transition-opacity duration-300"
-      autoplay muted loop playsinline
-      src="https://mortrem-epk.nyc3.cdn.digitaloceanspaces.com/assets/videos/epk-video-banner-metrics.mp4"
-    ></video>
+    <div id="bg-metrics">
+      <!-- Metrics (example/future) -->
+      <video
+        class="bg-video absolute inset-0 w-full h-screen object-cover opacity-0 pointer-events-none transition-opacity duration-300"
+        autoplay muted loop playsinline
+        src="https://mortrem-epk.nyc3.cdn.digitaloceanspaces.com/assets/videos/epk-video-banner-metrics.mp4"
+      ></video>
+      <div class="absolute inset-0 bg-black/30"></div>
+    </div>
 
     <!-- Gallery (example/future) -->
-    <video
-      id="bg-gallery"
-      class="bg-video absolute inset-0 w-full h-screen object-cover opacity-0 pointer-events-none transition-opacity duration-300"
-      autoplay muted loop playsinline
-      src="https://mortrem-epk.nyc3.cdn.digitaloceanspaces.com/assets/videos/epk-video-banner-gallery.mp4"
-    ></video>
-
-    <div class="absolute inset-0 bg-black/60"></div>
+    <div id="bg-gallery">
+      <video
+        class="bg-video absolute inset-0 w-full h-screen object-cover opacity-0 pointer-events-none transition-opacity duration-300"
+        autoplay muted loop playsinline
+        src="https://mortrem-epk.nyc3.cdn.digitaloceanspaces.com/assets/videos/epk-video-banner-gallery.mp4"
+      ></video>
+      <div class="absolute inset-0 bg-black/30"></div>
+    </div>
   </div>
 
   <!-- Elm content -->
