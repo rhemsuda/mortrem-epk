@@ -92,19 +92,21 @@ galleryImages model =
 -- also show total number of streams and total number of people we've played to and ratios for fan:revenue and performance:following
 performances : List Performance
 performances =
-    [ { datetime = dateTime "2020-11-10T01:45:00.000Z", venue = venue_theCasbah, totalDraw = 31, ourDraw = 18, organicDraw = 0, newFollowers = 3, merchSales = 400.0, ticketPrice = 15.0, position = Support, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1731121200000), venue = venue_tailOfTheJunction, totalDraw = 18, ourDraw = 11, organicDraw = 0, newFollowers = 1, merchSales = 10.0, ticketPrice = 15.0, position = Headline, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1735357500000), venue = venue_jimmyJazz, totalDraw = 43, ourDraw = 14, organicDraw = 0, newFollowers = 8, merchSales = 40.0, ticketPrice = 0.0, position = Support, durationMinutes = 40, merchSold = { shirts = 0, stickers = 0 }, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_theUnion, totalDraw = 26, ourDraw = 13, organicDraw = 0, newFollowers = 3, merchSales = 0.0, ticketPrice = 15.0, position = Headline, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_leesPalace, totalDraw = 63, ourDraw = 27, organicDraw = 4, newFollowers = 6, merchSales = 0.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_theUnion, totalDraw = 33, ourDraw = 16, organicDraw = 0, newFollowers = 2, merchSales = 0.0, ticketPrice = 15.0, position = Open, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_sneakyDees, totalDraw = 67, ourDraw = 17, organicDraw = 3, newFollowers = 12, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, merchSold = { shirts = 0, stickers = 0 }, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_absinthe, totalDraw = 42, ourDraw = 13, organicDraw = 1, newFollowers = 4, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 40, merchSold = { shirts = 0, stickers = 0 }, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_duffysTavern, totalDraw = 18, ourDraw = 6, organicDraw = 1, newFollowers = 8, merchSales = 0.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_redPapaya, totalDraw = 38, ourDraw = 10, organicDraw = 0, newFollowers = 6, merchSales = 90.0, ticketPrice = 20.0, position = Open, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_hardLuck, totalDraw = 23, ourDraw = 7, organicDraw = 0, newFollowers = 3, merchSales = 30.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
-    , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_sneakyDees, totalDraw = 16, ourDraw = 9, organicDraw = 2, newFollowers = 5, merchSales = 30.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, merchSold = { shirts = 0, stickers = 0 }, hide = False }
+    [ { datetime = dateTime "2024-09-26T02:45:00.000Z", venue = venue_theCasbah, totalDraw = 53, ourDraw = 32, organicDraw = 0, newFollowers = 3, merchSales = 400.0, ticketPrice = 15.0, position = Support, durationMinutes = 30, merchSold = { shirts = 26, stickers = 9 }, hide = False }
+    , { datetime = dateTime "2024-11-09T03:00:00.000Z", venue = venue_tailOfTheJunction, totalDraw = 18, ourDraw = 11, organicDraw = 0, newFollowers = 1, merchSales = 10.0, ticketPrice = 15.0, position = Headline, durationMinutes = 30, merchSold = { shirts = 1, stickers = 2 }, hide = False }
+    , { datetime = dateTime "2024-12-28T03:45:00.000Z", venue = venue_jimmyJazz, totalDraw = 43, ourDraw = 14, organicDraw = 0, newFollowers = 8, merchSales = 40.0, ticketPrice = 0.0, position = Support, durationMinutes = 40, merchSold = { shirts = 3, stickers = 6 }, hide = False }
+    , { datetime = dateTime "2025-02-09T01:00:00.000Z", venue = venue_theUnion, totalDraw = 26, ourDraw = 13, organicDraw = 0, newFollowers = 3, merchSales = 0.0, ticketPrice = 15.0, position = Headline, durationMinutes = 30, merchSold = { shirts = 7, stickers = 4 }, hide = False }
+    , { datetime = dateTime "2025-04-11T02:15:00.000Z", venue = venue_leesPalace, totalDraw = 63, ourDraw = 27, organicDraw = 4, newFollowers = 6, merchSales = 0.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, merchSold = { shirts = 10, stickers = 7 }, hide = False }
+    , { datetime = dateTime "2025-05-08T01:30:00.000Z", venue = venue_theUnion, totalDraw = 33, ourDraw = 16, organicDraw = 0, newFollowers = 2, merchSales = 0.0, ticketPrice = 15.0, position = Open, durationMinutes = 30, merchSold = { shirts = 3, stickers = 2 }, hide = False }
+    , { datetime = dateTime "2025-06-07T02:45:00.000Z", venue = venue_sneakyDees, totalDraw = 67, ourDraw = 17, organicDraw = 3, newFollowers = 12, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, merchSold = { shirts = 5, stickers = 1 }, hide = False }
+    , { datetime = dateTime "2025-06-08T03:00:00.000Z", venue = venue_absinthe, totalDraw = 42, ourDraw = 17, organicDraw = 2, newFollowers = 4, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 40, merchSold = { shirts = 5, stickers = 0 }, hide = False }
+    , { datetime = dateTime "2025-06-16T01:30:00.000Z", venue = venue_duffysTavern, totalDraw = 18, ourDraw = 6, organicDraw = 1, newFollowers = 8, merchSales = 0.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, merchSold = { shirts = 0, stickers = 2 }, hide = False }
+    , { datetime = dateTime "2025-06-22T01:45:00.000Z", venue = venue_redPapaya, totalDraw = 38, ourDraw = 10, organicDraw = 0, newFollowers = 6, merchSales = 90.0, ticketPrice = 20.0, position = Open, durationMinutes = 30, merchSold = { shirts = 6, stickers = 1 }, hide = False }
+    , { datetime = dateTime "2025-08-09T02:30:00.000Z", venue = venue_hardLuck, totalDraw = 23, ourDraw = 7, organicDraw = 0, newFollowers = 3, merchSales = 30.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, merchSold = { shirts = 2, stickers = 2 }, hide = False }
+    , { datetime = dateTime "2025-09-13T02:15:00.000Z", venue = venue_sneakyDees, totalDraw = 16, ourDraw = 9, organicDraw = 2, newFollowers = 5, merchSales = 30.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, merchSold = { shirts = 0, stickers = 1 }, hide = False }
+    , { datetime = dateTime "2025-10-03T01:30:00.000Z", venue = venue_absinthe, totalDraw = 37, ourDraw = 6, organicDraw = 2, newFollowers = 4, merchSales = 30.0, ticketPrice = 20.0, position = Open, durationMinutes = 45, merchSold = { shirts = 2, stickers = 0 }, hide = False }
     ]
+
 
 testimonials : Model -> List Testimonial
 testimonials model =
@@ -1571,6 +1573,7 @@ lightboxView model =
 --                         ]
 --                     ]
 --                 ]
+
 
 colrowspan : Int -> Int -> String
 colrowspan col row = "col-span-" ++ String.fromInt col ++ " " ++ "row-span-" ++ String.fromInt row
