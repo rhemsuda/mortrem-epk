@@ -988,7 +988,7 @@ performanceHistoryPanel model =
                         ++ " — "
                         ++ perf.venue.city
                         ++ " • cap "
-                        ++ String.fromInt2 perf.venue.capacity
+                        ++ String.fromInt perf.venue.capacity
                         ++ " • "
                         ++ String.fromInt perf.venue.distanceFromHomeKm
                         ++ " km"

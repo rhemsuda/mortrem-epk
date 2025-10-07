@@ -8618,7 +8618,7 @@ var $author$project$Main$playlistTableRedesigned = function (model) {
 														$elm$html$Html$td,
 														_List_fromArray(
 															[
-																$elm$html$Html$Attributes$class('py-2 pr-2')
+																$elm$html$Html$Attributes$class('py-2 pr-4')
 															]),
 														_List_fromArray(
 															[
@@ -9453,6 +9453,44 @@ var $author$project$Main$footer = function (model) {
 									]),
 								_List_fromArray(
 									[
+										A2(
+										$elm$html$Html$li,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$a,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$href(
+														A2($author$project$Utils$cdnUrl, model.cdnBase, 'docs/mortrem-tech-rider.pdf')),
+														$elm$html$Html$Attributes$class('hover:underline'),
+														$elm$html$Html$Attributes$target('_blank')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Tech Rider')
+													]))
+											])),
+										A2(
+										$elm$html$Html$li,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$a,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$href(
+														A2($author$project$Utils$cdnUrl, model.cdnBase, 'docs/mortrem-stage-plot.pdf')),
+														$elm$html$Html$Attributes$class('hover:underline'),
+														$elm$html$Html$Attributes$target('_blank')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Stage Plot')
+													]))
+											])),
 										A2(
 										$elm$html$Html$li,
 										_List_Nil,
