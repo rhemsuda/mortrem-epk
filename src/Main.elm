@@ -92,7 +92,7 @@ galleryImages model =
 -- also show total number of streams and total number of people we've played to and ratios for fan:revenue and performance:following
 performances : List Performance
 performances =
-    [ { datetime = fromPosix (Time.millisToPosix 1727315100000), venue = venue_theCasbah, totalDraw = 31, ourDraw = 18, organicDraw = 0, newFollowers = 3, merchSales = 400.0, ticketPrice = 15.0, position = Support, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
+    [ { datetime = dateTime "2020-11-10T01:45:00.000Z", venue = venue_theCasbah, totalDraw = 31, ourDraw = 18, organicDraw = 0, newFollowers = 3, merchSales = 400.0, ticketPrice = 15.0, position = Support, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
     , { datetime = fromPosix (Time.millisToPosix 1731121200000), venue = venue_tailOfTheJunction, totalDraw = 18, ourDraw = 11, organicDraw = 0, newFollowers = 1, merchSales = 10.0, ticketPrice = 15.0, position = Headline, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }
     , { datetime = fromPosix (Time.millisToPosix 1735357500000), venue = venue_jimmyJazz, totalDraw = 43, ourDraw = 14, organicDraw = 0, newFollowers = 8, merchSales = 40.0, ticketPrice = 0.0, position = Support, durationMinutes = 40, merchSold = { shirts = 0, stickers = 0 }, hide = False }
     , { datetime = fromPosix (Time.millisToPosix 1739062800000), venue = venue_theUnion, totalDraw = 26, ourDraw = 13, organicDraw = 0, newFollowers = 3, merchSales = 0.0, ticketPrice = 15.0, position = Headline, durationMinutes = 30, merchSold = { shirts = 0, stickers = 0 }, hide = False }

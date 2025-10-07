@@ -1,11 +1,46 @@
 module Utils exposing (..)
 
 import DateTime exposing (DateTime, fromPosix, toPosix)
-import Time exposing (millisToPosix, Zone, Month(..), utc, toYear, toMonth, toDay, toHour, toMinute)
+import Time exposing (Posix, millisToPosix, Zone, Month(..), utc, toYear, toMonth, toDay, toHour, toMinute)
 import Types exposing (Performance, MerchUnits)
+import Iso8601
 
 pad2 : Int -> String
 pad2 n = if n < 10 then "0" ++ String.fromInt n else String.fromInt n
+
+posixFromIso : String -> Result String Posix
+posixFromIso s =
+    s
+        |> Iso8601.toTime
+        |> Result.mapError (\_ -> "Invalid ISO-8601 timestamp")
+
+
+{-| Same as `posixFromIso` but returns a DateTime. -}
+dateTimeResult : String -> Result String DateTime
+dateTimeResult s =
+    posixFromIso s |> Result.map fromPosix
+
+
+{-| Convenience: parse to DateTime, falling back to epoch on failure. -}
+dateTime : String -> DateTime
+dateTime s =
+    case dateTimeResult s of
+        Ok dt ->
+            dt
+
+        Err _ ->
+            fromPosix (millisToPosix 0)
+
+
+{-| Like `dateTime` but lets you choose the fallback. -}
+dateTimeOr : DateTime -> String -> DateTime
+dateTimeOr fallback s =
+    case dateTimeResult s of
+        Ok dt ->
+            dt
+
+        Err _ ->
+            fallback
 
 monthAbbrev : Month -> String
 monthAbbrev m =
