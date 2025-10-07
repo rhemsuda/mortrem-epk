@@ -498,7 +498,7 @@ playlistTableRedesigned model =
                                     ]
                                     [ td [ class "py-2 pl-3 pr-2 opacity-70 whitespace-nowrap" ]
                                         [ text (String.fromInt (idx + 1)) ]
-                                    , td [ class "py-2 pr-2" ]
+                                    , td [ class "py-2 pr-4" ]
                                         [ -- truncate needs a wrapping block with constrained width in table cells
                                           div [ class "truncate" ] [ text song.title ]
                                         ]
@@ -988,7 +988,7 @@ performanceHistoryPanel model =
                         ++ " — "
                         ++ perf.venue.city
                         ++ " • cap "
-                        ++ String.fromInt perf.venue.capacity
+                        ++ String.fromInt2 perf.venue.capacity
                         ++ " • "
                         ++ String.fromInt perf.venue.distanceFromHomeKm
                         ++ " km"
@@ -1833,9 +1833,9 @@ footer model =
                   [ h3 [ class "uppercase text-sm tracking-wider text-white/70 mb-3 md:text-right" ]
                         [ text "Resources" ]
                   , ul [ class "space-y-2 md:text-right" ]
-                      [ --li [] [ a [ href "/docs/tech-rider.pdf", class "hover:underline" ] [ text "Tech Rider" ] ]
-                      --, li [] [ a [ href "/docs/stage-plot.pdf", class "hover:underline" ] [ text "Stage Plot" ] ]
-                      li [] [ a [ href "https://www.dropbox.com/scl/fo/xeyfda3ze6e1bo7652ihh/AGQQTbgnvYnVpSY6QtlaOjc?rlkey=51qn09u8p20c9qugqykwb9m2q&st=ctn73jvi&dl=0", class "hover:underline", target "_blank" ] [ text "Press Kit" ] ]
+                      [ li [] [ a [ href (cdnUrl model.cdnBase "docs/mortrem-tech-rider.pdf"), class "hover:underline", target "_blank" ] [ text "Tech Rider" ] ]
+                      , li [] [ a [ href (cdnUrl model.cdnBase "docs/mortrem-stage-plot.pdf"), class "hover:underline", target "_blank" ] [ text "Stage Plot" ] ]
+                      , li [] [ a [ href "https://www.dropbox.com/scl/fo/xeyfda3ze6e1bo7652ihh/AGQQTbgnvYnVpSY6QtlaOjc?rlkey=51qn09u8p20c9qugqykwb9m2q&st=ctn73jvi&dl=0", class "hover:underline", target "_blank" ] [ text "Press Kit" ] ]
                       ]
                   ]
           ]
