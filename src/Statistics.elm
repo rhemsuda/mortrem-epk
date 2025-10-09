@@ -205,20 +205,20 @@ statCard args =
 
 infoPopover : List (Html msg) -> Html msg
 infoPopover content =
-    div [ class "relative inline-block group overflow-visible" ]
+    div [ HA.class "relative inline-block group overflow-visible" ]
         [ -- focusable trigger
           button
-            [ class "inline-flex items-center justify-center w-5 h-5 rounded-full
-                     bg-white/10 ring-1 ring-white/20 text-white/80
-                     focus:outline-none focus:ring-2 focus:ring-white/40"
-            , Html.Attributes.attribute "type" "button"
-            , Html.Attributes.attribute "aria-label" "More info"
+            [ HA.class ("inline-flex items-center justify-center w-5 h-5 rounded-full" ++
+                     "bg-white/10 ring-1 ring-white/20 text-white/80" ++
+                     "focus:outline-none focus:ring-2 focus:ring-white/40")
+            , HA.attribute "type" "button"
+            , HA.attribute "aria-label" "More info"
             ]
-            [ i [ class "fa-solid fa-circle-info text-[11px] leading-none" ] [] ]
+            [ i [ HA.class "fa-solid fa-circle-info text-[11px] leading-none" ] [] ]
 
         , -- popover (hidden by default; shows on hover OR focus-within)
           div
-            [ class ("absolute top-full right-0 mt-2 min-w-[14rem] max-w-[20rem] " ++
+            [ HA.class ("absolute top-full right-0 mt-2 min-w-[14rem] max-w-[20rem] " ++
                      "rounded-lg bg-black/90 text-white p-3 text-xs ring-1 ring-white/10 shadow-2xl z-50 " ++
                      "opacity-0 pointer-events-none transition " ++
                      "group-hover:opacity-100 group-hover:pointer-events-auto " ++
