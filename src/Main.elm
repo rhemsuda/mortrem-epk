@@ -1284,7 +1284,7 @@ statisticsPanel model =
         , div [ class "grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4" ]
             [ spotifyFollowersCard socials
             , totalStreamsCard tracks
-            , averageSavesPerTrackCard tracks
+            --, averageSavesPerTrackCard tracks
             , avgStreamsPerListenerCard tracks
 --            , repeatListenRateCard tracks
             ]
@@ -1876,3 +1876,4 @@ main =
         , view = view
         , subscriptions = subscriptions
         }
+
