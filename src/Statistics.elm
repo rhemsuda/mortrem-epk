@@ -172,33 +172,59 @@ statCard args =
 
         , -- Info button + tooltip (sibling of surface; not clipped)
           div [ HA.class "absolute right-3 top-3 z-30" ]
-            [ div [ HA.class "relative group" ]
-                [ button
-                    [ HA.class
-                        (String.join " "
-                            [ "w-5 h-5 rounded-full flex items-center justify-center"
-                            , "text-[11px] font-bold bg-white/10 text-white/80"
-                            , "ring-1 ring-white/15 cursor-default"
-                            ]
-                        )
-                    , HA.title args.title
-                    ]
-                    [ text "i" ]
-                , -- shown only when hovering the “i”
-                  div
-                    [ HA.class
-                        (String.join " "
-                            [ "pointer-events-none opacity-0 translate-y-1"
-                            , "group-hover:opacity-100 group-hover:translate-y-0"
-                            , "absolute right-0 mt-2 min-w-[16rem] max-w-[20rem]"
-                            , "bg-black/90 text-white text-xs rounded-lg p-3"
-                            , "ring-1 ring-white/10 shadow-2xl transition"
-                            ]
-                        )
-                    ]
-                    [ text args.info ]
-                ]
+            [ infoPopover
+                  [ text args.info ]
+                -- [ button
+                --     [ HA.class
+                --         (String.join " "
+                --             [ "w-5 h-5 rounded-full flex items-center justify-center"
+                --             , "text-[11px] font-bold bg-white/10 text-white/80"
+                --             , "ring-1 ring-white/15 cursor-default"
+                --             ]
+                --         )
+                --     , HA.title args.title
+                --     ]
+                --     [ text "i" ]
+                -- , -- shown only when hovering the “i”
+                --   div
+                --     [ HA.class
+                --         (String.join " "
+                --             [ "pointer-events-none opacity-0 translate-y-1"
+                --             , "group-hover:opacity-100 group-hover:translate-y-0"
+                --             , "absolute right-0 mt-2 min-w-[16rem] max-w-[20rem]"
+                --             , "bg-black/90 text-white text-xs rounded-lg p-3"
+                --             , "ring-1 ring-white/10 shadow-2xl transition"
+                --             ]
+                --         )
+                --     ]
+                --     [ text args.info ]
+                -- ]
             ]
+        ]
+
+
+infoPopover : List (Html msg) -> Html msg
+infoPopover content =
+    div [ class "relative inline-block group overflow-visible" ]
+        [ -- focusable trigger
+          button
+            [ class "inline-flex items-center justify-center w-5 h-5 rounded-full
+                     bg-white/10 ring-1 ring-white/20 text-white/80
+                     focus:outline-none focus:ring-2 focus:ring-white/40"
+            , Html.Attributes.attribute "type" "button"
+            , Html.Attributes.attribute "aria-label" "More info"
+            ]
+            [ i [ class "fa-solid fa-circle-info text-[11px] leading-none" ] [] ]
+
+        , -- popover (hidden by default; shows on hover OR focus-within)
+          div
+            [ class ("absolute top-full right-0 mt-2 min-w-[14rem] max-w-[20rem] " ++
+                     "rounded-lg bg-black/90 text-white p-3 text-xs ring-1 ring-white/10 shadow-2xl z-50 " ++
+                     "opacity-0 pointer-events-none transition " ++
+                     "group-hover:opacity-100 group-hover:pointer-events-auto " ++
+                     "group-focus-within:opacity-100 group-focus-within:pointer-events-auto")
+            ]
+            content
         ]
 
 
