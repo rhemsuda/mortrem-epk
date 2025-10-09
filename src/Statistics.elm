@@ -461,10 +461,11 @@ repeatListenRateCard tracks =
     in
     statCard
         { title = "Repeat Listen Rate"
-        , info = "Share of listeners who listened to a track more than 5 times."
+        , info = "Share of listeners who listened to a track more than once."
         , primary = percent rate
-        , secondaryMain = (round (rate * 100) |> String.fromInt) ++ "%"
-        , secondarySuffix = "listen > 5 times"
+        --, secondaryMain = (round (rate * 100) |> String.fromInt) ++ "%"
+        , secondaryMain = "~3.6"
+        , secondarySuffix = "streams per listener"
         }
 
 

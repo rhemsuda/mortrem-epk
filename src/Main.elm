@@ -61,6 +61,7 @@ musicVideos =
     [ { title = "WATCH: Mortrem's Epic Performance at the Whiskey Pit Will Leave You Speechless!", youtubeId = "BBLWe1Go59E", thumbnail = "" }
     , { title = "Mortrem - Nonfiction (Music Video)", youtubeId = "pGWly6GZbs4", thumbnail = "" }
     , { title = "Mortrem - Big Blue (Official Lyric Video)", youtubeId = "tsgr0ryIGAY", thumbnail = "" }
+    , { title = "Nonfiction | Drum Playthrough", youtubeId = "CWaf0PVKbb8", thumbnail = "" }
     ]
 
 bioText1 : String
@@ -80,11 +81,9 @@ galleryImages : Model -> List GalleryImage
 galleryImages model =
     [ { colSpan = 4, rowSpan = 6, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/samuel-george-lees.png"), alt = "Samuel George. Lead Singer. Walking on stage in red light." } }
     , { colSpan = 4, rowSpan = 4, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/charlie-romeo-lees.png"), alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
-    -- , { colSpan = 4, rowSpan = 4, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/charlie-romeo-lees.png"), alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
     , { colSpan = 6, rowSpan = 4, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/kyle-jensen-lees.png"), alt = "Kyle Jensen. Guitar & Vocals. Playing guitar and singing with a blue light." } }
     , { colSpan = 4, rowSpan = 6, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/sammy-romeo-lees.png"), alt = "Sammy Romeo. Drums. Playing drums on stage." } }
     , { colSpan = 4, rowSpan = 6, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/zak-stulla-lees.png"), alt = "Zak Stulla. Bass Guitar. Holding a black bass guitar." } }
-    -- , { colSpan = 4, rowSpan = 4, image = { src = (cdnUrl model.cdnBase "assets/images/gallery/charlie-romeo-lees.png"), alt = "Charlie Romeo. Guitar. Playing guitar in green light." } }
     ]
 
 
@@ -122,12 +121,12 @@ testimonials model =
       , author = "@sunset_destruction_poetry"
       , quotedAt = fromPosix (Time.millisToPosix 1749182400000)
       }
-    , { id = 3
-      , media = LbImage { src = (cdnUrl model.cdnBase "assets/images/testimonials/whiskey-pit.jpg"), alt = "Joe in the crowd" }
-      , quote = "Crowd loved them. We want them back."
-      , author = "AJ – Sneaky Dee’s"
-      , quotedAt = fromPosix (Time.millisToPosix 1731196800000) -- 2024-11-10
-      }
+    -- , { id = 3
+    --   , media = LbImage { src = (cdnUrl model.cdnBase "assets/images/testimonials/whiskey-pit.jpg"), alt = "Joe in the crowd" }
+    --   , quote = "Crowd loved them. We want them back."
+    --   , author = "AJ – Sneaky Dee’s"
+    --   , quotedAt = fromPosix (Time.millisToPosix 1731196800000) -- 2024-11-10
+    --   }
     ]
 
 
@@ -1212,16 +1211,15 @@ statisticsPanel model =
         -- MOCKED FEEDS (structured like the real sources you’ll wire later)
         tracks : List TrackStat
         tracks =
-            [ { streams = 1200, saves = 80, listeners = 430, repeatListeners = 100 }
-            , { streams = 2100, saves = 140, listeners = 680, repeatListeners = 180 }
-            , { streams = 1600, saves = 100, listeners = 520, repeatListeners = 140 }
-            , { streams = 5484, saves = 320, listeners = 1190, repeatListeners = 360 }
+            [ { streams = 557, saves = 27, listeners = 110, repeatListeners = 180 }
+            , { streams = 2648, saves = 43, listeners = 852, repeatListeners = 140 }
+            , { streams = 8372, saves = 220, listeners = 4550, repeatListeners = 360 }
             ]
 
         socials : List SocialProfile
         socials =
-            [ { platform = "Instagram", followers = 545 }
-            , { platform = "Spotify", followers = 113 }
+            [ { platform = "Instagram", followers = 555 }
+            , { platform = "Spotify", followers = 125 }
             , { platform = "YouTube", followers = 67 }
             ]
 
@@ -1542,37 +1540,6 @@ lightboxView model =
                   ]
                   [ text "×" ]
                 ]
-
--- lightboxView : Model -> Html Msg
--- lightboxView model =
---     case model.lightbox of
---         Nothing ->
---             text ""
-
---         Just t ->
---             div
---                 [ class "fixed inset-0 z-[1200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" ]
---                 [ -- close button
---                   button
---                     [ class "absolute top-4 right-4 w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 text-white ring-1 ring-white/20 flex items-center justify-center"
---                     , onClick CloseLightbox
---                     , attribute "aria-label" "Close image"
---                     ]
---                     [ i [ class "fa-solid fa-xmark text-lg" ] [] ]
---                 , -- image + caption
---                   div [ class "max-w-5xl w-full" ]
---                     [ div [ class "relative w-full aspect-video rounded-xl overflow-hidden ring-1 ring-white/20 bg-black" ]
---                         [ img [ src t.image, alt "Testimonial", class "absolute inset-0 w-full h-full object-contain" ] [] ]
---                     , div [ class "mt-3 text-sm text-white/80 flex items-center justify-between" ]
---                         [ span [] [ text t.author ]
---                         , let
---                             dateStr = formatDateLocal model.zone t.when_
---                             timeStr = formatTimeLocalHHMM model.zone t.when_
---                           in
---                           span [] [ text (dateStr ++ " · " ++ timeStr) ]
---                         ]
---                     ]
---                 ]
 
 
 colrowspan : Int -> Int -> String
