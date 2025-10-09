@@ -3,6 +3,7 @@ module Statistics
         ( TrackStat
         , SocialProfile
         , EngagementSample
+        , StreamingMetrics
         , showsPlayedCard
         , averageDrawCard
         , audienceCaptureCard
@@ -12,6 +13,7 @@ module Statistics
         , totalStreamsCard
         , spotifyFollowersCard
         , averageSavesPerTrackCard
+        , avgStreamsPerListenerCard
         , repeatListenRateCard
         , socialFollowerCountCard
         , engagementRateCard
@@ -51,6 +53,20 @@ type alias SocialProfile =
 type alias EngagementSample =
     { interactions : Int
     , reach : Int
+    }
+
+
+type alias StreamingMetrics =
+    { year : Int
+    , month : Int
+    , platform : String
+    , numListeners : Int
+    , numStreams : Int
+    , pctActiveSources : Int
+    , pctProgrammedSources : Int
+    , numSaves : Int
+    , numPlaylistAdds : Int
+    , numFollowers : Int
     }
 
 
@@ -407,12 +423,22 @@ totalStreamsCard tracks =
     in
     statCard
         { title = "Total Streams"
-        , info = "Sum of streams across all tracks; secondary is average streams per track."
+        , info = "Sum of streams across all tracks"
         , primary = formatInt total
         , secondaryMain = formatInt (round avgPerTrack)
         , secondarySuffix = "avg streams per track"
         }
 
+
+avgStreamsPerListenerCard : List TrackStat -> Html msg
+avgStreamsPerListenerCard tracks =
+    statCard
+        { title = "Average Streams Per Listener"
+        , info = "The average streams per listener is counted from most recent release (September 2024) until now. This calculation purposely leaves out the surge of listeners on release day, and looks at retention over time."
+        , primary = "4.1"
+        , secondaryMain = "64%"
+        , secondarySuffix = "higher than industry average"
+        }
 
 spotifyFollowersCard : List SocialProfile -> Html msg
 spotifyFollowersCard profiles =
@@ -430,7 +456,7 @@ spotifyFollowersCard profiles =
         { title = "Spotify Followers"
         , info = "Current followers on Spotify artist profile."
         , primary = formatInt total
-        , secondaryMain = "~8"
+        , secondaryMain = "~8" -- update this to real calculation - manually calculated for now
         , secondarySuffix = "per month"
         }
 
@@ -447,7 +473,7 @@ averageSavesPerTrackCard tracks =
         { title = "Average Saves per Track"
         , info = "Average number of saves across all tracks."
         , primary = formatInt (round avgSaves)
-        , secondaryMain = "+0%"
+        , secondaryMain = "+%" -- update this to a real calculation - manually calculated for now
         , secondarySuffix = "from last release"
         }
 
@@ -535,8 +561,29 @@ followerGrowthCard :
     -> Html msg
 followerGrowthCard cfg =
     let
+        --series =
+        --    quarterlyFollowerSeries cfg.zone cfg.now cfg.quarters cfg.seedFollowers cfg.performances
         series =
-            quarterlyFollowerSeries cfg.zone cfg.now cfg.quarters cfg.seedFollowers cfg.performances
+            -- [ ("Q3 23", 41)
+            -- , ("Q4 23", 26)
+            -- , ("Q1 24", 92)
+            -- , ("Q2 24", 43)
+            -- , ("Q3 24", 34)
+            -- , ("Q4 24", 51)
+            -- , ("Q1 25", 137)
+            -- , ("Q2 25", 104)
+            -- , ("Q3 25", 27)
+            -- ]
+            [ ("Q3 23", 41)
+            , ("Q4 23", 67)
+            , ("Q1 24", 159)
+            , ("Q2 24", 202)
+            , ("Q3 24", 236)
+            , ("Q4 24", 287)
+            , ("Q1 25", 424)
+            , ("Q2 25", 528)
+            , ("Q3 25", 555)
+            ]
 
         avgGainPerQ =
             let gains = series |> List.map Tuple.second |> quarterGains

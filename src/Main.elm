@@ -1208,7 +1208,20 @@ statisticsPanel model =
         perfs =
             performances |> List.filter (\p -> not p.hide)
 
-        -- MOCKED FEEDS (structured like the real sources you’ll wire later)
+
+        -- Todo: this will be a list of our streaming metrics and will be used to show how the streams/listener are high
+        -- and remain high by comparing active sources to programmed sources and layering in release dates. This will show growth
+        -- in the listener:streams ratio over time, and provides context to the current streams:listener ratio
+        streamingMetrics : List StreamingMetrics
+        streamingMetrics =
+            [ { year = 2024, month = 1, platform = "Spotify", numListeners = 3710, numStreams = 5142, pctActiveSources = 4, pctProgrammedSources = 79, numSaves = 191, numPlaylistAdds = 189, numFollowers = 50 }
+            , { year = 2024, month = 2, platform = "Spotify", numListeners = 355, numStreams = 807, pctActiveSources = 26, pctProgrammedSources = 54, numSaves = 8, numPlaylistAdds = 51, numFollowers = 56 }
+            , { year = 2024, month = 3, platform = "Spotify", numListeners = 87, numStreams = 186, pctActiveSources = 73, pctProgrammedSources = 15, numSaves = 1, numPlaylistAdds = 6, numFollowers = 61 }
+            , { year = 2024, month = 4, platform = "Spotify", numListeners = 501, numStreams = 747, pctActiveSources = 17, pctProgrammedSources = 81, numSaves = 25, numPlaylistAdds = 23, numFollowers = 64 }
+            , { year = 2024, month = 5, platform = "Spotify", numListeners = 65, numStreams = 170, pctActiveSources = 79, pctProgrammedSources = 13, numSaves = 25, numPlaylistAdds = 23, numFollowers = 64 }
+            ]
+
+
         tracks : List TrackStat
         tracks =
             [ { streams = 557, saves = 27, listeners = 110, repeatListeners = 180 }
@@ -1272,7 +1285,8 @@ statisticsPanel model =
             [ spotifyFollowersCard socials
             , totalStreamsCard tracks
             , averageSavesPerTrackCard tracks
-            , repeatListenRateCard tracks
+            , avgStreamsPerListenerCard tracks
+--            , repeatListenRateCard tracks
             ]
 
         , -- SOCIAL & FAN GROWTH
