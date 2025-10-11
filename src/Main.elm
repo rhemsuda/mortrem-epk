@@ -1252,7 +1252,7 @@ statisticsPanel model =
             [ 520, 540, 535, 560, 588, 604, 612 ]
 
         followerCard =
-            Statistics.followerGrowthCard
+            Statistics.followerGrowthCard model
                 { zone = model.zone
                 , now = model.now
                 , quarters = 8
@@ -1266,34 +1266,34 @@ statisticsPanel model =
         , -- LIVE PERFORMANCE
           h2 [ class "mt-2 mb-2 text-lg md:text-xl text-white/80 font-semibold" ] [ text "Live Performance" ]
         , div [ class "grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4" ]
-            [ showsPlayedCard model.zone perfs
-            , averageDrawCard perfs
-            , audienceCaptureCard perfs
+            [ showsPlayedCard model model.zone perfs
+            , averageDrawCard model perfs
+            , audienceCaptureCard model perfs
             ]
 
         , -- MERCH
           h2 [ class "mt-6 mb-2 text-lg md:text-xl text-white/80 font-semibold" ] [ text "Merchandising" ]
         , div [ class "grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4" ]
-            [ ticketsSoldCard perfs
-            , merchUnitsCard perfs
-            , unitsPerAttendeeCard perfs
+            [ ticketsSoldCard model perfs
+            , merchUnitsCard model perfs
+            , unitsPerAttendeeCard model perfs
             ]
 
         , -- STREAMING & DIGITAL
           h2 [ class "mt-6 mb-2 text-lg md:text-xl text-white/80 font-semibold" ] [ text "Streaming & Digital" ]
         , div [ class "grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4" ]
-            [ spotifyFollowersCard socials
-            , totalStreamsCard tracks
+            [ spotifyFollowersCard model socials
+            , totalStreamsCard model tracks
             --, averageSavesPerTrackCard tracks
-            , avgStreamsPerListenerCard tracks
+            , avgStreamsPerListenerCard model tracks
 --            , repeatListenRateCard tracks
             ]
 
         , -- SOCIAL & FAN GROWTH
           h2 [ class "mt-6 mb-2 text-lg md:text-xl text-white/80 font-semibold" ] [ text "Social Media & Fan Growth" ]
         , div [ class "grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4" ]
-            [ socialFollowerCountCard socials
-            , engagementRateCard engagement
+            [ socialFollowerCountCard model socials
+            , engagementRateCard model engagement
             , followerCard
             ]
         ]
@@ -1423,6 +1423,7 @@ testimonialCard model t =
             case t.media of
                 LbImage i -> { url = i.src, alt = i.alt }
                 LbYoutube mv -> { url = youtubeThumb mv, alt = mv.title }
+                LbNone -> { url = "", alt = "" }
 
         -- full text for the lightbox (you can style/format more richly if you want)
         fullText =
@@ -1518,6 +1519,9 @@ lightboxView model =
                                     []
                                 ]
 
+                        LbNone ->
+                            text ""
+
                 captionView =
                     case lb.caption of
                         Nothing -> text ""
@@ -1537,7 +1541,7 @@ lightboxView model =
                                 [ text s ]
             in
             div
-                [ class "fixed inset-0 z-[2000] bg-black/80 p-4 flex items-center justify-center"
+                [ class "fixed inset-0 z-[2000] bg-black/90 p-4 flex items-center justify-center"
                 , onClick CloseLightbox
                 ]
                 [ -- dialog
@@ -1545,7 +1549,13 @@ lightboxView model =
                     [ class "w-[92vw] max-w-5xl"
                     , stopClick
                     ]
-                    [ mediaView, captionView, textView ]
+                    [ (case lb.media of
+                           LbNone -> text ""
+                           _ -> mediaView
+                      )
+                    , captionView
+                    , textView
+                    ]
                 , -- close button
                   button
                   [ class "absolute top-4 right-4 w-10 h-10 rounded-full bg-black hover:bg-black ring-1 ring-white/20 hover:ring-white/35 text-white text-2xl leading-none"

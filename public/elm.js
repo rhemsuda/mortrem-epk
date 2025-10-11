@@ -11831,180 +11831,231 @@ var $author$project$Statistics$safeDiv = F2(
 	function (num, den) {
 		return (!den) ? 0 : (num / den);
 	});
-var $author$project$Statistics$infoPopover = function (content) {
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				$elm$html$Html$Attributes$class('relative inline-block group overflow-visible')
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$button,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('inline-flex items-center justify-center w-5 h-5 rounded-full' + ('bg-white/10 ring-1 ring-white/20 text-white/80' + 'focus:outline-none focus:ring-2 focus:ring-white/40')),
-						A2($elm$html$Html$Attributes$attribute, 'type', 'button'),
-						A2($elm$html$Html$Attributes$attribute, 'aria-label', 'More info')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$i,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('fa-solid fa-circle-info text-[11px] leading-none')
-							]),
-						_List_Nil)
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('absolute top-full right-0 mt-2 min-w-[14rem] max-w-[20rem] ' + ('rounded-lg bg-black/90 text-white p-3 text-xs ring-1 ring-white/10 shadow-2xl z-50 ' + ('opacity-0 pointer-events-none transition ' + ('group-hover:opacity-100 group-hover:pointer-events-auto ' + 'group-focus-within:opacity-100 group-focus-within:pointer-events-auto'))))
-					]),
-				content)
-			]));
-};
-var $author$project$Statistics$statCard = function (args) {
-	var surfaceCls = A2(
-		$elm$core$String$join,
-		' ',
-		_List_fromArray(
-			['rounded-2xl bg-slate-900/60 ring-1 ring-white/10 shadow-xl', 'hover:ring-white/20 hover:shadow-2xl', 'transition p-4 flex flex-col w-full', 'min-h-[180px] overflow-hidden']));
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				$elm$html$Html$Attributes$class('relative w-full overflow-visible')
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class(surfaceCls)
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('mb-2 pr-8')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$span,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('text-md font-semibold tracking-wide text-white/80')
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text(args.title)
-									]))
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('flex-1 flex items-center')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$span,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('text-5xl font-semibold tracking-tight text-white')
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text(args.primary)
-									]))
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('pt-2 text-white/70')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$span,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('text-xl font-semibold text-white/80')
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text(args.secondaryMain)
-									])),
-								A2(
-								$elm$html$Html$span,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class('ml-2 text-sm')
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text(args.secondarySuffix)
-									]))
-							]))
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('absolute right-3 top-3 z-30')
-					]),
-				_List_fromArray(
-					[
-						$author$project$Statistics$infoPopover(
-						_List_fromArray(
-							[
-								$elm$html$Html$text(args.info)
-							]))
-					]))
-			]));
-};
-var $author$project$Statistics$audienceCaptureCard = function (perfs) {
-	var visible = A2(
-		$elm$core$List$filter,
-		function (p) {
-			return !p.hide;
-		},
-		perfs);
-	var totalNew = $elm$core$List$sum(
-		A2(
-			$elm$core$List$map,
+var $author$project$Types$LbNone = {$: 'LbNone'};
+var $author$project$Components$helpHint = F2(
+	function (model, cfg) {
+		var mobileButton = A2(
+			$elm$html$Html$button,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('inline-flex items-center justify-center rounded-full ' + 'bg-white/10 ring-1 ring-white/15 text-white/80'),
+					$elm$html$Html$Events$onClick(
+					$author$project$Types$OpenLightbox(
+						{
+							caption: $elm$core$Maybe$Just(cfg.title),
+							extraText: $elm$core$Maybe$Just(cfg.body),
+							media: $author$project$Types$LbNone
+						})),
+					A2($elm$html$Html$Attributes$attribute, 'type', 'button'),
+					A2($elm$html$Html$Attributes$attribute, 'aria-label', 'More info')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$i,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('fa-solid fa-circle-info text-[1em] leading-none')
+						]),
+					_List_Nil)
+				]));
+		var isMobile = _Utils_cmp(model.viewportW, $author$project$Constants$mobileThreshold) < 0;
+		var desktopPopover = A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('relative inline-block group align-middle')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$button,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('inline-flex items-center justify-center rounded-full ' + ('bg-white/10 ring-1 ring-white/15 text-white/80 ' + 'focus:outline-none focus:ring-2 focus:ring-white/30')),
+							A2($elm$html$Html$Attributes$attribute, 'type', 'button'),
+							A2($elm$html$Html$Attributes$attribute, 'aria-label', 'More info')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$i,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('fa-solid fa-circle-info text-[1em] leading-none')
+								]),
+							_List_Nil)
+						])),
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('absolute top-full right-0 mt-2 min-w-[14rem] max-w-[20rem] ' + ('rounded-md bg-black/90 text-white p-3 text-xs ring-1 ring-white/10 shadow-xl z-50 ' + ('opacity-0 pointer-events-none transition ' + ('group-hover:opacity-100 group-hover:pointer-events-auto ' + 'group-focus-within:opacity-100 group-focus-within:pointer-events-auto'))))
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('font-semibold mb-1 text-white/90')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text(cfg.title)
+								])),
+							A2(
+							$elm$html$Html$div,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text(cfg.body)
+								]))
+						]))
+				]));
+		return isMobile ? mobileButton : desktopPopover;
+	});
+var $author$project$Statistics$statCard = F2(
+	function (args, model) {
+		var surfaceCls = A2(
+			$elm$core$String$join,
+			' ',
+			_List_fromArray(
+				['rounded-2xl bg-slate-900/60 ring-1 ring-white/10 shadow-xl', 'hover:ring-white/20 hover:shadow-2xl', 'transition p-4 flex flex-col w-full', 'min-h-[180px] overflow-hidden']));
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('relative w-full overflow-visible')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class(surfaceCls)
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('mb-2 pr-8')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$span,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('text-md font-semibold tracking-wide text-white/80')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text(args.title)
+										]))
+								])),
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('flex-1 flex items-center')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$span,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('text-5xl font-semibold tracking-tight text-white')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text(args.primary)
+										]))
+								])),
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('pt-2 text-white/70')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$span,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('text-xl font-semibold text-white/80')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text(args.secondaryMain)
+										])),
+									A2(
+									$elm$html$Html$span,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('ml-2 text-sm')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text(args.secondarySuffix)
+										]))
+								]))
+						])),
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('absolute right-3 top-3 z-30')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$author$project$Components$helpHint,
+							model,
+							{body: args.info, title: args.title})
+						]))
+				]));
+	});
+var $author$project$Statistics$audienceCaptureCard = F2(
+	function (model, perfs) {
+		var visible = A2(
+			$elm$core$List$filter,
 			function (p) {
-				return p.newFollowers;
+				return !p.hide;
 			},
-			visible));
-	var totalAudience = $elm$core$List$sum(
-		A2(
-			$elm$core$List$map,
-			function (p) {
-				return p.totalDraw;
-			},
-			visible));
-	var pct = $author$project$Statistics$percent(
-		A2($author$project$Statistics$safeDiv, totalNew, totalAudience));
-	var fansPerShow = $elm$core$String$fromInt(
-		$elm$core$Basics$round(
+			perfs);
+		var totalNew = $elm$core$List$sum(
 			A2(
-				$author$project$Statistics$safeDiv,
-				totalNew,
-				$elm$core$List$length(visible))));
-	return $author$project$Statistics$statCard(
-		{info: 'New followers captured per audience member across all shows.', primary: pct, secondaryMain: '~' + fansPerShow, secondarySuffix: 'new fans per show', title: 'Audience Capture'});
-};
+				$elm$core$List$map,
+				function (p) {
+					return p.newFollowers;
+				},
+				visible));
+		var totalAudience = $elm$core$List$sum(
+			A2(
+				$elm$core$List$map,
+				function (p) {
+					return p.totalDraw;
+				},
+				visible));
+		var pct = $author$project$Statistics$percent(
+			A2($author$project$Statistics$safeDiv, totalNew, totalAudience));
+		var fansPerShow = $elm$core$String$fromInt(
+			$elm$core$Basics$round(
+				A2(
+					$author$project$Statistics$safeDiv,
+					totalNew,
+					$elm$core$List$length(visible))));
+		return A2(
+			$author$project$Statistics$statCard,
+			{info: 'New followers captured per audience member across all shows.', primary: pct, secondaryMain: '~' + fansPerShow, secondarySuffix: 'new fans per show', title: 'Audience Capture'},
+			model);
+	});
 var $author$project$Statistics$avgFloat = function (xs) {
 	if (!xs.b) {
 		return 0;
@@ -12046,67 +12097,76 @@ var $author$project$Statistics$formatInt = function (n) {
 		',',
 		A2(go, _List_Nil, s));
 };
-var $author$project$Statistics$averageDrawCard = function (perfs) {
-	var visible = A2(
-		$elm$core$List$filter,
-		function (p) {
-			return !p.hide;
-		},
-		perfs);
-	var avgDraw = $elm$core$String$fromInt(
-		$elm$core$Basics$round(
-			$author$project$Statistics$avgFloat(
-				A2(
-					$elm$core$List$map,
-					function (p) {
-						return p.totalDraw;
-					},
-					visible))));
-	return $author$project$Statistics$statCard(
-		{
-			info: 'Average total audience per show (includes your draw + organic walk-ins).',
-			primary: avgDraw,
-			secondaryMain: $author$project$Statistics$formatInt(
-				$elm$core$List$length(visible)),
-			secondarySuffix: 'shows included',
-			title: 'Average Draw'
-		});
-};
-var $author$project$Statistics$avgStreamsPerListenerCard = function (tracks) {
-	return $author$project$Statistics$statCard(
-		{info: 'The average streams per listener is counted from most recent release (September 2024) until now. This calculation purposely leaves out the surge of listeners on release day, and looks at retention over time.', primary: '4.1', secondaryMain: '64%', secondarySuffix: 'higher than industry average', title: 'Average Streams Per Listener'});
-};
-var $author$project$Statistics$engagementRateCard = function (samples) {
-	var totalReach = $elm$core$List$sum(
-		A2(
-			$elm$core$List$map,
-			function ($) {
-				return $.reach;
+var $author$project$Statistics$averageDrawCard = F2(
+	function (model, perfs) {
+		var visible = A2(
+			$elm$core$List$filter,
+			function (p) {
+				return !p.hide;
 			},
-			samples));
-	var totalInteractions = $elm$core$List$sum(
-		A2(
-			$elm$core$List$map,
-			function ($) {
-				return $.interactions;
+			perfs);
+		var avgDraw = $elm$core$String$fromInt(
+			$elm$core$Basics$round(
+				$author$project$Statistics$avgFloat(
+					A2(
+						$elm$core$List$map,
+						function (p) {
+							return p.totalDraw;
+						},
+						visible))));
+		return A2(
+			$author$project$Statistics$statCard,
+			{
+				info: 'Average total audience per show (includes your draw + organic walk-ins).',
+				primary: avgDraw,
+				secondaryMain: $author$project$Statistics$formatInt(
+					$elm$core$List$length(visible)),
+				secondarySuffix: 'shows included',
+				title: 'Average Draw'
 			},
-			samples));
-	var rate = A2($author$project$Statistics$safeDiv, totalInteractions, totalReach);
-	var avgDailyInteractions = $elm$core$String$fromInt(
-		$elm$core$Basics$round(
+			model);
+	});
+var $author$project$Statistics$avgStreamsPerListenerCard = F2(
+	function (model, tracks) {
+		return A2(
+			$author$project$Statistics$statCard,
+			{info: 'The average streams per listener is counted from most recent release (September 2024) until now. This calculation purposely leaves out the surge of listeners on release day, and looks at retention over time.', primary: '4.1', secondaryMain: '64%', secondarySuffix: 'higher than industry average', title: 'Average Streams Per Listener'},
+			model);
+	});
+var $author$project$Statistics$engagementRateCard = F2(
+	function (model, samples) {
+		var totalReach = $elm$core$List$sum(
 			A2(
-				$author$project$Statistics$safeDiv,
-				totalInteractions,
-				$elm$core$List$length(samples))));
-	return $author$project$Statistics$statCard(
-		{
-			info: 'Interactions divided by reach across recent posts.',
-			primary: $author$project$Statistics$percent(rate),
-			secondaryMain: avgDailyInteractions,
-			secondarySuffix: 'avg daily interactions',
-			title: 'Engagement Rate'
-		});
-};
+				$elm$core$List$map,
+				function ($) {
+					return $.reach;
+				},
+				samples));
+		var totalInteractions = $elm$core$List$sum(
+			A2(
+				$elm$core$List$map,
+				function ($) {
+					return $.interactions;
+				},
+				samples));
+		var rate = A2($author$project$Statistics$safeDiv, totalInteractions, totalReach);
+		var avgDailyInteractions = $elm$core$String$fromInt(
+			$elm$core$Basics$round(
+				A2(
+					$author$project$Statistics$safeDiv,
+					totalInteractions,
+					$elm$core$List$length(samples))));
+		return A2(
+			$author$project$Statistics$statCard,
+			{
+				info: 'Interactions divided by reach across recent posts.',
+				primary: $author$project$Statistics$percent(rate),
+				secondaryMain: avgDailyInteractions,
+				secondarySuffix: 'avg daily interactions',
+				title: 'Engagement Rate'
+			},
+			model);
+	});
 var $elm$core$List$isEmpty = function (xs) {
 	if (!xs.b) {
 		return true;
@@ -12312,163 +12372,131 @@ var $author$project$Statistics$sparkline = F2(
 						points))
 				]));
 	});
-var $author$project$Statistics$followerGrowthCard = function (cfg) {
-	var series = _List_fromArray(
-		[
-			_Utils_Tuple2('Q3 23', 41),
-			_Utils_Tuple2('Q4 23', 67),
-			_Utils_Tuple2('Q1 24', 159),
-			_Utils_Tuple2('Q2 24', 202),
-			_Utils_Tuple2('Q3 24', 236),
-			_Utils_Tuple2('Q4 24', 287),
-			_Utils_Tuple2('Q1 25', 424),
-			_Utils_Tuple2('Q2 25', 528),
-			_Utils_Tuple2('Q3 25', 555)
-		]);
-	var spark = A2(
-		$author$project$Statistics$sparkline,
-		{h: 96, pad: 10, w: 260},
-		series);
-	var avgGainPerQ = function () {
-		var gains = $author$project$Statistics$quarterGains(
-			A2($elm$core$List$map, $elm$core$Tuple$second, series));
-		return $elm$core$List$isEmpty(gains) ? 0 : (($elm$core$List$sum(gains) / $elm$core$List$length(gains)) | 0);
-	}();
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
+var $author$project$Statistics$followerGrowthCard = F2(
+	function (model, cfg) {
+		var series = _List_fromArray(
 			[
-				$elm$html$Html$Attributes$class(
-				A2(
-					$elm$core$String$join,
-					' ',
+				_Utils_Tuple2('Q3 23', 41),
+				_Utils_Tuple2('Q4 23', 67),
+				_Utils_Tuple2('Q1 24', 159),
+				_Utils_Tuple2('Q2 24', 202),
+				_Utils_Tuple2('Q3 24', 236),
+				_Utils_Tuple2('Q4 24', 287),
+				_Utils_Tuple2('Q1 25', 424),
+				_Utils_Tuple2('Q2 25', 528),
+				_Utils_Tuple2('Q3 25', 555)
+			]);
+		var spark = A2(
+			$author$project$Statistics$sparkline,
+			{h: 96, pad: 10, w: 260},
+			series);
+		var avgGainPerQ = function () {
+			var gains = $author$project$Statistics$quarterGains(
+				A2($elm$core$List$map, $elm$core$Tuple$second, series));
+			return $elm$core$List$isEmpty(gains) ? 0 : (($elm$core$List$sum(gains) / $elm$core$List$length(gains)) | 0);
+		}();
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class(
+					A2(
+						$elm$core$String$join,
+						' ',
+						_List_fromArray(
+							['relative rounded-2xl bg-slate-900/60', 'ring-1 ring-white/10 shadow-xl', 'hover:ring-white/20 hover:shadow-2xl', 'transition p-4 flex flex-col w-full', 'min-h-[180px] overflow-visible'])))
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
 					_List_fromArray(
-						['relative rounded-2xl bg-slate-900/60', 'ring-1 ring-white/10 shadow-xl', 'hover:ring-white/20 hover:shadow-2xl', 'transition p-4 flex flex-col w-full', 'min-h-[180px] overflow-hidden'])))
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('flex items-start justify-between mb-2')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$span,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('text-md font-semibold tracking-wide text-white/80')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('Follower Growth')
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('relative group')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$button,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class(
-										A2(
-											$elm$core$String$join,
-											' ',
-											_List_fromArray(
-												['w-5 h-5 rounded-full flex items-center justify-center', 'text-[11px] font-bold bg-white/10 text-white/80', 'ring-1 ring-white/15 cursor-default']))),
-										$elm$html$Html$Attributes$title('Follower Growth')
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('i')
-									])),
-								A2(
-								$elm$html$Html$div,
-								_List_fromArray(
-									[
-										$elm$html$Html$Attributes$class(
-										A2(
-											$elm$core$String$join,
-											' ',
-											_List_fromArray(
-												['pointer-events-none opacity-0 group-hover:opacity-100', 'absolute right-0 mt-2 z-20 min-w-[16rem] max-w-[20rem]', 'bg-black/90 text-white text-xs rounded-lg p-3', 'ring-1 ring-white/10 shadow-2xl transition'])))
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text('Each point is the follower count at the END of the quarter (Q1–Q4) in your local time. Gains per quarter are computed from summed performance ‘newFollowers’ plus your starting seed.')
-									]))
-							]))
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('mt-3 h-24 w-full')
-					]),
-				_List_fromArray(
-					[spark])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('pt-2 text-white/70')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$span,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('text-xl font-semibold text-white/80')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text(
-								$elm$core$String$fromInt(avgGainPerQ))
-							])),
-						A2(
-						$elm$html$Html$span,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('ml-2 text-sm')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('avg per quarter')
-							]))
-					]))
-			]));
-};
+						[
+							$elm$html$Html$Attributes$class('flex items-start justify-between mb-2 overflow-visible')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$span,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('text-md font-semibold tracking-wide text-white/80')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text('Follower Growth')
+								])),
+							A2(
+							$author$project$Components$helpHint,
+							model,
+							{body: 'Each point is the follower count at the END of the quarter (Q1–Q4) ' + ('in your local time. Gains per quarter are computed from summed ' + 'performance \'newFollowers\' plus your starting seed.'), title: 'Follower Growth'})
+						])),
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('mt-3 h-24 w-full')
+						]),
+					_List_fromArray(
+						[spark])),
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('pt-2 text-white/70')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$span,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('text-xl font-semibold text-white/80')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text(
+									$elm$core$String$fromInt(avgGainPerQ))
+								])),
+							A2(
+							$elm$html$Html$span,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('ml-2 text-sm')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text('avg per quarter')
+								]))
+						]))
+				]));
+	});
 var $author$project$Utils$sumUnits = A2(
 	$elm$core$Basics$composeR,
 	$elm$core$List$map($author$project$Utils$totalUnits),
 	$elm$core$List$sum);
-var $author$project$Statistics$merchUnitsCard = function (perfs) {
-	var total = $author$project$Utils$sumUnits(
-		A2(
-			$elm$core$List$map,
-			function ($) {
-				return $.merchSold;
+var $author$project$Statistics$merchUnitsCard = F2(
+	function (model, perfs) {
+		var total = $author$project$Utils$sumUnits(
+			A2(
+				$elm$core$List$map,
+				function ($) {
+					return $.merchSold;
+				},
+				perfs));
+		var showCount = $elm$core$List$length(perfs);
+		var avgPerShow = (!showCount) ? 0 : ((total / showCount) | 0);
+		return A2(
+			$author$project$Statistics$statCard,
+			{
+				info: 'Sum of all physical units (shirts, stickers). Avg is per show.',
+				primary: $elm$core$String$fromInt(total),
+				secondaryMain: $elm$core$String$fromInt(avgPerShow),
+				secondarySuffix: 'avg / show',
+				title: 'Merch Units Sold'
 			},
-			perfs));
-	var showCount = $elm$core$List$length(perfs);
-	var avgPerShow = (!showCount) ? 0 : ((total / showCount) | 0);
-	return $author$project$Statistics$statCard(
-		{
-			info: 'Sum of all physical units (shirts, stickers). Avg is per show.',
-			primary: $elm$core$String$fromInt(total),
-			secondaryMain: $elm$core$String$fromInt(avgPerShow),
-			secondarySuffix: 'avg / show',
-			title: 'Merch Units Sold'
-		});
-};
+			model);
+	});
 var $author$project$Statistics$yearOf = F2(
 	function (zone, dt) {
 		return A2(
@@ -12476,8 +12504,8 @@ var $author$project$Statistics$yearOf = F2(
 			zone,
 			$PanagiotisGeorgiadis$elm_datetime$DateTime$toPosix(dt));
 	});
-var $author$project$Statistics$showsPlayedCard = F2(
-	function (zone, perfs) {
+var $author$project$Statistics$showsPlayedCard = F3(
+	function (model, zone, perfs) {
 		var visible = A2(
 			$elm$core$List$filter,
 			function (p) {
@@ -12504,175 +12532,192 @@ var $author$project$Statistics$showsPlayedCard = F2(
 						latestYear);
 				},
 				visible));
-		return $author$project$Statistics$statCard(
+		return A2(
+			$author$project$Statistics$statCard,
 			{
 				info: 'Total shows played (all time) and how many in the most recent calendar year present in your data.',
 				primary: $author$project$Statistics$formatInt(totalShows),
 				secondaryMain: $author$project$Statistics$formatInt(showsThisYear),
 				secondarySuffix: 'played in ' + $elm$core$String$fromInt(latestYear),
 				title: 'Shows Played'
-			});
+			},
+			model);
 	});
-var $author$project$Statistics$socialFollowerCountCard = function (profiles) {
-	var total = $elm$core$List$sum(
-		A2(
-			$elm$core$List$map,
-			function ($) {
-				return $.followers;
+var $author$project$Statistics$socialFollowerCountCard = F2(
+	function (model, profiles) {
+		var total = $elm$core$List$sum(
+			A2(
+				$elm$core$List$map,
+				function ($) {
+					return $.followers;
+				},
+				profiles));
+		var topPlatform = $elm$core$List$head(
+			A2(
+				$elm$core$List$sortBy,
+				function (p) {
+					return -p.followers;
+				},
+				profiles));
+		var suffix = function () {
+			if (topPlatform.$ === 'Just') {
+				var p = topPlatform.a;
+				return 'follow on ' + p.platform;
+			} else {
+				return 'no platforms connected';
+			}
+		}();
+		var secondary = function () {
+			if (topPlatform.$ === 'Just') {
+				var p = topPlatform.a;
+				var pct = A2($author$project$Statistics$safeDiv, p.followers, total);
+				return $elm$core$String$fromInt(
+					$elm$core$Basics$round(pct * 100)) + '%';
+			} else {
+				return '';
+			}
+		}();
+		return A2(
+			$author$project$Statistics$statCard,
+			{
+				info: 'Sum of followers across connected social profiles. Secondary shows where most followers are.',
+				primary: $author$project$Statistics$formatInt(total),
+				secondaryMain: secondary,
+				secondarySuffix: suffix,
+				title: 'Follower Count'
 			},
-			profiles));
-	var topPlatform = $elm$core$List$head(
-		A2(
-			$elm$core$List$sortBy,
-			function (p) {
-				return -p.followers;
-			},
-			profiles));
-	var suffix = function () {
-		if (topPlatform.$ === 'Just') {
-			var p = topPlatform.a;
-			return 'follow on ' + p.platform;
-		} else {
-			return 'no platforms connected';
-		}
-	}();
-	var secondary = function () {
-		if (topPlatform.$ === 'Just') {
-			var p = topPlatform.a;
-			var pct = A2($author$project$Statistics$safeDiv, p.followers, total);
-			return $elm$core$String$fromInt(
-				$elm$core$Basics$round(pct * 100)) + '%';
-		} else {
-			return '';
-		}
-	}();
-	return $author$project$Statistics$statCard(
-		{
-			info: 'Sum of followers across connected social profiles. Secondary shows where most followers are.',
-			primary: $author$project$Statistics$formatInt(total),
-			secondaryMain: secondary,
-			secondarySuffix: suffix,
-			title: 'Follower Count'
-		});
-};
+			model);
+	});
 var $elm$core$String$toLower = _String_toLower;
-var $author$project$Statistics$spotifyFollowersCard = function (profiles) {
-	var spotify = $elm$core$List$head(
-		A2(
+var $author$project$Statistics$spotifyFollowersCard = F2(
+	function (model, profiles) {
+		var spotify = $elm$core$List$head(
+			A2(
+				$elm$core$List$filter,
+				function (p) {
+					return $elm$core$String$toLower(p.platform) === 'spotify';
+				},
+				profiles));
+		var total = function () {
+			if (spotify.$ === 'Just') {
+				var s = spotify.a;
+				return s.followers;
+			} else {
+				return 0;
+			}
+		}();
+		return A2(
+			$author$project$Statistics$statCard,
+			{
+				info: 'Current followers on Spotify artist profile.',
+				primary: $author$project$Statistics$formatInt(total),
+				secondaryMain: '~8',
+				secondarySuffix: 'per month',
+				title: 'Spotify Followers'
+			},
+			model);
+	});
+var $author$project$Statistics$ticketsSoldCard = F2(
+	function (model, perfs) {
+		var shows = A2(
 			$elm$core$List$filter,
 			function (p) {
-				return $elm$core$String$toLower(p.platform) === 'spotify';
+				return !p.hide;
 			},
-			profiles));
-	var total = function () {
-		if (spotify.$ === 'Just') {
-			var s = spotify.a;
-			return s.followers;
-		} else {
-			return 0;
-		}
-	}();
-	return $author$project$Statistics$statCard(
-		{
-			info: 'Current followers on Spotify artist profile.',
-			primary: $author$project$Statistics$formatInt(total),
-			secondaryMain: '~8',
-			secondarySuffix: 'per month',
-			title: 'Spotify Followers'
-		});
-};
-var $author$project$Statistics$ticketsSoldCard = function (perfs) {
-	var shows = A2(
-		$elm$core$List$filter,
-		function (p) {
-			return !p.hide;
-		},
-		perfs);
-	var totalTickets = $elm$core$List$sum(
-		A2(
-			$elm$core$List$map,
-			function ($) {
-				return $.totalDraw;
+			perfs);
+		var totalTickets = $elm$core$List$sum(
+			A2(
+				$elm$core$List$map,
+				function ($) {
+					return $.totalDraw;
+				},
+				shows));
+		var avgPerShow = function () {
+			var _v0 = $elm$core$List$length(shows);
+			if (!_v0) {
+				return 0;
+			} else {
+				var n = _v0;
+				return (totalTickets / n) | 0;
+			}
+		}();
+		return A2(
+			$author$project$Statistics$statCard,
+			{
+				info: 'Total attendees across shows (Total Draw). Avg is per show.',
+				primary: $elm$core$String$fromInt(totalTickets),
+				secondaryMain: $elm$core$String$fromInt(avgPerShow),
+				secondarySuffix: 'avg / show',
+				title: 'Tickets Sold'
 			},
-			shows));
-	var avgPerShow = function () {
-		var _v0 = $elm$core$List$length(shows);
-		if (!_v0) {
-			return 0;
-		} else {
-			var n = _v0;
-			return (totalTickets / n) | 0;
-		}
-	}();
-	return $author$project$Statistics$statCard(
-		{
-			info: 'Total attendees across shows (Total Draw). Avg is per show.',
-			primary: $elm$core$String$fromInt(totalTickets),
-			secondaryMain: $elm$core$String$fromInt(avgPerShow),
-			secondarySuffix: 'avg / show',
-			title: 'Tickets Sold'
-		});
-};
-var $author$project$Statistics$totalStreamsCard = function (tracks) {
-	var total = $elm$core$List$sum(
-		A2(
-			$elm$core$List$map,
-			function ($) {
-				return $.streams;
+			model);
+	});
+var $author$project$Statistics$totalStreamsCard = F2(
+	function (model, tracks) {
+		var total = $elm$core$List$sum(
+			A2(
+				$elm$core$List$map,
+				function ($) {
+					return $.streams;
+				},
+				tracks));
+		var avgPerTrack = A2(
+			$author$project$Statistics$safeDiv,
+			total,
+			$elm$core$List$length(tracks));
+		return A2(
+			$author$project$Statistics$statCard,
+			{
+				info: 'Sum of streams across all tracks',
+				primary: $author$project$Statistics$formatInt(total),
+				secondaryMain: $author$project$Statistics$formatInt(
+					$elm$core$Basics$round(avgPerTrack)),
+				secondarySuffix: 'avg streams per track',
+				title: 'Total Streams'
 			},
-			tracks));
-	var avgPerTrack = A2(
-		$author$project$Statistics$safeDiv,
-		total,
-		$elm$core$List$length(tracks));
-	return $author$project$Statistics$statCard(
-		{
-			info: 'Sum of streams across all tracks',
-			primary: $author$project$Statistics$formatInt(total),
-			secondaryMain: $author$project$Statistics$formatInt(
-				$elm$core$Basics$round(avgPerTrack)),
-			secondarySuffix: 'avg streams per track',
-			title: 'Total Streams'
-		});
-};
+			model);
+	});
 var $elm$core$Basics$pow = _Basics_pow;
 var $author$project$Utils$roundTo = F2(
 	function (places, n) {
 		var f = A2($elm$core$Basics$pow, 10, places);
 		return $elm$core$Basics$round(n * f) / f;
 	});
-var $author$project$Statistics$unitsPerAttendeeCard = function (perfs) {
-	var totalUnits_ = $author$project$Utils$sumUnits(
-		A2(
-			$elm$core$List$map,
-			function ($) {
-				return $.merchSold;
-			},
-			perfs));
-	var totalAudience = $elm$core$List$sum(
-		A2(
-			$elm$core$List$map,
-			function ($) {
-				return $.totalDraw;
-			},
+var $author$project$Statistics$unitsPerAttendeeCard = F2(
+	function (model, perfs) {
+		var totalUnits_ = $author$project$Utils$sumUnits(
 			A2(
-				$elm$core$List$filter,
-				function (p) {
-					return !p.hide;
+				$elm$core$List$map,
+				function ($) {
+					return $.merchSold;
 				},
-				perfs)));
-	var ratio = (totalAudience <= 0) ? 0 : (totalUnits_ / totalAudience);
-	var ratioStr = $elm$core$String$fromFloat(
-		A2($author$project$Utils$roundTo, 2, ratio));
-	return $author$project$Statistics$statCard(
-		{
-			info: 'Total merch units divided by total audience across the same period.',
-			primary: ratioStr,
-			secondaryMain: $elm$core$String$fromInt(totalUnits_),
-			secondarySuffix: 'total units',
-			title: 'Units per Attendee'
-		});
-};
+				perfs));
+		var totalAudience = $elm$core$List$sum(
+			A2(
+				$elm$core$List$map,
+				function ($) {
+					return $.totalDraw;
+				},
+				A2(
+					$elm$core$List$filter,
+					function (p) {
+						return !p.hide;
+					},
+					perfs)));
+		var ratio = (totalAudience <= 0) ? 0 : (totalUnits_ / totalAudience);
+		var ratioStr = $elm$core$String$fromFloat(
+			A2($author$project$Utils$roundTo, 2, ratio));
+		return A2(
+			$author$project$Statistics$statCard,
+			{
+				info: 'Total merch units divided by total audience across the same period.',
+				primary: ratioStr,
+				secondaryMain: $elm$core$String$fromInt(totalUnits_),
+				secondarySuffix: 'total units',
+				title: 'Units per Attendee'
+			},
+			model);
+	});
 var $author$project$Main$statisticsPanel = function (model) {
 	var tracks = _List_fromArray(
 		[
@@ -12702,7 +12747,9 @@ var $author$project$Main$statisticsPanel = function (model) {
 		$author$project$Main$performances);
 	var growthSeries = _List_fromArray(
 		[520, 540, 535, 560, 588, 604, 612]);
-	var followerCard = $author$project$Statistics$followerGrowthCard(
+	var followerCard = A2(
+		$author$project$Statistics$followerGrowthCard,
+		model,
 		{now: model.now, performances: $author$project$Main$performances, quarters: 8, seedFollowers: 0, zone: model.zone});
 	var engagement = _List_fromArray(
 		[
@@ -12751,9 +12798,9 @@ var $author$project$Main$statisticsPanel = function (model) {
 					]),
 				_List_fromArray(
 					[
-						A2($author$project$Statistics$showsPlayedCard, model.zone, perfs),
-						$author$project$Statistics$averageDrawCard(perfs),
-						$author$project$Statistics$audienceCaptureCard(perfs)
+						A3($author$project$Statistics$showsPlayedCard, model, model.zone, perfs),
+						A2($author$project$Statistics$averageDrawCard, model, perfs),
+						A2($author$project$Statistics$audienceCaptureCard, model, perfs)
 					])),
 				A2(
 				$elm$html$Html$h2,
@@ -12773,9 +12820,9 @@ var $author$project$Main$statisticsPanel = function (model) {
 					]),
 				_List_fromArray(
 					[
-						$author$project$Statistics$ticketsSoldCard(perfs),
-						$author$project$Statistics$merchUnitsCard(perfs),
-						$author$project$Statistics$unitsPerAttendeeCard(perfs)
+						A2($author$project$Statistics$ticketsSoldCard, model, perfs),
+						A2($author$project$Statistics$merchUnitsCard, model, perfs),
+						A2($author$project$Statistics$unitsPerAttendeeCard, model, perfs)
 					])),
 				A2(
 				$elm$html$Html$h2,
@@ -12795,9 +12842,9 @@ var $author$project$Main$statisticsPanel = function (model) {
 					]),
 				_List_fromArray(
 					[
-						$author$project$Statistics$spotifyFollowersCard(socials),
-						$author$project$Statistics$totalStreamsCard(tracks),
-						$author$project$Statistics$avgStreamsPerListenerCard(tracks)
+						A2($author$project$Statistics$spotifyFollowersCard, model, socials),
+						A2($author$project$Statistics$totalStreamsCard, model, tracks),
+						A2($author$project$Statistics$avgStreamsPerListenerCard, model, tracks)
 					])),
 				A2(
 				$elm$html$Html$h2,
@@ -12817,8 +12864,8 @@ var $author$project$Main$statisticsPanel = function (model) {
 					]),
 				_List_fromArray(
 					[
-						$author$project$Statistics$socialFollowerCountCard(socials),
-						$author$project$Statistics$engagementRateCard(engagement),
+						A2($author$project$Statistics$socialFollowerCountCard, model, socials),
+						A2($author$project$Statistics$engagementRateCard, model, engagement),
 						followerCard
 					]))
 			]));
@@ -12845,11 +12892,11 @@ var $author$project$Main$lightboxView = function (model) {
 			$elm$json$Json$Decode$succeed(
 				_Utils_Tuple2($author$project$Types$NoOp, true)));
 		var textView = function () {
-			var _v3 = lb.extraText;
-			if (_v3.$ === 'Nothing') {
+			var _v4 = lb.extraText;
+			if (_v4.$ === 'Nothing') {
 				return $elm$html$Html$text('');
 			} else {
-				var s = _v3.a;
+				var s = _v4.a;
 				return A2(
 					$elm$html$Html$div,
 					_List_fromArray(
@@ -12864,56 +12911,59 @@ var $author$project$Main$lightboxView = function (model) {
 			}
 		}();
 		var mediaView = function () {
-			var _v2 = lb.media;
-			if (_v2.$ === 'LbImage') {
-				var imgData = _v2.a;
-				return A2(
-					$elm$html$Html$img,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$src(imgData.src),
-							$elm$html$Html$Attributes$alt(imgData.alt),
-							$elm$html$Html$Attributes$class('w-full max-h-[70vh] object-contain rounded-xl'),
-							stopClick
-						]),
-					_List_Nil);
-			} else {
-				var yt = _v2.a;
-				return A2(
-					$elm$html$Html$div,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$class('w-full aspect-video'),
-							stopClick
-						]),
-					_List_fromArray(
-						[
-							A3(
-							$elm$html$Html$node,
-							'iframe',
-							_List_fromArray(
-								[
-									A2(
-									$elm$html$Html$Attributes$attribute,
-									'src',
-									$author$project$Main$youtubeEmbedUrl(yt.youtubeId)),
-									A2($elm$html$Html$Attributes$attribute, 'title', yt.title),
-									$elm$html$Html$Attributes$class('w-full h-full rounded-xl'),
-									A2($elm$html$Html$Attributes$attribute, 'frameborder', '0'),
-									A2($elm$html$Html$Attributes$attribute, 'allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'),
-									A2($elm$html$Html$Attributes$attribute, 'allowfullscreen', ''),
-									A2($elm$html$Html$Attributes$attribute, 'referrerpolicy', 'strict-origin-when-cross-origin')
-								]),
-							_List_Nil)
-						]));
+			var _v3 = lb.media;
+			switch (_v3.$) {
+				case 'LbImage':
+					var imgData = _v3.a;
+					return A2(
+						$elm$html$Html$img,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$src(imgData.src),
+								$elm$html$Html$Attributes$alt(imgData.alt),
+								$elm$html$Html$Attributes$class('w-full max-h-[70vh] object-contain rounded-xl'),
+								stopClick
+							]),
+						_List_Nil);
+				case 'LbYoutube':
+					var yt = _v3.a;
+					return A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('w-full aspect-video'),
+								stopClick
+							]),
+						_List_fromArray(
+							[
+								A3(
+								$elm$html$Html$node,
+								'iframe',
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$Attributes$attribute,
+										'src',
+										$author$project$Main$youtubeEmbedUrl(yt.youtubeId)),
+										A2($elm$html$Html$Attributes$attribute, 'title', yt.title),
+										$elm$html$Html$Attributes$class('w-full h-full rounded-xl'),
+										A2($elm$html$Html$Attributes$attribute, 'frameborder', '0'),
+										A2($elm$html$Html$Attributes$attribute, 'allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'),
+										A2($elm$html$Html$Attributes$attribute, 'allowfullscreen', ''),
+										A2($elm$html$Html$Attributes$attribute, 'referrerpolicy', 'strict-origin-when-cross-origin')
+									]),
+								_List_Nil)
+							]));
+				default:
+					return $elm$html$Html$text('');
 			}
 		}();
 		var captionView = function () {
-			var _v1 = lb.caption;
-			if (_v1.$ === 'Nothing') {
+			var _v2 = lb.caption;
+			if (_v2.$ === 'Nothing') {
 				return $elm$html$Html$text('');
 			} else {
-				var c = _v1.a;
+				var c = _v2.a;
 				return A2(
 					$elm$html$Html$div,
 					_List_fromArray(
@@ -12931,7 +12981,7 @@ var $author$project$Main$lightboxView = function (model) {
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('fixed inset-0 z-[2000] bg-black/80 p-4 flex items-center justify-center'),
+					$elm$html$Html$Attributes$class('fixed inset-0 z-[2000] bg-black/90 p-4 flex items-center justify-center'),
 					$elm$html$Html$Events$onClick($author$project$Types$CloseLightbox)
 				]),
 			_List_fromArray(
@@ -12944,7 +12994,18 @@ var $author$project$Main$lightboxView = function (model) {
 							stopClick
 						]),
 					_List_fromArray(
-						[mediaView, captionView, textView])),
+						[
+							function () {
+							var _v1 = lb.media;
+							if (_v1.$ === 'LbNone') {
+								return $elm$html$Html$text('');
+							} else {
+								return mediaView;
+							}
+						}(),
+							captionView,
+							textView
+						])),
 					A2(
 					$elm$html$Html$button,
 					_List_fromArray(
@@ -12968,15 +13029,18 @@ var $author$project$Main$testimonialCard = F2(
 	function (model, t) {
 		var thumb = function () {
 			var _v0 = t.media;
-			if (_v0.$ === 'LbImage') {
-				var i = _v0.a;
-				return {alt: i.alt, url: i.src};
-			} else {
-				var mv = _v0.a;
-				return {
-					alt: mv.title,
-					url: $author$project$Main$youtubeThumb(mv)
-				};
+			switch (_v0.$) {
+				case 'LbImage':
+					var i = _v0.a;
+					return {alt: i.alt, url: i.src};
+				case 'LbYoutube':
+					var mv = _v0.a;
+					return {
+						alt: mv.title,
+						url: $author$project$Main$youtubeThumb(mv)
+					};
+				default:
+					return {alt: '', url: ''};
 			}
 		}();
 		var openLb = function (payload) {

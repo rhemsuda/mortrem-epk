@@ -29,6 +29,7 @@ import Types exposing (..)
 import DateTime exposing (DateTime)
 import Time exposing (Zone, Posix, Month(..), toMonth, toYear)
 import String
+import Components exposing (helpHint)
 import Utils exposing (sumUnits, roundTo)
 
 
@@ -138,8 +139,9 @@ statCard :
     , secondaryMain : String
     , secondarySuffix : String
     }
-    -> Html msg
-statCard args =
+    -> Model
+    -> Html Msg
+statCard args model =
     let
         surfaceCls =
             String.join " "
@@ -172,8 +174,12 @@ statCard args =
 
         , -- Info button + tooltip (sibling of surface; not clipped)
           div [ HA.class "absolute right-3 top-3 z-30" ]
-            [ infoPopover
-                  [ text args.info ]
+            [ helpHint model
+                  { title = args.title
+                  , body = args.info
+                  }
+              -- infoPopover
+              --     [ text args.info ]
                 -- [ button
                 --     [ HA.class
                 --         (String.join " "
@@ -232,8 +238,8 @@ infoPopover content =
 -- LIVE PERFORMANCE
 -- ──────────────────────────────────────────────────────────────────────────────
 
-showsPlayedCard : Zone -> List Performance -> Html msg
-showsPlayedCard zone perfs =
+showsPlayedCard : Model -> Zone -> List Performance -> Html Msg
+showsPlayedCard model zone perfs =
     let
         visible = List.filter (\p -> not p.hide) perfs
         totalShows = List.length visible
@@ -254,10 +260,11 @@ showsPlayedCard zone perfs =
         , secondaryMain = formatInt showsThisYear
         , secondarySuffix = "played in " ++ String.fromInt latestYear
         }
+        model
 
 
-averageDrawCard : List Performance -> Html msg
-averageDrawCard perfs =
+averageDrawCard : Model -> List Performance -> Html Msg
+averageDrawCard model perfs =
     let
         visible = List.filter (\p -> not p.hide) perfs
         avgDraw =
@@ -274,10 +281,11 @@ averageDrawCard perfs =
         , secondaryMain = (formatInt (List.length visible))
         , secondarySuffix = "shows included"
         }
+        model
 
 
-audienceCaptureCard : List Performance -> Html msg
-audienceCaptureCard perfs =
+audienceCaptureCard : Model -> List Performance -> Html Msg
+audienceCaptureCard model perfs =
     let
         visible = List.filter (\p -> not p.hide) perfs
         totalNew = visible |> List.map (\p -> toFloat p.newFollowers) |> List.sum
@@ -295,6 +303,7 @@ audienceCaptureCard perfs =
         , secondaryMain = "~" ++ fansPerShow
         , secondarySuffix = "new fans per show"
         }
+        model
 
 
 -- ──────────────────────────────────────────────────────────────────────────────
@@ -356,8 +365,8 @@ audienceCaptureCard perfs =
 --         }
 
 {-| Total tickets sold (uses totalDraw), plus avg per show. -}
-ticketsSoldCard : List Performance -> Html msg
-ticketsSoldCard perfs =
+ticketsSoldCard : Model -> List Performance -> Html Msg
+ticketsSoldCard model perfs =
     let
         shows =
             perfs |> List.filter (\p -> not p.hide)
@@ -377,10 +386,11 @@ ticketsSoldCard perfs =
         , secondaryMain = String.fromInt avgPerShow
         , secondarySuffix = "avg / show"
         }
+        model
 
 {-| Total merch units (from units feed), plus avg per show. -}
-merchUnitsCard : List Performance -> Html msg
-merchUnitsCard perfs =
+merchUnitsCard : Model -> List Performance -> Html Msg
+merchUnitsCard model perfs =
     let
         total = perfs
               |> List.map (.merchSold)
@@ -402,11 +412,12 @@ merchUnitsCard perfs =
         , secondaryMain = String.fromInt avgPerShow
         , secondarySuffix = "avg / show"
         }
+        model
 
 
 {-| Units per attendee = total merch units ÷ total audience. -}
-unitsPerAttendeeCard : List Performance -> Html msg
-unitsPerAttendeeCard perfs =
+unitsPerAttendeeCard : Model -> List Performance -> Html Msg
+unitsPerAttendeeCard model perfs =
     let
         totalUnits_ = perfs
               |> List.map (.merchSold)
@@ -435,14 +446,15 @@ unitsPerAttendeeCard perfs =
         , secondaryMain = String.fromInt totalUnits_
         , secondarySuffix = "total units"
         }
+        model
 
 
 -- ──────────────────────────────────────────────────────────────────────────────
 -- STREAMING & DIGITAL
 -- ──────────────────────────────────────────────────────────────────────────────
 
-totalStreamsCard : List TrackStat -> Html msg
-totalStreamsCard tracks =
+totalStreamsCard : Model -> List TrackStat -> Html Msg
+totalStreamsCard model tracks =
     let
         total = tracks |> List.map .streams |> List.sum
         avgPerTrack = safeDiv (toFloat total) (toFloat (List.length tracks))
@@ -454,10 +466,11 @@ totalStreamsCard tracks =
         , secondaryMain = formatInt (round avgPerTrack)
         , secondarySuffix = "avg streams per track"
         }
+        model
 
 
-avgStreamsPerListenerCard : List TrackStat -> Html msg
-avgStreamsPerListenerCard tracks =
+avgStreamsPerListenerCard : Model -> List TrackStat -> Html Msg
+avgStreamsPerListenerCard model tracks =
     statCard
         { title = "Average Streams Per Listener"
         , info = "The average streams per listener is counted from most recent release (September 2024) until now. This calculation purposely leaves out the surge of listeners on release day, and looks at retention over time."
@@ -465,9 +478,10 @@ avgStreamsPerListenerCard tracks =
         , secondaryMain = "64%"
         , secondarySuffix = "higher than industry average"
         }
+        model
 
-spotifyFollowersCard : List SocialProfile -> Html msg
-spotifyFollowersCard profiles =
+spotifyFollowersCard : Model -> List SocialProfile -> Html Msg
+spotifyFollowersCard model profiles =
     let
         spotify =
             profiles
@@ -485,10 +499,11 @@ spotifyFollowersCard profiles =
         , secondaryMain = "~8" -- update this to real calculation - manually calculated for now
         , secondarySuffix = "per month"
         }
+        model
 
 
-averageSavesPerTrackCard : List TrackStat -> Html msg
-averageSavesPerTrackCard tracks =
+averageSavesPerTrackCard : Model -> List TrackStat -> Html Msg
+averageSavesPerTrackCard model tracks =
     let
         avgSaves =
             safeDiv
@@ -499,13 +514,14 @@ averageSavesPerTrackCard tracks =
         { title = "Average Saves per Track"
         , info = "Average number of saves across all tracks."
         , primary = formatInt (round avgSaves)
-        , secondaryMain = "+%" -- update this to a real calculation - manually calculated for now
+        , secondaryMain = "+38%" -- update this to a real calculation - manually calculated for now
         , secondarySuffix = "from last release"
         }
+        model
 
 
-repeatListenRateCard : List TrackStat -> Html msg
-repeatListenRateCard tracks =
+repeatListenRateCard : Model -> List TrackStat -> Html Msg
+repeatListenRateCard model tracks =
     let
         totalListeners = tracks |> List.map .listeners |> List.sum |> toFloat
         totalRepeats = tracks |> List.map .repeatListeners |> List.sum |> toFloat
@@ -519,14 +535,15 @@ repeatListenRateCard tracks =
         , secondaryMain = "~3.6"
         , secondarySuffix = "streams per listener"
         }
+        model
 
 
 -- ──────────────────────────────────────────────────────────────────────────────
 -- SOCIAL & FAN GROWTH
 -- ──────────────────────────────────────────────────────────────────────────────
 
-socialFollowerCountCard : List SocialProfile -> Html msg
-socialFollowerCountCard profiles =
+socialFollowerCountCard : Model -> List SocialProfile -> Html Msg
+socialFollowerCountCard model profiles =
     let
         total = profiles |> List.map .followers |> List.sum
         topPlatform =
@@ -556,10 +573,11 @@ socialFollowerCountCard profiles =
         , secondaryMain = secondary
         , secondarySuffix = suffix
         }
+        model
 
 
-engagementRateCard : List EngagementSample -> Html msg
-engagementRateCard samples =
+engagementRateCard : Model -> List EngagementSample -> Html Msg
+engagementRateCard model samples =
     let
         totalInteractions = samples |> List.map .interactions |> List.sum |> toFloat
         totalReach = samples |> List.map .reach |> List.sum |> toFloat
@@ -576,30 +594,117 @@ engagementRateCard samples =
         , secondaryMain = avgDailyInteractions
         , secondarySuffix = "avg daily interactions"
         }
+        model
+
+-- followerGrowthCard :
+--     { zone : Zone
+--     , now : Posix
+--     , quarters : Int
+--     , seedFollowers : Int
+--     , performances : List Performance
+--     }
+--     -> Html Msg
+-- followerGrowthCard cfg =
+--     let
+--         --series =
+--         --    quarterlyFollowerSeries cfg.zone cfg.now cfg.quarters cfg.seedFollowers cfg.performances
+--         series =
+--             -- [ ("Q3 23", 41)
+--             -- , ("Q4 23", 26)
+--             -- , ("Q1 24", 92)
+--             -- , ("Q2 24", 43)
+--             -- , ("Q3 24", 34)
+--             -- , ("Q4 24", 51)
+--             -- , ("Q1 25", 137)
+--             -- , ("Q2 25", 104)
+--             -- , ("Q3 25", 27)
+--             -- ]
+--             [ ("Q3 23", 41)
+--             , ("Q4 23", 67)
+--             , ("Q1 24", 159)
+--             , ("Q2 24", 202)
+--             , ("Q3 24", 236)
+--             , ("Q4 24", 287)
+--             , ("Q1 25", 424)
+--             , ("Q2 25", 528)
+--             , ("Q3 25", 555)
+--             ]
+
+--         avgGainPerQ =
+--             let gains = series |> List.map Tuple.second |> quarterGains
+--             in if List.isEmpty gains then 0 else (List.sum gains) // List.length gains
+
+--         spark =
+--             sparkline
+--                 { w = 260, h = 96, pad = 10 }
+--                 series
+--     in
+--     div
+--         [ HA.class
+--             (String.join " "
+--                 [ "relative rounded-2xl bg-slate-900/60"
+--                 , "ring-1 ring-white/10 shadow-xl"
+--                 , "hover:ring-white/20 hover:shadow-2xl"
+--                 , "transition p-4 flex flex-col w-full"
+--                 , "min-h-[180px] overflow-hidden"
+--                 ]
+--             )
+--         ]
+--         [ -- header
+--           div [ HA.class "flex items-start justify-between mb-2" ]
+--             [ span [ HA.class "text-md font-semibold tracking-wide text-white/80" ]
+--                 [ text "Follower Growth" ]
+--             ,
+--               div [ HA.class "relative group" ]
+--                 [ button
+--                     [ HA.class
+--                         (String.join " "
+--                             [ "w-5 h-5 rounded-full flex items-center justify-center"
+--                             , "text-[11px] font-bold bg-white/10 text-white/80"
+--                             , "ring-1 ring-white/15 cursor-default"
+--                             ]
+--                         )
+--                     , HA.title "Follower Growth"
+--                     ]
+--                     [ text "i" ]
+--                 , div
+--                     [ HA.class
+--                         (String.join " "
+--                             [ "pointer-events-none opacity-0 group-hover:opacity-100"
+--                             , "absolute right-0 mt-2 z-20 min-w-[16rem] max-w-[20rem]"
+--                             , "bg-black/90 text-white text-xs rounded-lg p-3"
+--                             , "ring-1 ring-white/10 shadow-2xl transition"
+--                             ]
+--                         )
+--                     ]
+--                     [ text "Each point is the follower count at the END of the quarter (Q1–Q4) in your local time. Gains per quarter are computed from summed performance ‘newFollowers’ plus your starting seed." ]
+--                 ]
+--             ]
+--         ,
+--           div [ HA.class "mt-3 h-24 w-full" ]
+--             [ spark ]
+--         ,
+--           div [ HA.class "pt-2 text-white/70" ]
+--             [ span [ HA.class "text-xl font-semibold text-white/80" ]
+--                 [ text (String.fromInt avgGainPerQ) ]
+--             , span [ HA.class "ml-2 text-sm" ] [ text "avg per quarter" ]
+--             ]
+--         ]
+
+
 
 followerGrowthCard :
-    { zone : Zone
-    , now : Posix
-    , quarters : Int
-    , seedFollowers : Int
-    , performances : List Performance
-    }
-    -> Html msg
-followerGrowthCard cfg =
+    Model
+    -> { zone : Zone
+       , now : Posix
+       , quarters : Int
+       , seedFollowers : Int
+       , performances : List Performance
+       }
+    -> Html Msg
+followerGrowthCard model cfg =
     let
-        --series =
-        --    quarterlyFollowerSeries cfg.zone cfg.now cfg.quarters cfg.seedFollowers cfg.performances
         series =
-            -- [ ("Q3 23", 41)
-            -- , ("Q4 23", 26)
-            -- , ("Q1 24", 92)
-            -- , ("Q2 24", 43)
-            -- , ("Q3 24", 34)
-            -- , ("Q4 24", 51)
-            -- , ("Q1 25", 137)
-            -- , ("Q2 25", 104)
-            -- , ("Q3 25", 27)
-            -- ]
             [ ("Q3 23", 41)
             , ("Q4 23", 67)
             , ("Q1 24", 159)
@@ -612,8 +717,10 @@ followerGrowthCard cfg =
             ]
 
         avgGainPerQ =
-            let gains = series |> List.map Tuple.second |> quarterGains
-            in if List.isEmpty gains then 0 else (List.sum gains) // List.length gains
+            let
+                gains = series |> List.map Tuple.second |> quarterGains
+            in
+            if List.isEmpty gains then 0 else (List.sum gains) // List.length gains
 
         spark =
             sparkline
@@ -627,39 +734,21 @@ followerGrowthCard cfg =
                 , "ring-1 ring-white/10 shadow-xl"
                 , "hover:ring-white/20 hover:shadow-2xl"
                 , "transition p-4 flex flex-col w-full"
-                , "min-h-[180px] overflow-hidden"
+                , "min-h-[180px] overflow-visible"  -- was overflow-hidden
                 ]
             )
         ]
         [ -- header
-          div [ HA.class "flex items-start justify-between mb-2" ]
+          div [ HA.class "flex items-start justify-between mb-2 overflow-visible" ]
             [ span [ HA.class "text-md font-semibold tracking-wide text-white/80" ]
                 [ text "Follower Growth" ]
-            ,
-              div [ HA.class "relative group" ]
-                [ button
-                    [ HA.class
-                        (String.join " "
-                            [ "w-5 h-5 rounded-full flex items-center justify-center"
-                            , "text-[11px] font-bold bg-white/10 text-white/80"
-                            , "ring-1 ring-white/15 cursor-default"
-                            ]
-                        )
-                    , HA.title "Follower Growth"
-                    ]
-                    [ text "i" ]
-                , div
-                    [ HA.class
-                        (String.join " "
-                            [ "pointer-events-none opacity-0 group-hover:opacity-100"
-                            , "absolute right-0 mt-2 z-20 min-w-[16rem] max-w-[20rem]"
-                            , "bg-black/90 text-white text-xs rounded-lg p-3"
-                            , "ring-1 ring-white/10 shadow-2xl transition"
-                            ]
-                        )
-                    ]
-                    [ text "Each point is the follower count at the END of the quarter (Q1–Q4) in your local time. Gains per quarter are computed from summed performance ‘newFollowers’ plus your starting seed." ]
-                ]
+            , helpHint model
+                { title = "Follower Growth"
+                , body =
+                    ("Each point is the follower count at the END of the quarter (Q1–Q4) " ++
+                    "in your local time. Gains per quarter are computed from summed " ++
+                    "performance 'newFollowers' plus your starting seed.")
+                }
             ]
         ,
           div [ HA.class "mt-3 h-24 w-full" ]
@@ -671,6 +760,9 @@ followerGrowthCard cfg =
             , span [ HA.class "ml-2 text-sm" ] [ text "avg per quarter" ]
             ]
         ]
+
+
+
 
 
 {-| Compute cumulative follower counts at the end of each of the last `quarters`

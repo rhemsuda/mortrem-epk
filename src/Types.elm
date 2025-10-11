@@ -88,6 +88,7 @@ type alias Testimonial =
 type LightboxContent
     = LbImage { src: String, alt : String }
     | LbYoutube YoutubeVideo
+    | LbNone
 
 type alias LightboxDetails =
     { media : LightboxContent
