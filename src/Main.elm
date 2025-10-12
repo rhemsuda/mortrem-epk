@@ -1829,7 +1829,7 @@ footer model =
                   , ul [ class "space-y-2 md:text-right" ]
                       [ li [] [ a [ href (cdnUrl model.cdnBase "assets/docs/mortrem-tech-rider.pdf"), class "hover:underline", target "_blank" ] [ text "Tech Rider" ] ]
                       , li [] [ a [ href (cdnUrl model.cdnBase "assets/docs/mortrem-stage-plot.pdf"), class "hover:underline", target "_blank" ] [ text "Stage Plot" ] ]
-                      , li [] [ a [ href "https://www.dropbox.com/scl/fo/xeyfda3ze6e1bo7652ihh/AGQQTbgnvYnVpSY6QtlaOjc?rlkey=51qn09u8p20c9qugqykwb9m2q&st=ctn73jvi&dl=0", class "hover:underline", target "_blank" ] [ text "Press Kit" ] ]
+                      , li [] [ a [ href "https://www.dropbox.com/scl/fo/xeyfda3ze6e1bo7652ihh/AGQQTbgnvYnVpSY6QtlaOjc?rlkey=51qn09u8p20c9qugqykwb9m2q&st=ctn73jvi&dl=0", class "hover:underline", target "_blank" ] [ text "Press Materials" ] ]
                       ]
                   ]
           ]
@@ -1886,5 +1886,6 @@ main =
         , view = view
         , subscriptions = subscriptions
         }
+
 
 
