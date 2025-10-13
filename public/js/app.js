@@ -41,6 +41,23 @@ document.addEventListener('DOMContentLoaded', () => {
   window.requestAnimationFrame(emitScroll);
 
 
+  if (app.ports.scrollReel) {
+    app.ports.scrollReel.subscribe(([id, dir]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      const amount = Math.round(el.clientWidth * 0.85) * (dir || 1);
+
+      Prefer smooth scroll; fall back if needed
+      try {
+        el.scrollBy({ left: amount, behavior: 'smooth' });
+      } catch {
+        el.scrollLeft += amount;
+      }
+    });
+  }
+
+
   // Copy-to-clipboard
   if (app.ports.copyToClipboard) {
     app.ports.copyToClipboard.subscribe(async (text) => {

@@ -47,15 +47,126 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-  // // Smoothly scroll the horizontal video reel by ~one viewport width
+  // Smoothly scroll the horizontal video reel by ~one viewport width
+  // ===== DEBUGGED & HARDENED: reel scroll port =====
+  console.log('test 1');
+  if (app.ports.scrollReel) {
+    console.info('[reel] subscribing to scrollReel');
+    app.ports.scrollReel.subscribe(payload => {
+      try {
+        console.groupCollapsed('[reel] scrollReel fired', payload);
+        // Elm sends tuples as JS arrays: [id, dir]
+        const [id, dirRaw] = Array.isArray(payload) ? payload : [payload?.[0], payload?.[1]];
+        const dir = (dirRaw || 1) >= 0 ? 1 : -1;
+
+        const el = document.getElementById(id);
+        if (!el) {
+          console.warn('[reel] element not found:', id);
+          console.groupEnd();
+          return;
+        }
+
+        // sanity: confirm THIS element actually scrolls horizontally
+        const before = {
+          scrollLeft: el.scrollLeft,
+          scrollWidth: el.scrollWidth,
+          clientWidth: el.clientWidth,
+          canScroll: el.scrollWidth > el.clientWidth
+        };
+        console.log('[reel] before:', before);
+
+        if (!before.canScroll) {
+          console.warn('[reel] container cannot scroll (scrollWidth <= clientWidth). ' +
+                       'Is the inner track wider than the reel?');
+        }
+
+        const delta = Math.round(el.clientWidth * 0.85) * dir;
+        const target = Math.max(0, Math.min(el.scrollWidth - el.clientWidth, el.scrollLeft + delta));
+        console.log('[reel] dir:', dir, 'delta:', delta, 'target:', target);
+
+        const supportsSmooth =
+              'scrollBehavior' in document.documentElement.style &&
+              typeof el.scrollBy === 'function';
+
+        // 1) Try element.scrollBy (with smooth) — most reliable on elements
+        if (supportsSmooth) {
+          console.log('[reel] trying el.scrollBy({behavior:"smooth"})');
+          el.scrollBy({ left: delta, behavior: 'smooth' });
+          // verify movement a tick later
+          setTimeout(() => {
+            console.log('[reel] after scrollBy:', { scrollLeft: el.scrollLeft });
+            // If nothing changed, drop to fallback tween
+            if (Math.abs(el.scrollLeft - before.scrollLeft) < 2 && delta !== 0) {
+              console.log('[reel] scrollBy had no effect — falling back to RAF tween');
+              rafTween(el, target, 280);
+            }
+            console.groupEnd();
+          }, 120);
+          return;
+        }
+
+        // 2) Fallback: scrollTo (no smooth support here)
+        if (typeof el.scrollTo === 'function') {
+          console.log('[reel] trying el.scrollTo(left=target)');
+          el.scrollTo({ left: target });
+          setTimeout(() => {
+            console.log('[reel] after scrollTo:', { scrollLeft: el.scrollLeft });
+            if (Math.abs(el.scrollLeft - before.scrollLeft) < 2 && delta !== 0) {
+              console.log('[reel] scrollTo had no effect — falling back to RAF tween');
+              rafTween(el, target, 280);
+            }
+            console.groupEnd();
+          }, 60);
+          return;
+        }
+
+        // 3) Last resort: directly set scrollLeft
+        console.log('[reel] setting el.scrollLeft directly to target');
+        el.scrollLeft = target;
+        setTimeout(() => {
+          console.log('[reel] after direct set:', { scrollLeft: el.scrollLeft });
+          console.groupEnd();
+        }, 60);
+      } catch (e) {
+        console.error('[reel] handler error:', e);
+        console.groupEnd?.();
+      }
+    });
+
+    function rafTween(el, targetLeft, durationMs) {
+      const startLeft = el.scrollLeft;
+      const change = targetLeft - startLeft;
+      if (change === 0) return;
+
+      const t0 = performance.now();
+      const ease = t => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
+      function step(now) {
+        const t = Math.min(1, (now - t0) / durationMs);
+        el.scrollLeft = startLeft + change * ease(t);
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+  }
+
+
   // if (app.ports.scrollReel) {
   //   app.ports.scrollReel.subscribe(([id, dir]) => {
   //     const el = document.getElementById(id);
   //     if (!el) return;
-  //     const amount = Math.round(el.clientWidth * 0.85); // ~one page of thumbnails
-  //     el.scrollBy({ left: amount * (dir || 1), behavior: 'smooth' });
+
+  //     const amount = Math.round(el.clientWidth * 0.85) * (dir || 1);
+
+  //     // Prefer smooth scroll; fall back if needed
+  //     try {
+  //       el.scrollBy({ left: amount, behavior: 'smooth' });
+  //     } catch {
+  //       el.scrollLeft += amount;
+  //     }
   //   });
   // }
+
 
   // Copy-to-clipboard
   if (app.ports.copyToClipboard) {
@@ -232,185 +343,6 @@ document.addEventListener('DOMContentLoaded', () => {
       sidepanel.dataset.ready = 'true';
     }, sidepanelLoadTime)
   })();
-
-  // // Video autoplay and switching
-  // const video = document.getElementById('myVideo');
-  // if (video) {
-  //   video.play().catch(error => console.error('Auto-play failed:', error.message));
-  //   video.playbackRate = 0.9;
-  //   app.ports.changeVideo.subscribe(newSrc => {
-  //     const normalizedSrc = new URL(newSrc, window.location.origin).href;
-  //     if (video.src !== normalizedSrc) {
-  //       console.log('Changing video to:', newSrc);
-  //       video.src = newSrc;
-  //       video.load();
-  //       video.play().catch(error => {
-  //         console.error('Video play failed:', error.message);
-  //         setTimeout(() => {
-  //           video.play().catch(e => console.error('Retry play failed:', e.message));
-  //         }, 500);
-  //       });
-  //     }
-  //   });
-  // }
-
-
-
-  // SEPARATE THESE INTO APP SUBSCRIPTION FILES
-
-
-  // ==== Marker-based background video switcher (bottom-of-viewport trigger) ====
-  // Put one marker *between* each pair of video banners.
-  // Example page order:
-  // [Video Banner 1] [Content 1] [#videoswitch-marker-1] [Video Banner 2] [Content 2] [#videoswitch-marker-2] [Video Banner 3]
-
-  // // 1) Declare your video chain top→bottom
-  // const VIDEO_CHAIN = ['#bg-hero', '#bg-discography', '#bg-metrics', '#bg-gallery']; // add/remove as needed
-
-  // // 2) Declare your marker ids in order they appear top→bottom (one less than videos)
-  // const MARKER_IDS  = ['#videoswitch-marker-1', '#videoswitch-marker-2', '#videoswitch-marker-3']; // add/remove to match
-
-  // // Cache videos (ignore missing so you can stage gradually)
-  // const videoEls = VIDEO_CHAIN.map(sel => document.querySelector(sel)).filter(Boolean);
-
-  // // Ensure each video has opacity transition in markup:
-  // // class="absolute inset-0 w-full h-screen object-cover opacity-0 pointer-events-none transition-opacity duration-300"
-  // function prewarm(v) {
-  //   if (!v) return;
-  //   v.muted = true; v.loop = true; v.playsInline = true;
-  //   try { v.playbackRate = 0.9; } catch (_) {}
-  //   v.play().catch(() => {}); // ignore autoplay rejections (muted should pass)
-  // }
-  // videoEls.forEach(prewarm);
-
-  // let activeIndex = null;
-  // function showIndex(i) {
-  //   if (i === activeIndex || !videoEls[i]) return;
-  //   const next = videoEls[i];
-  //   const prev = activeIndex != null ? videoEls[activeIndex] : null;
-
-  //   // Turn ON new first → no gray flash
-  //   next.classList.remove('opacity-0', 'pointer-events-none');
-  //   next.classList.add('opacity-100');
-  //   next.play?.().catch(() => {});
-
-  //   // Hide old on next paint
-  //   if (prev && prev !== next) {
-  //     requestAnimationFrame(() => {
-  //       prev.classList.add('opacity-0', 'pointer-events-none');
-  //       prev.classList.remove('opacity-100');
-  //     });
-  //   }
-  //   activeIndex = i;
-  // }
-
-  // // Compute initial video for current scroll position.
-  // // Logic: count how many markers the bottom-of-viewport has passed.
-  // function pickInitialIndex() {
-  //   let passed = -1;
-  //   for (let k = 0; k < MARKER_IDS.length; k++) {
-  //     const el = document.querySelector(MARKER_IDS[k]);
-  //     if (!el) continue;
-  //     const top = el.getBoundingClientRect().top;
-  //     if (top <= window.innerHeight) passed = k; // bottom has crossed this marker
-  //   }
-  //   // before first marker → index 0; after Nth marker → index N
-  //   return Math.min(passed + 1, VIDEO_CHAIN.length - 1);
-  // }
-
-  // // Set initial state on load (handles reload at deep scroll)
-  // showIndex(pickInitialIndex());
-
-  // // Direction-aware IntersectionObserver.
-  // // We trigger exactly when the bottom-of-viewport hits a marker by moving the
-  // // observer’s bottom edge up by 100% (rootMargin bottom = -100%).
-  // const markers = MARKER_IDS
-  //       .map((sel, i) => {
-  //         const el = document.querySelector(sel);
-  //         // marker i sits between video i (above) and video i+1 (below)
-  //         return el ? { el, aboveIndex: i, belowIndex: i + 1 } : null;
-  //       })
-  //       .filter(Boolean);
-
-  // let lastScrollY = window.scrollY || 0;
-
-  // const io = new IntersectionObserver((entries) => {
-  //   const nowY = window.scrollY || 0;
-  //   const scrollingDown = nowY > lastScrollY;
-  //   lastScrollY = nowY;
-
-  //   for (const entry of entries) {
-  //     if (!entry.isIntersecting) continue; // we care about the instant of crossing
-  //     const m = markers.find(x => x.el === entry.target);
-  //     if (!m) continue;
-  //     showIndex(scrollingDown ? m.belowIndex : m.aboveIndex);
-  //   }
-  // }, { root: null, threshold: 0, rootMargin: '0px 0px -100% 0px' });
-
-  // markers.forEach(m => io.observe(m.el));
-
-  // // Keep it correct on resize (re-evaluate which video should show)
-  // window.addEventListener('resize', () => {
-  //   showIndex(pickInitialIndex());
-  // });
-
-
-
-  //
-  // Dual-video background: pre-play both, swap visibility instantly w/ fade
-  // const videoA = document.getElementById('video-herobanner');
-  // const videoB = document.getElementById('video-discography');
-
-  // function prewarm(v) {
-  //   if (!v) return;
-  //   v.muted = true;
-  //   v.loop = true;
-  //   v.playsInline = true;
-  //   // keep same vibe as before
-  //   try { v.playbackRate = 0.9; } catch (_) {}
-  //   // start playback; ignore promise rejections on Safari/Brave nuance
-  //   v.play().catch(e => console.warn('Banner video play failed:', e?.message || e));
-  // }
-
-  // // Start both as soon as possible
-  // prewarm(videoA);
-  // prewarm(videoB);
-
-  // // Helpers to fade between tracks (show new first → hide old)
-  // function showVideo(el) {
-  //   if (!el) return;
-  //   el.classList.remove('opacity-0', 'pointer-events-none');
-  //   el.classList.add('opacity-100');
-  //   // nudge playback in case a browser paused it
-  //   el.play().catch(() => {});
-  // }
-  // function hideVideo(el) {
-  //   if (!el) return;
-  //   el.classList.add('opacity-0', 'pointer-events-none');
-  //   el.classList.remove('opacity-100');
-  // }
-
-  // function swapTo(which) {
-  //   const show = which === 'B' ? videoB : videoA;
-  //   const hide = which === 'B' ? videoA : videoB;
-  //   if (!show || !hide) return;
-
-  //   // Turn ON new first to avoid any gray flash…
-  //   showVideo(show);
-  //   // …then hide old on next paint so there’s always something visible
-  //   requestAnimationFrame(() => hideVideo(hide));
-  // }
-
-  // // Listen to Elm's changeVideo port and map the requested src → A/B
-  // if (app.ports.changeVideo) {
-  //   app.ports.changeVideo.subscribe((newSrc) => {
-  //     // heuristic: if the path contains "clid" use B, otherwise A
-  //     const use = /clid/i.test(newSrc) ? 'B' : 'A';
-  //     console.log('choosing to use', use);
-  //     swapTo(use);
-  //   });
-  // }
-
 
   // Send the initial scroll position once so Elm can pick correct background on load
   requestAnimationFrame(() => {
