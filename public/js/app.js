@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const amount = Math.round(el.clientWidth * 0.85) * (dir || 1);
 
-      Prefer smooth scroll; fall back if needed
+      // Prefer smooth scroll; fall back if needed
       try {
         el.scrollBy({ left: amount, behavior: 'smooth' });
       } catch {

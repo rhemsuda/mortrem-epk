@@ -9593,7 +9593,7 @@ var $author$project$Main$footer = function (model) {
 												_List_fromArray(
 													[
 														$elm$html$Html$Attributes$href(
-														A2($author$project$Utils$cdnUrl, model.cdnBase, 'docs/mortrem-tech-rider.pdf')),
+														A2($author$project$Utils$cdnUrl, model.cdnBase, 'assets/docs/mortrem-tech-rider.pdf')),
 														$elm$html$Html$Attributes$class('hover:underline'),
 														$elm$html$Html$Attributes$target('_blank')
 													]),
@@ -9612,7 +9612,7 @@ var $author$project$Main$footer = function (model) {
 												_List_fromArray(
 													[
 														$elm$html$Html$Attributes$href(
-														A2($author$project$Utils$cdnUrl, model.cdnBase, 'docs/mortrem-stage-plot.pdf')),
+														A2($author$project$Utils$cdnUrl, model.cdnBase, 'assets/docs/mortrem-stage-plot.pdf')),
 														$elm$html$Html$Attributes$class('hover:underline'),
 														$elm$html$Html$Attributes$target('_blank')
 													]),
@@ -9636,7 +9636,7 @@ var $author$project$Main$footer = function (model) {
 													]),
 												_List_fromArray(
 													[
-														$elm$html$Html$text('Press Kit')
+														$elm$html$Html$text('Press Materials')
 													]))
 											]))
 									]))
