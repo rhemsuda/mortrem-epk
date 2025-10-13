@@ -11,6 +11,11 @@ type alias Flags =
     { cdnBase : String
     }
 
+type LyricPhase
+    = LyTyping
+    | LyPaused
+    | LyDeleting
+
 type alias Song =
     { title : String
     , src : String
@@ -133,6 +138,10 @@ type alias Model =
     , expandedPerf : Set Int
     , lightbox : Maybe LightboxDetails
     , draggingTestimonials : Maybe { startScrollX : Float, startX : Float }
+    , lyricIndex : Int
+    , lyricText : String
+    , lyricPhase : LyricPhase
+    , lyricPauseTicks : Int
     }
 
 type Msg
@@ -170,4 +179,5 @@ type Msg
     | GotNow Time.Posix
     | OpenLightbox LightboxDetails
     | CloseLightbox
+    | LyricTick
     | NoOp

@@ -64,6 +64,16 @@ musicVideos =
     , { title = "Nonfiction | Drum Playthrough", youtubeId = "CWaf0PVKbb8", thumbnail = "" }
     ]
 
+lyrics : List String
+lyrics =
+    [ "Welcome to my house of cards"
+    , "Swallow me whole Big Blue"
+    , "It's sacramental suicide"
+    , "Laying motionless in revolving skies"
+    , "Can you feel the crumbling skies?"
+    , "Angel of Death starving to kill"
+    ]
+
 bioText1 : String
 bioText1 = "Mortrem is the result of raw energy, fearless experimentation, and an obsession with crafting unforgettable live shows. A Waterloo, Ontario-based band determined to reshape the future of alternative metal. With songs that balance intensity and creativity, Mortrem has built a reputation of making audiences feel every emotion of their music.\nMortrem is a band driven to create the ultimate live experience for their fans. In an ever-evolving online world, their ability to engage their fans in a raw and energetic sets them apart from competing acts. From programming their own light shows to writing music that keeps listeners hooked from the first riff to the last note, Mortrem thrives on building moments that linger long after the amps fade. Whether in a packed venue or an intimate club, Mortrem ensures every performance feels immersive, inclusive, and unforgettable."
 
@@ -72,6 +82,14 @@ bioText2 = "Born during the pandemic, Mortrem began as a recording project betwe
 
 bioText3 : String
 bioText3 = "Mortrem is currently rounding out their first live show cycle that began in September 2024, steadily building a loyal local following while refining a full-scale production show. Their next chapter starts in early 2026 with the release of their debut album One With The Earth — a record designed to set the standard for the band's evolution and mark their entry onto the national stage. Backed by a Canadian tour and a consistent social media presence, this release is positioned to be a foundational blueprint for Mortrem's future."
+
+shortBioText : String
+shortBioText =
+    "Mortrem is a Waterloo, Ontario–based alternative metal band known for turning venues into fully programmed experiences—writing the music and the light show. Balancing weight and melody, they pull audiences into dynamic sets that feel immersive, inclusive, and unforgettable.\n\nFormed during the pandemic by Kyle Jensen, Sammy Romeo, and Charlie Romeo, the project grew from a basement experiment into a full lineup with Samuel George (vocals) and Zak Stulla (bass). After a first live cycle launched in September 2024, Mortrem are refining a full-scale production and preparing their debut album One With The Earth for early 2026, paired with a Canadian tour and steady social rollout."
+
+fullBioText : String
+fullBioText =
+    String.join "\n\n" [ bioText1, bioText2, bioText3 ]
 
 whyBookMortremText : String
 whyBookMortremText = "- We bring a unique sound and energy that keeps crowds engaged.\n-We are great at warming up an audience.\n- We handle our show ourselves (no need for monitoring engineers or lighting techs)"
@@ -121,12 +139,12 @@ testimonials model =
       , author = "@sunset_destruction_poetry"
       , quotedAt = fromPosix (Time.millisToPosix 1749182400000)
       }
-    -- , { id = 3
-    --   , media = LbImage { src = (cdnUrl model.cdnBase "assets/images/testimonials/whiskey-pit.jpg"), alt = "Joe in the crowd" }
-    --   , quote = "Crowd loved them. We want them back."
-    --   , author = "AJ – Sneaky Dee’s"
-    --   , quotedAt = fromPosix (Time.millisToPosix 1731196800000) -- 2024-11-10
-    --   }
+    , { id = 2
+      , media = LbImage { src = (cdnUrl model.cdnBase "assets/images/testimonials/annes-signs-collage.png"), alt = "Collage of all the signs a fan has created for our shows" }
+      , quote = "Mortrem is something special. I love the creativity in their songs, the energy they bring to their shows, and I admire the professionalism these guys carry themselves with, even from their first gig. Mortrem's shows quickly became a highlight of my year!"
+      , author = "@anne__van"
+      , quotedAt = dateTime "2025-10-08T17:00:00.000Z"
+      }
     ]
 
 
@@ -158,6 +176,10 @@ init flags =
       , lightbox = Nothing
       , draggingTestimonials = Nothing
       , cdnBase = String.trim flags.cdnBase
+      , lyricIndex = 0
+      , lyricText = ""
+      , lyricPhase = LyTyping
+      , lyricPauseTicks = 0
       }
     , Cmd.batch
           [ Task.attempt GotViewport Dom.getViewport  -- sync scroll and height now
@@ -418,6 +440,74 @@ update msg model =
             in
             ( { model | visiblePerfCount = model.visiblePerfCount + step }, Cmd.none )
 
+        LyricTick ->
+            let
+                currentList =
+                    if List.isEmpty lyrics then [ "" ] else lyrics
+
+                idx =
+                    if model.lyricIndex < 0 || model.lyricIndex >= List.length currentList then
+                        0
+                    else
+                        model.lyricIndex
+
+                target =
+                    currentList
+                        |> List.drop idx
+                        |> List.head
+                        |> Maybe.withDefault ""
+
+                stepTyping cur =
+                    let
+                        nextLen = String.length cur + 1
+                    in
+                    if nextLen >= String.length target then
+                        -- reached full string → pause for 5 seconds = 20 ticks
+                        ( { model
+                            | lyricText = target
+                            , lyricPhase = LyPaused
+                            , lyricPauseTicks = 100
+                          }
+                        , Cmd.none
+                        )
+                    else
+                        ( { model | lyricText = String.left nextLen target }, Cmd.none )
+
+                stepPaused ticks =
+                    if ticks <= 1 then
+                        ( { model | lyricPhase = LyDeleting, lyricPauseTicks = 0 }, Cmd.none )
+                    else
+                        ( { model | lyricPauseTicks = ticks - 1 }, Cmd.none )
+
+                stepDeleting cur =
+                    let
+                        len = String.length cur
+                    in
+                    if len <= 1 then
+                        -- finished deleting → next lyric
+                        let
+                            nextIdx = (idx + 1) |> (\n -> if n >= List.length currentList then 0 else n)
+                        in
+                        ( { model
+                            | lyricText = ""
+                            , lyricIndex = nextIdx
+                            , lyricPhase = LyTyping
+                          }
+                        , Cmd.none
+                        )
+                    else
+                        ( { model | lyricText = String.left (len - 1) cur }, Cmd.none )
+            in
+            case model.lyricPhase of
+                LyTyping ->
+                    stepTyping model.lyricText
+
+                LyPaused ->
+                    stepPaused model.lyricPauseTicks
+
+                LyDeleting ->
+                    stepDeleting model.lyricText
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -525,6 +615,7 @@ subscriptions model =
         , songEnded (\_ -> SongEnded)
         , audioError AudioError
         , if model.isPlaying then frequencyData FrequencyData else Sub.none
+        , Time.every 50 (\_ -> LyricTick)
         ]
 
 
@@ -944,27 +1035,71 @@ contentPanel model children =
               children
         ]
 
-
 bioPanel : Model -> Html Msg
 bioPanel model =
-    div [ id "bio", class "flex flex-col pt-6 md:pt-12 pb-16" ] -- Added padding for smaller screens
-        [ div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
-              [ div [ class "lg:w-2/5" ]
-                    [ clickableImage { src = (cdnUrl model.cdnBase "assets/images/zak-charlie-fourleaf.png"), alt = "Zak and Charlie dancing in the crowd during Four Leaf Paradise", caption = Nothing, extraText = Nothing, classes = "w-full h-full object-cover" } ]
-              , div [ class "pt-4 md:pt-6 lg:pt-0 lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText1 ]
-              ]
-        , div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
-              [ div [ class "lg:w-3/5 text-white text-md leading-relaxed hidden lg:block" ] [ text bioText2 ]
-              , div [ class "lg:w-2/5" ]
-                  [ clickableImage { src = (cdnUrl model.cdnBase "assets/images/mortrem-profile.jpg"), alt = "A portrait photo of Mortrem in a dark setting", caption = Nothing, extraText = Nothing, classes = "w-full h-full object-cover" } ]
-              , div [ class "pt-4 md:pt-6 lg:pt-0 text-white text-md leading-relaxed visible lg:hidden" ] [ text bioText2 ]
-              ]
-        , div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
-              [ div [ class "lg:w-2/5" ]
-                  [ clickableImage { src = (cdnUrl model.cdnBase "assets/images/band-absinthe-gig.png"), alt = "Mortrem playing music on stage at Club Absinthe in Hamilton", caption = Nothing, extraText = Nothing, classes = "w-full h-full object-cover" } ]
-              , div [ class "pt-4 md:pt-6 lg:pt-0 lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText3 ]
-              ]
+    let
+        portraitSrc =
+            cdnUrl model.cdnBase "assets/images/mortrem-profile.jpg"
+
+        readMoreButton =
+            button
+                [ class "mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-white/10 hover:bg-white/20 ring-1 ring-white/15 text-white"
+                , onClick <|
+                    OpenLightbox
+                        { media = LbImage { src = portraitSrc, alt = "Mortrem portrait" }
+                        , caption = Just "Mortrem — Full Bio"
+                        , extraText = Just fullBioText
+                        }
+                ]
+                [ i [ class "fa-regular fa-file-lines" ] []
+                , text "Read more"
+                ]
+    in
+    div [ id "bio", class "flex flex-col pt-6 md:pt-12 pb-16" ]
+        [ -- Typewriter lyric header
+          p
+            [ class "w-[100%] px-16 py-32 transition-transform text-center items-center justify-center italic text-white text-4xl font-serif duration-100" ]
+            [ text ("\"" ++ model.lyricText ++ "\"") ]
+
+        , -- Two-column row (image + short bio)
+          div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ]
+            [ div [ class "lg:w-2/5" ]
+                [ clickableImage
+                    { src = (cdnUrl model.cdnBase "assets/images/zak-charlie-fourleaf.png")
+                    , alt = "Zak and Charlie dancing in the crowd during Four Leaf Paradise"
+                    , caption = Nothing
+                    , extraText = Nothing
+                    , classes = "w-full h-full object-cover"
+                    }
+                ]
+            , div [ class "pt-4 md:pt-6 lg:pt-0 lg:w-3/5 text-white font-serif italic text-md leading-relaxed" ]
+                [ text shortBioText
+                , readMoreButton
+                ]
+            ]
         ]
+
+
+-- bioPanel : Model -> Html Msg
+-- bioPanel model =
+--     div [ id "bio", class "flex flex-col pt-6 md:pt-12 pb-16" ] -- Added padding for smaller screens
+--         [ div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
+--               [ div [ class "lg:w-2/5" ]
+--                     [ clickableImage { src = (cdnUrl model.cdnBase "assets/images/zak-charlie-fourleaf.png"), alt = "Zak and Charlie dancing in the crowd during Four Leaf Paradise", caption = Nothing, extraText = Nothing, classes = "w-full h-full object-cover" } ]
+--               , div [ class "pt-4 md:pt-6 lg:pt-0 lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText1 ]
+--               ]
+--         , div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
+--               [ div [ class "lg:w-3/5 text-white text-md leading-relaxed hidden lg:block" ] [ text bioText2 ]
+--               , div [ class "lg:w-2/5" ]
+--                   [ clickableImage { src = (cdnUrl model.cdnBase "assets/images/mortrem-profile.jpg"), alt = "A portrait photo of Mortrem in a dark setting", caption = Nothing, extraText = Nothing, classes = "w-full h-full object-cover" } ]
+--               , div [ class "pt-4 md:pt-6 lg:pt-0 text-white text-md leading-relaxed visible lg:hidden" ] [ text bioText2 ]
+--               ]
+--         , div [ class "py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4" ] -- items-stretch aligns heights
+--               [ div [ class "lg:w-2/5" ]
+--                   [ clickableImage { src = (cdnUrl model.cdnBase "assets/images/band-absinthe-gig.png"), alt = "Mortrem playing music on stage at Club Absinthe in Hamilton", caption = Nothing, extraText = Nothing, classes = "w-full h-full object-cover" } ]
+--               , div [ class "pt-4 md:pt-6 lg:pt-0 lg:w-3/5 text-white text-md leading-relaxed" ] [ text bioText3 ]
+--               ]
+--         ]
 
 
 performanceHistoryPanel : Model -> Html Msg

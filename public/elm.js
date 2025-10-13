@@ -5559,6 +5559,7 @@ var $author$project$Types$GotViewport = function (a) {
 var $author$project$Types$GotZone = function (a) {
 	return {$: 'GotZone', a: a};
 };
+var $author$project$Types$LyTyping = {$: 'LyTyping'};
 var $elm$core$Basics$composeL = F3(
 	function (g, f, x) {
 		return g(
@@ -5699,6 +5700,10 @@ var $author$project$Main$init = function (flags) {
 			isMenuOpen: false,
 			isPlaying: false,
 			lightbox: $elm$core$Maybe$Nothing,
+			lyricIndex: 0,
+			lyricPauseTicks: 0,
+			lyricPhase: $author$project$Types$LyTyping,
+			lyricText: '',
 			now: $elm$time$Time$millisToPosix(0),
 			scrollY: 0,
 			selectedMusicVideoIndex: 0,
@@ -5725,6 +5730,7 @@ var $author$project$Types$AudioError = function (a) {
 var $author$project$Types$FrequencyData = function (a) {
 	return {$: 'FrequencyData', a: a};
 };
+var $author$project$Types$LyricTick = {$: 'LyricTick'};
 var $author$project$Types$OnScroll = function (a) {
 	return {$: 'OnScroll', a: a};
 };
@@ -5739,40 +5745,48 @@ var $author$project$Types$ViewportResized = F2(
 	});
 var $author$project$Main$audioError = _Platform_incomingPort('audioError', $elm$json$Json$Decode$string);
 var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$json$Json$Decode$float = _Json_decodeFloat;
-var $elm$json$Json$Decode$list = _Json_decodeList;
-var $author$project$Main$frequencyData = _Platform_incomingPort(
-	'frequencyData',
-	$elm$json$Json$Decode$list($elm$json$Json$Decode$float));
-var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-var $elm$browser$Browser$Events$Window = {$: 'Window'};
-var $elm$json$Json$Decode$int = _Json_decodeInt;
-var $elm$browser$Browser$Events$MySub = F3(
-	function (a, b, c) {
-		return {$: 'MySub', a: a, b: b, c: c};
+var $elm$time$Time$Every = F2(
+	function (a, b) {
+		return {$: 'Every', a: a, b: b};
 	});
-var $elm$browser$Browser$Events$State = F2(
-	function (subs, pids) {
-		return {pids: pids, subs: subs};
+var $elm$time$Time$State = F2(
+	function (taggers, processes) {
+		return {processes: processes, taggers: taggers};
 	});
-var $elm$browser$Browser$Events$init = $elm$core$Task$succeed(
-	A2($elm$browser$Browser$Events$State, _List_Nil, $elm$core$Dict$empty));
-var $elm$browser$Browser$Events$nodeToKey = function (node) {
-	if (node.$ === 'Document') {
-		return 'd_';
-	} else {
-		return 'w_';
-	}
-};
-var $elm$browser$Browser$Events$addKey = function (sub) {
-	var node = sub.a;
-	var name = sub.b;
-	return _Utils_Tuple2(
-		_Utils_ap(
-			$elm$browser$Browser$Events$nodeToKey(node),
-			name),
-		sub);
-};
+var $elm$time$Time$init = $elm$core$Task$succeed(
+	A2($elm$time$Time$State, $elm$core$Dict$empty, $elm$core$Dict$empty));
+var $elm$core$Basics$compare = _Utils_compare;
+var $elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
+				switch (_v1.$) {
+					case 'LT':
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 'EQ':
+						return $elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
+		}
+	});
 var $elm$core$Dict$Black = {$: 'Black'};
 var $elm$core$Dict$RBNode_elm_builtin = F5(
 	function (a, b, c, d, e) {
@@ -5833,7 +5847,6 @@ var $elm$core$Dict$balance = F5(
 			}
 		}
 	});
-var $elm$core$Basics$compare = _Utils_compare;
 var $elm$core$Dict$insertHelp = F3(
 	function (key, value, dict) {
 		if (dict.$ === 'RBEmpty_elm_builtin') {
@@ -5882,18 +5895,27 @@ var $elm$core$Dict$insert = F3(
 			return x;
 		}
 	});
-var $elm$core$Dict$fromList = function (assocs) {
-	return A3(
-		$elm$core$List$foldl,
-		F2(
-			function (_v0, dict) {
-				var key = _v0.a;
-				var value = _v0.b;
-				return A3($elm$core$Dict$insert, key, value, dict);
-			}),
-		$elm$core$Dict$empty,
-		assocs);
-};
+var $elm$time$Time$addMySub = F2(
+	function (_v0, state) {
+		var interval = _v0.a;
+		var tagger = _v0.b;
+		var _v1 = A2($elm$core$Dict$get, interval, state);
+		if (_v1.$ === 'Nothing') {
+			return A3(
+				$elm$core$Dict$insert,
+				interval,
+				_List_fromArray(
+					[tagger]),
+				state);
+		} else {
+			var taggers = _v1.a;
+			return A3(
+				$elm$core$Dict$insert,
+				interval,
+				A2($elm$core$List$cons, tagger, taggers),
+				state);
+		}
+	});
 var $elm$core$Process$kill = _Scheduler_kill;
 var $elm$core$Dict$foldl = F3(
 	function (func, acc, dict) {
@@ -5981,11 +6003,190 @@ var $elm$core$Dict$merge = F6(
 			intermediateResult,
 			leftovers);
 	});
+var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
+var $elm$time$Time$setInterval = _Time_setInterval;
+var $elm$core$Process$spawn = _Scheduler_spawn;
+var $elm$time$Time$spawnHelp = F3(
+	function (router, intervals, processes) {
+		if (!intervals.b) {
+			return $elm$core$Task$succeed(processes);
+		} else {
+			var interval = intervals.a;
+			var rest = intervals.b;
+			var spawnTimer = $elm$core$Process$spawn(
+				A2(
+					$elm$time$Time$setInterval,
+					interval,
+					A2($elm$core$Platform$sendToSelf, router, interval)));
+			var spawnRest = function (id) {
+				return A3(
+					$elm$time$Time$spawnHelp,
+					router,
+					rest,
+					A3($elm$core$Dict$insert, interval, id, processes));
+			};
+			return A2($elm$core$Task$andThen, spawnRest, spawnTimer);
+		}
+	});
+var $elm$time$Time$onEffects = F3(
+	function (router, subs, _v0) {
+		var processes = _v0.processes;
+		var rightStep = F3(
+			function (_v6, id, _v7) {
+				var spawns = _v7.a;
+				var existing = _v7.b;
+				var kills = _v7.c;
+				return _Utils_Tuple3(
+					spawns,
+					existing,
+					A2(
+						$elm$core$Task$andThen,
+						function (_v5) {
+							return kills;
+						},
+						$elm$core$Process$kill(id)));
+			});
+		var newTaggers = A3($elm$core$List$foldl, $elm$time$Time$addMySub, $elm$core$Dict$empty, subs);
+		var leftStep = F3(
+			function (interval, taggers, _v4) {
+				var spawns = _v4.a;
+				var existing = _v4.b;
+				var kills = _v4.c;
+				return _Utils_Tuple3(
+					A2($elm$core$List$cons, interval, spawns),
+					existing,
+					kills);
+			});
+		var bothStep = F4(
+			function (interval, taggers, id, _v3) {
+				var spawns = _v3.a;
+				var existing = _v3.b;
+				var kills = _v3.c;
+				return _Utils_Tuple3(
+					spawns,
+					A3($elm$core$Dict$insert, interval, id, existing),
+					kills);
+			});
+		var _v1 = A6(
+			$elm$core$Dict$merge,
+			leftStep,
+			bothStep,
+			rightStep,
+			newTaggers,
+			processes,
+			_Utils_Tuple3(
+				_List_Nil,
+				$elm$core$Dict$empty,
+				$elm$core$Task$succeed(_Utils_Tuple0)));
+		var spawnList = _v1.a;
+		var existingDict = _v1.b;
+		var killTask = _v1.c;
+		return A2(
+			$elm$core$Task$andThen,
+			function (newProcesses) {
+				return $elm$core$Task$succeed(
+					A2($elm$time$Time$State, newTaggers, newProcesses));
+			},
+			A2(
+				$elm$core$Task$andThen,
+				function (_v2) {
+					return A3($elm$time$Time$spawnHelp, router, spawnList, existingDict);
+				},
+				killTask));
+	});
+var $elm$time$Time$onSelfMsg = F3(
+	function (router, interval, state) {
+		var _v0 = A2($elm$core$Dict$get, interval, state.taggers);
+		if (_v0.$ === 'Nothing') {
+			return $elm$core$Task$succeed(state);
+		} else {
+			var taggers = _v0.a;
+			var tellTaggers = function (time) {
+				return $elm$core$Task$sequence(
+					A2(
+						$elm$core$List$map,
+						function (tagger) {
+							return A2(
+								$elm$core$Platform$sendToApp,
+								router,
+								tagger(time));
+						},
+						taggers));
+			};
+			return A2(
+				$elm$core$Task$andThen,
+				function (_v1) {
+					return $elm$core$Task$succeed(state);
+				},
+				A2($elm$core$Task$andThen, tellTaggers, $elm$time$Time$now));
+		}
+	});
+var $elm$time$Time$subMap = F2(
+	function (f, _v0) {
+		var interval = _v0.a;
+		var tagger = _v0.b;
+		return A2(
+			$elm$time$Time$Every,
+			interval,
+			A2($elm$core$Basics$composeL, f, tagger));
+	});
+_Platform_effectManagers['Time'] = _Platform_createManager($elm$time$Time$init, $elm$time$Time$onEffects, $elm$time$Time$onSelfMsg, 0, $elm$time$Time$subMap);
+var $elm$time$Time$subscription = _Platform_leaf('Time');
+var $elm$time$Time$every = F2(
+	function (interval, tagger) {
+		return $elm$time$Time$subscription(
+			A2($elm$time$Time$Every, interval, tagger));
+	});
+var $elm$json$Json$Decode$float = _Json_decodeFloat;
+var $elm$json$Json$Decode$list = _Json_decodeList;
+var $author$project$Main$frequencyData = _Platform_incomingPort(
+	'frequencyData',
+	$elm$json$Json$Decode$list($elm$json$Json$Decode$float));
+var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $elm$browser$Browser$Events$Window = {$: 'Window'};
+var $elm$json$Json$Decode$int = _Json_decodeInt;
+var $elm$browser$Browser$Events$MySub = F3(
+	function (a, b, c) {
+		return {$: 'MySub', a: a, b: b, c: c};
+	});
+var $elm$browser$Browser$Events$State = F2(
+	function (subs, pids) {
+		return {pids: pids, subs: subs};
+	});
+var $elm$browser$Browser$Events$init = $elm$core$Task$succeed(
+	A2($elm$browser$Browser$Events$State, _List_Nil, $elm$core$Dict$empty));
+var $elm$browser$Browser$Events$nodeToKey = function (node) {
+	if (node.$ === 'Document') {
+		return 'd_';
+	} else {
+		return 'w_';
+	}
+};
+var $elm$browser$Browser$Events$addKey = function (sub) {
+	var node = sub.a;
+	var name = sub.b;
+	return _Utils_Tuple2(
+		_Utils_ap(
+			$elm$browser$Browser$Events$nodeToKey(node),
+			name),
+		sub);
+};
+var $elm$core$Dict$fromList = function (assocs) {
+	return A3(
+		$elm$core$List$foldl,
+		F2(
+			function (_v0, dict) {
+				var key = _v0.a;
+				var value = _v0.b;
+				return A3($elm$core$Dict$insert, key, value, dict);
+			}),
+		$elm$core$Dict$empty,
+		assocs);
+};
 var $elm$browser$Browser$Events$Event = F2(
 	function (key, event) {
 		return {event: event, key: key};
 	});
-var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
 var $elm$browser$Browser$Events$spawn = F3(
 	function (router, key, _v0) {
 		var node = _v0.a;
@@ -6177,7 +6378,13 @@ var $author$project$Main$subscriptions = function (model) {
 					return $author$project$Types$SongEnded;
 				}),
 				$author$project$Main$audioError($author$project$Types$AudioError),
-				model.isPlaying ? $author$project$Main$frequencyData($author$project$Types$FrequencyData) : $elm$core$Platform$Sub$none
+				model.isPlaying ? $author$project$Main$frequencyData($author$project$Types$FrequencyData) : $elm$core$Platform$Sub$none,
+				A2(
+				$elm$time$Time$every,
+				50,
+				function (_v2) {
+					return $author$project$Types$LyricTick;
+				})
 			]));
 };
 var $author$project$Types$ContactEditing = {$: 'ContactEditing'};
@@ -6186,6 +6393,8 @@ var $author$project$Types$ContactError = function (a) {
 };
 var $author$project$Types$ContactSending = {$: 'ContactSending'};
 var $author$project$Types$ContactSuccess = {$: 'ContactSuccess'};
+var $author$project$Types$LyDeleting = {$: 'LyDeleting'};
+var $author$project$Types$LyPaused = {$: 'LyPaused'};
 var $author$project$Types$NextSong = {$: 'NextSong'};
 var $elm$core$Basics$clamp = F3(
 	function (low, high, number) {
@@ -6522,37 +6731,15 @@ var $elm$core$Set$insert = F2(
 		return $elm$core$Set$Set_elm_builtin(
 			A3($elm$core$Dict$insert, key, _Utils_Tuple0, dict));
 	});
-var $elm$core$Dict$get = F2(
-	function (targetKey, dict) {
-		get:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return $elm$core$Maybe$Nothing;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
-				switch (_v1.$) {
-					case 'LT':
-						var $temp$targetKey = targetKey,
-							$temp$dict = left;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-					case 'EQ':
-						return $elm$core$Maybe$Just(value);
-					default:
-						var $temp$targetKey = targetKey,
-							$temp$dict = right;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-				}
-			}
-		}
-	});
+var $elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $author$project$Main$lyrics = _List_fromArray(
+	['Welcome to my house of cards', 'Swallow me whole Big Blue', 'It\'s sacramental suicide', 'Laying motionless in revolving skies', 'Can you feel the crumbling skies?', 'Angel of Death starving to kill']);
 var $elm$core$Dict$member = F2(
 	function (key, dict) {
 		var _v0 = A2($elm$core$Dict$get, key, dict);
@@ -7110,7 +7297,6 @@ var $elm$http$Http$State = F2(
 	});
 var $elm$http$Http$init = $elm$core$Task$succeed(
 	A2($elm$http$Http$State, $elm$core$Dict$empty, _List_Nil));
-var $elm$core$Process$spawn = _Scheduler_spawn;
 var $elm$http$Http$updateReqs = F3(
 	function (router, cmds, reqs) {
 		updateReqs:
@@ -7856,14 +8042,88 @@ var $author$project$Main$update = F2(
 							model,
 							{visiblePerfCount: model.visiblePerfCount + step}),
 						$elm$core$Platform$Cmd$none);
+				case 'LyricTick':
+					var stepPaused = function (ticks) {
+						return (ticks <= 1) ? _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{lyricPauseTicks: 0, lyricPhase: $author$project$Types$LyDeleting}),
+							$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{lyricPauseTicks: ticks - 1}),
+							$elm$core$Platform$Cmd$none);
+					};
+					var currentList = $elm$core$List$isEmpty($author$project$Main$lyrics) ? _List_fromArray(
+						['']) : $author$project$Main$lyrics;
+					var idx = ((model.lyricIndex < 0) || (_Utils_cmp(
+						model.lyricIndex,
+						$elm$core$List$length(currentList)) > -1)) ? 0 : model.lyricIndex;
+					var stepDeleting = function (cur) {
+						var len = $elm$core$String$length(cur);
+						if (len <= 1) {
+							var nextIdx = function (n) {
+								return (_Utils_cmp(
+									n,
+									$elm$core$List$length(currentList)) > -1) ? 0 : n;
+							}(idx + 1);
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{lyricIndex: nextIdx, lyricPhase: $author$project$Types$LyTyping, lyricText: ''}),
+								$elm$core$Platform$Cmd$none);
+						} else {
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{
+										lyricText: A2($elm$core$String$left, len - 1, cur)
+									}),
+								$elm$core$Platform$Cmd$none);
+						}
+					};
+					var target = A2(
+						$elm$core$Maybe$withDefault,
+						'',
+						$elm$core$List$head(
+							A2($elm$core$List$drop, idx, currentList)));
+					var stepTyping = function (cur) {
+						var nextLen = $elm$core$String$length(cur) + 1;
+						return (_Utils_cmp(
+							nextLen,
+							$elm$core$String$length(target)) > -1) ? _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{lyricPauseTicks: 100, lyricPhase: $author$project$Types$LyPaused, lyricText: target}),
+							$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									lyricText: A2($elm$core$String$left, nextLen, target)
+								}),
+							$elm$core$Platform$Cmd$none);
+					};
+					var _v1 = model.lyricPhase;
+					switch (_v1.$) {
+						case 'LyTyping':
+							return stepTyping(model.lyricText);
+						case 'LyPaused':
+							return stepPaused(model.lyricPauseTicks);
+						default:
+							return stepDeleting(model.lyricText);
+					}
 				default:
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			}
 		}
 	});
-var $author$project$Main$bioText1 = 'Mortrem is the result of raw energy, fearless experimentation, and an obsession with crafting unforgettable live shows. A Waterloo, Ontario-based band determined to reshape the future of alternative metal. With songs that balance intensity and creativity, Mortrem has built a reputation of making audiences feel every emotion of their music.\nMortrem is a band driven to create the ultimate live experience for their fans. In an ever-evolving online world, their ability to engage their fans in a raw and energetic sets them apart from competing acts. From programming their own light shows to writing music that keeps listeners hooked from the first riff to the last note, Mortrem thrives on building moments that linger long after the amps fade. Whether in a packed venue or an intimate club, Mortrem ensures every performance feels immersive, inclusive, and unforgettable.';
-var $author$project$Main$bioText2 = 'Born during the pandemic, Mortrem began as a recording project between founding members Kyle Jensen, Sammy Romeo, and Charlie Romeo. What started as a basement experiment quickly grew into something bigger as their catalogue started to take shape into a full album. Drawing on their childhood and modern inspirations in metal and hard rock, the trio carved out Mortrem\'s distinct sound — heavy, experimental, and engaging. With the addition of Samuel George on vocals and Zak Stulla on bass, the band became a fully realized project, united by a shared vision to push musical and live show boundaries.';
-var $author$project$Main$bioText3 = 'Mortrem is currently rounding out their first live show cycle that began in September 2024, steadily building a loyal local following while refining a full-scale production show. Their next chapter starts in early 2026 with the release of their debut album One With The Earth — a record designed to set the standard for the band\'s evolution and mark their entry onto the national stage. Backed by a Canadian tour and a consistent social media presence, this release is positioned to be a foundational blueprint for Mortrem\'s future.';
+var $author$project$Types$LbImage = function (a) {
+	return {$: 'LbImage', a: a};
+};
+var $author$project$Types$OpenLightbox = function (a) {
+	return {$: 'OpenLightbox', a: a};
+};
+var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
 		return A2(
@@ -7872,12 +8132,6 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 			$elm$json$Json$Encode$string(string));
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
-var $author$project$Types$LbImage = function (a) {
-	return {$: 'LbImage', a: a};
-};
-var $author$project$Types$OpenLightbox = function (a) {
-	return {$: 'OpenLightbox', a: a};
-};
 var $elm$html$Html$Attributes$alt = $elm$html$Html$Attributes$stringProperty('alt');
 var $elm$html$Html$img = _VirtualDom_node('img');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
@@ -7923,10 +8177,47 @@ var $author$project$Main$clickableImage = function (cfg) {
 		_List_Nil);
 };
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $author$project$Main$bioText1 = 'Mortrem is the result of raw energy, fearless experimentation, and an obsession with crafting unforgettable live shows. A Waterloo, Ontario-based band determined to reshape the future of alternative metal. With songs that balance intensity and creativity, Mortrem has built a reputation of making audiences feel every emotion of their music.\nMortrem is a band driven to create the ultimate live experience for their fans. In an ever-evolving online world, their ability to engage their fans in a raw and energetic sets them apart from competing acts. From programming their own light shows to writing music that keeps listeners hooked from the first riff to the last note, Mortrem thrives on building moments that linger long after the amps fade. Whether in a packed venue or an intimate club, Mortrem ensures every performance feels immersive, inclusive, and unforgettable.';
+var $author$project$Main$bioText2 = 'Born during the pandemic, Mortrem began as a recording project between founding members Kyle Jensen, Sammy Romeo, and Charlie Romeo. What started as a basement experiment quickly grew into something bigger as their catalogue started to take shape into a full album. Drawing on their childhood and modern inspirations in metal and hard rock, the trio carved out Mortrem\'s distinct sound — heavy, experimental, and engaging. With the addition of Samuel George on vocals and Zak Stulla on bass, the band became a fully realized project, united by a shared vision to push musical and live show boundaries.';
+var $author$project$Main$bioText3 = 'Mortrem is currently rounding out their first live show cycle that began in September 2024, steadily building a loyal local following while refining a full-scale production show. Their next chapter starts in early 2026 with the release of their debut album One With The Earth — a record designed to set the standard for the band\'s evolution and mark their entry onto the national stage. Backed by a Canadian tour and a consistent social media presence, this release is positioned to be a foundational blueprint for Mortrem\'s future.';
+var $author$project$Main$fullBioText = A2(
+	$elm$core$String$join,
+	'\n\n',
+	_List_fromArray(
+		[$author$project$Main$bioText1, $author$project$Main$bioText2, $author$project$Main$bioText3]));
+var $elm$html$Html$i = _VirtualDom_node('i');
 var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
+var $elm$html$Html$p = _VirtualDom_node('p');
+var $author$project$Main$shortBioText = 'Mortrem is a Waterloo, Ontario–based alternative metal band known for turning venues into fully programmed experiences—writing the music and the light show. Balancing weight and melody, they pull audiences into dynamic sets that feel immersive, inclusive, and unforgettable.\n\nFormed during the pandemic by Kyle Jensen, Sammy Romeo, and Charlie Romeo, the project grew from a basement experiment into a full lineup with Samuel George (vocals) and Zak Stulla (bass). After a first live cycle launched in September 2024, Mortrem are refining a full-scale production and preparing their debut album One With The Earth for early 2026, paired with a Canadian tour and steady social rollout.';
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$Main$bioPanel = function (model) {
+	var portraitSrc = A2($author$project$Utils$cdnUrl, model.cdnBase, 'assets/images/mortrem-profile.jpg');
+	var readMoreButton = A2(
+		$elm$html$Html$button,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-white/10 hover:bg-white/20 ring-1 ring-white/15 text-white'),
+				$elm$html$Html$Events$onClick(
+				$author$project$Types$OpenLightbox(
+					{
+						caption: $elm$core$Maybe$Just('Mortrem — Full Bio'),
+						extraText: $elm$core$Maybe$Just($author$project$Main$fullBioText),
+						media: $author$project$Types$LbImage(
+							{alt: 'Mortrem portrait', src: portraitSrc})
+					}))
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$i,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('fa-regular fa-file-lines')
+					]),
+				_List_Nil),
+				$elm$html$Html$text('Read more')
+			]));
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
@@ -7936,6 +8227,16 @@ var $author$project$Main$bioPanel = function (model) {
 			]),
 		_List_fromArray(
 			[
+				A2(
+				$elm$html$Html$p,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('w-[100%] px-16 py-32 transition-transform text-center items-center justify-center italic text-white text-4xl font-serif duration-100')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('\"' + (model.lyricText + '\"'))
+					])),
 				A2(
 				$elm$html$Html$div,
 				_List_fromArray(
@@ -7965,93 +8266,12 @@ var $author$project$Main$bioPanel = function (model) {
 						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$class('pt-4 md:pt-6 lg:pt-0 lg:w-3/5 text-white text-md leading-relaxed')
+								$elm$html$Html$Attributes$class('pt-4 md:pt-6 lg:pt-0 lg:w-3/5 text-white font-serif italic text-md leading-relaxed')
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text($author$project$Main$bioText1)
-							]))
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('lg:w-3/5 text-white text-md leading-relaxed hidden lg:block')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text($author$project$Main$bioText2)
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('lg:w-2/5')
-							]),
-						_List_fromArray(
-							[
-								$author$project$Main$clickableImage(
-								{
-									alt: 'A portrait photo of Mortrem in a dark setting',
-									caption: $elm$core$Maybe$Nothing,
-									classes: 'w-full h-full object-cover',
-									extraText: $elm$core$Maybe$Nothing,
-									src: A2($author$project$Utils$cdnUrl, model.cdnBase, 'assets/images/mortrem-profile.jpg')
-								})
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('pt-4 md:pt-6 lg:pt-0 text-white text-md leading-relaxed visible lg:hidden')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text($author$project$Main$bioText2)
-							]))
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Attributes$class('py-2 lg:py-4 lg:flex lg:flex-row lg:items-stretch lg:gap-4')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('lg:w-2/5')
-							]),
-						_List_fromArray(
-							[
-								$author$project$Main$clickableImage(
-								{
-									alt: 'Mortrem playing music on stage at Club Absinthe in Hamilton',
-									caption: $elm$core$Maybe$Nothing,
-									classes: 'w-full h-full object-cover',
-									extraText: $elm$core$Maybe$Nothing,
-									src: A2($author$project$Utils$cdnUrl, model.cdnBase, 'assets/images/band-absinthe-gig.png')
-								})
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('pt-4 md:pt-6 lg:pt-0 lg:w-3/5 text-white text-md leading-relaxed')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text($author$project$Main$bioText3)
+								$elm$html$Html$text($author$project$Main$shortBioText),
+								readMoreButton
 							]))
 					]))
 			]));
@@ -8086,7 +8306,6 @@ var $elm$virtual_dom$VirtualDom$attribute = F2(
 	});
 var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
 var $elm$html$Html$audio = _VirtualDom_node('audio');
-var $elm$html$Html$button = _VirtualDom_node('button');
 var $author$project$Utils$monthAbbrev = function (m) {
 	switch (m.$) {
 		case 'Jan':
@@ -8538,7 +8757,6 @@ var $author$project$Main$formatTime = function (secs) {
 };
 var $elm$core$String$fromFloat = _String_fromNumber;
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
-var $elm$html$Html$i = _VirtualDom_node('i');
 var $author$project$Types$SeekProgress = function (a) {
 	return {$: 'SeekProgress', a: a};
 };
@@ -8567,7 +8785,6 @@ var $author$project$Main$onClickSeek = function () {
 			decodeOffsetX,
 			decodeWidth));
 }();
-var $elm$html$Html$p = _VirtualDom_node('p');
 var $author$project$Types$SelectSong = function (a) {
 	return {$: 'SelectSong', a: a};
 };
@@ -12167,13 +12384,6 @@ var $author$project$Statistics$engagementRateCard = F2(
 			},
 			model);
 	});
-var $elm$core$List$isEmpty = function (xs) {
-	if (!xs.b) {
-		return true;
-	} else {
-		return false;
-	}
-};
 var $author$project$Statistics$quarterGains = function (cumulVals) {
 	var diffs = function (xs) {
 		if (xs.b && xs.b.b) {
@@ -13156,6 +13366,17 @@ var $author$project$Main$testimonials = function (model) {
 			quote: 'Tonight I had the distinct pleasure of meeting these fine gentlemen. This is a band called Mortrem. For those of you who know me, you know that I go to a lot of shows. Usually local shows in downtown Toronto. I mean this city has got so much talent, so why wouldn’t I?. We Canadians are feisty. We have to be. And we hustle hard. When I do go out to shows, I don’t always wait until the band has dismantled their equipment and loaded their truck just so I can get a photo and have them sign the merch I just bought, but when I do, it’s only because something struck a chord in me. Mortrem’s performance tonight was stellar. And it was worth every second of the wait. Thank you @mortremband for making my night. #toronto #rock #torontorocks #sneakydees',
 			quotedAt: $PanagiotisGeorgiadis$elm_datetime$DateTime$fromPosix(
 				$elm$time$Time$millisToPosix(1749182400000))
+		},
+			{
+			author: '@anne__van',
+			id: 2,
+			media: $author$project$Types$LbImage(
+				{
+					alt: 'Collage of all the signs a fan has created for our shows',
+					src: A2($author$project$Utils$cdnUrl, model.cdnBase, 'assets/images/testimonials/annes-signs-collage.png')
+				}),
+			quote: 'Mortrem is something special. I love the creativity in their songs, the energy they bring to their shows, and I admire the professionalism these guys carry themselves with, even from their first gig. Mortrem\'s shows quickly became a highlight of my year!',
+			quotedAt: $author$project$Utils$dateTime('2025-10-08T17:00:00.000Z')
 		}
 		]);
 };
