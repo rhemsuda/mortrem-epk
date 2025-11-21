@@ -1074,9 +1074,8 @@ bioPanel model =
                 ]
             , div [ class "pt-4 md:pt-6 lg:pt-0 lg:w-3/5 text-white font-serif italic text-md leading-relaxed" ]
                 [ text shortBioText
-                , div [ class "visible lg:hidden" ] [ readMoreButton ]
+                , div [ ] [ readMoreButton ]
                 ]
-            , div [ class "hidden lg:block" ] [ readMoreButton ]
             ]
         ]
 
