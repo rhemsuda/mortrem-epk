@@ -8231,7 +8231,7 @@ var $author$project$Main$bioPanel = function (model) {
 				$elm$html$Html$p,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('w-[100%] px-16 py-32 transition-transform text-center items-center justify-center italic text-white text-4xl font-serif duration-100')
+						$elm$html$Html$Attributes$class('w-[100%] h-48 overflow-hidden px-16 py-16 transition-transform text-center items-center justify-center italic text-white text-4xl font-serif duration-100')
 					]),
 				_List_fromArray(
 					[
@@ -8270,9 +8270,9 @@ var $author$project$Main$bioPanel = function (model) {
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text($author$project$Main$shortBioText),
-								readMoreButton
-							]))
+								$elm$html$Html$text($author$project$Main$shortBioText)
+							])),
+						readMoreButton
 					]))
 			]));
 };

@@ -116,12 +116,12 @@ performances =
     , { datetime = dateTime "2025-04-11T02:15:00.000Z", venue = venue_leesPalace, totalDraw = 63, ourDraw = 27, organicDraw = 4, newFollowers = 6, merchSales = 0.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, merchSold = { shirts = 10, stickers = 7 }, hide = False }
     , { datetime = dateTime "2025-05-08T01:30:00.000Z", venue = venue_theUnion, totalDraw = 33, ourDraw = 16, organicDraw = 0, newFollowers = 2, merchSales = 0.0, ticketPrice = 15.0, position = Open, durationMinutes = 30, merchSold = { shirts = 3, stickers = 2 }, hide = False }
     , { datetime = dateTime "2025-06-07T02:45:00.000Z", venue = venue_sneakyDees, totalDraw = 67, ourDraw = 17, organicDraw = 3, newFollowers = 12, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, merchSold = { shirts = 5, stickers = 1 }, hide = False }
-    , { datetime = dateTime "2025-06-08T03:00:00.000Z", venue = venue_absinthe, totalDraw = 42, ourDraw = 17, organicDraw = 2, newFollowers = 4, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 40, merchSold = { shirts = 5, stickers = 0 }, hide = False }
+    , { datetime = dateTime "2025-06-08T03:00:00.000Z", venue = venue_absinthe, totalDraw = 51, ourDraw = 24, organicDraw = 5, newFollowers = 4, merchSales = 0.0, ticketPrice = 20.0, position = Headline, durationMinutes = 40, merchSold = { shirts = 5, stickers = 0 }, hide = False }
     , { datetime = dateTime "2025-06-16T01:30:00.000Z", venue = venue_duffysTavern, totalDraw = 18, ourDraw = 6, organicDraw = 1, newFollowers = 8, merchSales = 0.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, merchSold = { shirts = 0, stickers = 2 }, hide = False }
     , { datetime = dateTime "2025-06-22T01:45:00.000Z", venue = venue_redPapaya, totalDraw = 38, ourDraw = 10, organicDraw = 0, newFollowers = 6, merchSales = 90.0, ticketPrice = 20.0, position = Open, durationMinutes = 30, merchSold = { shirts = 6, stickers = 1 }, hide = False }
     , { datetime = dateTime "2025-08-09T02:30:00.000Z", venue = venue_hardLuck, totalDraw = 23, ourDraw = 7, organicDraw = 0, newFollowers = 3, merchSales = 30.0, ticketPrice = 20.0, position = Support, durationMinutes = 30, merchSold = { shirts = 2, stickers = 2 }, hide = False }
-    , { datetime = dateTime "2025-09-13T02:15:00.000Z", venue = venue_sneakyDees, totalDraw = 16, ourDraw = 9, organicDraw = 2, newFollowers = 5, merchSales = 30.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, merchSold = { shirts = 0, stickers = 1 }, hide = False }
-    , { datetime = dateTime "2025-10-03T01:30:00.000Z", venue = venue_absinthe, totalDraw = 37, ourDraw = 6, organicDraw = 2, newFollowers = 4, merchSales = 30.0, ticketPrice = 20.0, position = Open, durationMinutes = 45, merchSold = { shirts = 2, stickers = 0 }, hide = False }
+    , { datetime = dateTime "2025-09-13T02:15:00.000Z", venue = venue_sneakyDees, totalDraw = 21, ourDraw = 9, organicDraw = 2, newFollowers = 5, merchSales = 30.0, ticketPrice = 20.0, position = Headline, durationMinutes = 45, merchSold = { shirts = 0, stickers = 1 }, hide = False }
+    , { datetime = dateTime "2025-10-03T01:30:00.000Z", venue = venue_absinthe, totalDraw = 47, ourDraw = 18, organicDraw = 2, newFollowers = 4, merchSales = 30.0, ticketPrice = 20.0, position = Open, durationMinutes = 45, merchSold = { shirts = 2, stickers = 0 }, hide = False }
     ]
 
 
@@ -1058,7 +1058,7 @@ bioPanel model =
     div [ id "bio", class "flex flex-col pt-6 md:pt-12 pb-16" ]
         [ -- Typewriter lyric header
           p
-            [ class "w-[100%] px-16 py-32 transition-transform text-center items-center justify-center italic text-white text-4xl font-serif duration-100" ]
+            [ class "w-[100%] h-48 overflow-hidden px-16 py-16 transition-transform text-center items-center justify-center italic text-white text-4xl font-serif duration-100" ]
             [ text ("\"" ++ model.lyricText ++ "\"") ]
 
         , -- Two-column row (image + short bio)
@@ -1074,8 +1074,8 @@ bioPanel model =
                 ]
             , div [ class "pt-4 md:pt-6 lg:pt-0 lg:w-3/5 text-white font-serif italic text-md leading-relaxed" ]
                 [ text shortBioText
-                , readMoreButton
                 ]
+            , readMoreButton
             ]
         ]
 
